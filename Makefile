@@ -10,6 +10,7 @@ start:
 	-docker rm etl
 	docker run --name etl \
 	           --restart always \
+	           --net=host \
        	       -d disk91/etl
 
 

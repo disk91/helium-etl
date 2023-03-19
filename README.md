@@ -6,6 +6,21 @@ hotposts health. It also moves data into a MongoDb Database for later research o
 The choice of MongoDB allows to create a scalable architecture with sharding and mirroring to avoid having
 too large single tenant DB as we have with postgresql.
 
+### Build
+- build prerequisites
+```
+apt-get install default-jdk
+```
+- edit `application.properties` file to add your S3 credentials
+- `make build`
+- `make start`
+
+### Create MongoDb index
+```
+db.getCollection('etl_beacons').createIndex( { "hotspotId": -1 } )
+db.getCollection('etl_beacons').createIndex( { "data": -1 } )
+```
+
 ### Re-Generate protobug 
 - Nova service GRPC proto can be found on - https://github.com/helium/proto/blob/master/src/service/iot_config.proto
 - Update data_rate.proto file
