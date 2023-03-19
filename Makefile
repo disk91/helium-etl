@@ -19,7 +19,7 @@ setup: .FORCE
 	$(DOCKER_CMD) exec shard-01-node-a sh -c "mongosh < /scripts/shard-01-server"
 	$(DOCKER_CMD) exec shard-02-node-a sh -c "mongosh < /scripts/shard-02-server"
 	$(DOCKER_CMD) exec shard-03-node-a sh -c "mongosh < /scripts/shard-03-server"
-	sleep 10
+	-sleep 10
 	$(DOCKER_CMD) exec mongo-router-01 sh -c "mongosh < /scripts/router-server"
 
 build: back

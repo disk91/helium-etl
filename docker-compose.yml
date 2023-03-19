@@ -16,7 +16,7 @@ services:
   mongo-router01:
     image: mongo:6.0.1
     container_name: mongo-router-01
-    command: mongos --port 27017 --configdb rs-config-server/configsvr01:27017,configsvr02:27017,configsvr03:27017 --bind_ip_all
+    command: mongos --port 27017 --configdb rs-config-server/mongo-configsvr01:27017,mongo-configsvr02:27017,mongo-configsvr02:27017 --bind_ip_all
     ports:
       - 27120:27017
     restart: always
@@ -29,7 +29,7 @@ services:
   mongo-router02:
     image: mongo:6.0.1
     container_name: mongo-router-02
-    command: mongos --port 27017 --configdb rs-config-server/configsvr01:27017,configsvr02:27017,configsvr03:27017 --bind_ip_all
+    command: mongos --port 27017 --configdb rs-config-server/mongo-configsvr01:27017,mongo-configsvr02:27017,mongo-configsvr02:27017 --bind_ip_all
     ports:
       - 27121:27017
     restart: always
