@@ -1,4 +1,4 @@
-DOCKER_COMP_CMD=docker-compose
+DOCKER_COMP_CMD=docker compose
 
 .FORCE:
 
@@ -9,6 +9,8 @@ setup: .FORCE
 	cp -R ./etl /
 	-sudo apt-get install default-jdk
 	-sudo apt-get install docker-compose
+	-sudo apt install gnupg2 pass
+	-gpg2 --full-generate-key
 	$(DOCKER_COMP_CMD) --profile mongo up -d
 
 build: back
