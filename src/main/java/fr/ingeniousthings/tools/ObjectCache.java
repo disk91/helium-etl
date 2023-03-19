@@ -169,29 +169,46 @@ public abstract class ObjectCache<K, T> {
     }
 
     /**
-     * Add an element into the cache if we still have some place in cache,
-     * call cache cleaner if not anyMore place
+     * Reward compatibility, add a new object in cache without forcing update
+     * as a default behavior
      * @param obj
      * @param key
      * @return
      */
     public boolean put(T obj, K key) {
+        return put(obj,key,false);
+    }
+
+
+    /**
+     * Add an element into the cache if we still have some place in cache,
+     * call cache cleaner if not anyMore place
+     * @param obj
+     * @param key
+     * @param forceUpdate - when true, a new object is marked at to updated
+     * @return
+     */
+    public boolean put(T obj, K key, boolean forceUpdate) {
         long start = Now.NanoTime();
         boolean ret = false;
         long now = Now.NowUtcMs();
         CachedObject<K,T> c = this.cache.get(key);
         if ( c != null ) {
             // no change, we just want to notice that an update inside the object has been made
-            if ( c == obj ) {
+            if ( c.getObj() == obj ) {
                 c.setUpdated(true);
                 c.setLastAccessTime(now);
                 ret = true;
             }
             // replace object if not updated in cache, otherwise we have a problem
-            if ( c != obj && !c.isUpdated() ) {
-                c.setObj(obj);
-                c.setLastAccessTime(now);
+            if ( c.getObj() != obj ) {
                 ret = true;
+                if ( c.isUpdated() ) {
+                    log.debug("Update an updated object with a different one");
+                }
+                c.setObj(obj);
+                c.setUpdated(forceUpdate);
+                c.setLastAccessTime(now);
             }
         } else {
             // new entry
@@ -202,7 +219,7 @@ public abstract class ObjectCache<K, T> {
             c.setObj(obj);
             c.setLastAccessTime(now);
             c.setScore(0);
-            c.setUpdated(false);
+            c.setUpdated(forceUpdate);
             c.setKey(key);
             if (expirationMs>0) {
                 c.setExpirationTime(now+expirationMs);
@@ -293,7 +310,7 @@ public abstract class ObjectCache<K, T> {
 
     // returns %age of cache usage
     public int cacheUsage() {
-        return ((100*this.cacheSize) / this.maxCacheSize);
+        return (int)Math.floor(((100*this.cacheSize) / this.maxCacheSize));
     }
 
     // Before clearing the cache, we want to sync the modifications
@@ -328,7 +345,7 @@ public abstract class ObjectCache<K, T> {
     // Some logs
     public void log() {
         log.info("---------- Cache log (" + this.name + ") -------------");
-        log.info("-- Size    " + Math.floor(100.0 * this.cacheSize / this.maxCacheSize) + "% "+ this.cacheSize + " / " + this.maxCacheSize);
+        log.info("-- Size    " + this.cacheUsage() + "% "+ this.cacheSize + " / " + this.maxCacheSize);
         log.info("-- Miss    " + ((totalCacheTry>0)?Math.floor(100.0 * this.cacheMissStat / this.totalCacheTry):"NA") + "% " + this.cacheMissStat + " / " + this.totalCacheTry);
         log.info("-- Avg Tm  " + ((totalCacheTry>0)?Math.floor(this.totalCacheTime / (double)this.totalCacheTry):"NA") + "ns average");
         if (this.lastGCMs > 0) {

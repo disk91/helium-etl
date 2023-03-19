@@ -61,7 +61,7 @@ public class HotspotCache {
             @Override
             public void onCacheRemoval(String key, Hotspot obj) {
                 Hotspot o = hotspotsRepository.save(obj);
-                if ( obj.getId() == null ) obj.setId(o.getId());
+                if ( obj.getId() == null || obj.getId().length() < 2 ) obj.setId(o.getId());
             }
         };
 
@@ -131,7 +131,9 @@ public class HotspotCache {
                 hs.setLastWitness(0);
                 hs.setVersion(1);
             }
-            if ( cache && hs != null ) heliumHotspotCache.put(hs,hotspotId);
+            if ( cache && hs != null ) {
+                heliumHotspotCache.put(hs,hotspotId,true);
+            }
         }
         return hs;
     }
