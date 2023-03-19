@@ -12,6 +12,7 @@ services:
 
   ## Router - get the traffic request
   mongo-all:
+    image: hello-world
     depends_on:
       - mongo-router01
       - mongo-router02
