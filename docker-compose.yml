@@ -60,9 +60,9 @@ services:
       - 27130:27017
     restart: always
     links:
-      - mongo-shard01
-      - mongo-shard02
-      - mongo-shard03
+      - mongo-shard01a
+      - mongo-shard02a
+      - mongo-shard03a
   mongo-configsvr02:
     image: mongo:6.0.1
     container_name: mongo-config-02
