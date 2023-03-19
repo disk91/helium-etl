@@ -6,9 +6,9 @@ back: .FORCE
 build: back
 
 install: back
-    cp -R ./etl /etl
-    -sudo apt-get install default-jdk
-    docker compose start mongo-all
+	cp -R ./etl /etl
+	-sudo apt-get install default-jdk
+	docker compose start mongo-all
 
 start:
 	-docker stop etl
