@@ -6,7 +6,7 @@ services:
     image: disk91/etl
     restart: unless-stopped
     depends_on:
-      - mongo
+      - mongo-all
     ports:
       - 8091:8091
 
