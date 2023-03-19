@@ -101,11 +101,11 @@ public class AwsService {
     private boolean readyToSync = false;
     private boolean syncInProgress = false;
 
-    @Scheduled(fixedDelay = Long.MAX_VALUE, initialDelay = 3_000)
+    @Scheduled(fixedDelay = Long.MAX_VALUE, initialDelay = 10_000)
     protected void InitialAwsSync() {
         if ( ! readyToSync ) return;
-
         this.runningJobs++;
+        log.info("Running AwsService Sync");
 
         synchronized (this) {
             this.syncInProgress = true;
@@ -143,7 +143,6 @@ public class AwsService {
                     //  iot_witness_ingest_report => witnesses
                     if ( ! object.getKey().contains(".gz") ) continue; // not a file
                     String fileName = object.getKey().split("/")[1];
-
                     log.debug("Processing : "+fileName);
 
                     final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
@@ -154,6 +153,8 @@ public class AwsService {
                         fileType = 1;
                     } else if ( fileName.startsWith("iot_witness_ingest_report") ) {
                         fileType = 2;
+                    } else {
+                        log.warn("Unknown type of file discovered "+fileName);
                     }
 
                     try {
@@ -175,17 +176,17 @@ public class AwsService {
                                             if ( ! hotspotCache.addBeacon(b) ) {
                                                 log.warn("beacon not processed "+b.getReceivedTimestamp());
                                             }
-                                            /*
+
                                             // filter to 11etKgw9Lb6FndJnU17pKQVtsgbPJRvzE8eHny4J5f78NFvEXUD
-                                            if ( b.getReport().getPubKey().size() > 0 ) {
-                                                String hs = HeliumHelper.pubAddressToName(b.getReport().getPubKey());
+                                            //if ( b.getReport().getPubKey().size() > 0 ) {
+                                            //    String hs = HeliumHelper.pubAddressToName(b.getReport().getPubKey());
                                                 //log.info(hs);
-                                                if (hs.compareTo("11etKgw9Lb6FndJnU17pKQVtsgbPJRvzE8eHny4J5f78NFvEXUD") == 0) {
+                                            //    if (hs.compareTo("11etKgw9Lb6FndJnU17pKQVtsgbPJRvzE8eHny4J5f78NFvEXUD") == 0) {
                                                     //12h6o6fakZRPu5x6YHHBgMWrWCmcvrdxyLV3z7rVRQq83Q3Zw37
-                                                    log.info("TS :" + b.getReceivedTimestamp() + " Pub: " + b.getReport().getPubKey() + " Pwr: " + b.getReport().getTxPower());
-                                                }
-                                            }
-                                            */
+                                            //        log.info("TS :" + b.getReceivedTimestamp() + " Pub: " + b.getReport().getPubKey() + " Pwr: " + b.getReport().getTxPower());
+                                            //    }
+                                            //}
+
                                             break;
                                         case 2: // witness
                                             totalWitness++;
@@ -194,18 +195,18 @@ public class AwsService {
                                                 log.warn("witness not processed "+w.getReceivedTimestamp());
                                             }
 
-                                            /*
+
                                             // filter to 11etKgw9Lb6FndJnU17pKQVtsgbPJRvzE8eHny4J5f78NFvEXUD
-                                            String hs = HeliumHelper.pubAddressToName(w.getReport().getPubKey());
+                                            //String hs = HeliumHelper.pubAddressToName(w.getReport().getPubKey());
 
-                                            if ( hs.startsWith("11etK") ) {
-                                                log.info("Found "+hs+" Search 11etKgw9Lb6FndJnU17pKQVtsgbPJRvzE8eHny4J5f78NFvEXUD");
-                                            }
+                                            //if ( hs.startsWith("11etK") ) {
+                                            //    log.info("Found "+hs+" Search 11etKgw9Lb6FndJnU17pKQVtsgbPJRvzE8eHny4J5f78NFvEXUD");
+                                            //}
 
-                                            if ( hs.compareTo("11etKgw9Lb6FndJnU17pKQVtsgbPJRvzE8eHny4J5f78NFvEXUD") == 0 ) {
-                                                log.info("TS :" + w.getReceivedTimestamp() + " Pub: " + hs + " Pwr: " + w.getReport().getSignal());
-                                            }
-                                            */
+                                            //if ( hs.compareTo("11etKgw9Lb6FndJnU17pKQVtsgbPJRvzE8eHny4J5f78NFvEXUD") == 0 ) {
+                                            //    log.info("TS :" + w.getReceivedTimestamp() + " Pub: " + hs + " Pwr: " + w.getReport().getSignal());
+                                            //}
+
                                             break;
 
                                         default:
@@ -225,9 +226,12 @@ public class AwsService {
                                 }
 
                             } catch ( Exception x ) {
-                                log.info(x.getMessage());
+                                log.error(x.getMessage());
+                                if ( serviceEnable == false ) return;
                                 x.printStackTrace();
                             }
+
+
                         }
                         bufferedInputStream.close();
                         stream.close();

@@ -26,6 +26,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.10.2'
+	implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.6.13'
+	implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
 
 	implementation group: 'com.amazonaws', name:'aws-java-sdk', version: '1.12.429'
 	implementation group: 'io.grpc', name: 'grpc-okhttp', version: '1.53.0'

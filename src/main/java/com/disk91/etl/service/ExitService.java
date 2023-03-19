@@ -5,12 +5,13 @@ import fr.ingeniousthings.tools.Now;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.Lifecycle;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 
 @Service
-public class ExitService {
+public class ExitService implements Lifecycle {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -22,7 +23,22 @@ public class ExitService {
     @Autowired
     AwsService awsService;
 
-    @PreDestroy
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void stop() {
+        this.onCallExit();
+    }
+
+    @Override
+    public boolean isRunning() {
+        return (!this.exiting);
+    }
+
+
     public void onCallExit() {
         if (this.exiting) return;
         this.exiting = true;
@@ -39,7 +55,7 @@ public class ExitService {
             services = 0;
             if ( ! awsService.hasStopped() ) services++;
             if ( (Now.NowUtcMs() - d) > 1000 ) {
-                log.error("Waiting for "+services+" services to stop");
+                log.error("Exiting ... Waiting for "+services+" services to stop");
                 d+=1000;
             }
             if ( (Now.NowUtcMs() - s) > 300_000 ) {
