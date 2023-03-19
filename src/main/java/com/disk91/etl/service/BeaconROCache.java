@@ -1,0 +1,122 @@
+package com.disk91.etl.service;
+
+import com.disk91.etl.EtlConfig;
+import com.disk91.etl.data.object.Beacon;
+import com.disk91.etl.data.object.Hotspot;
+import com.disk91.etl.data.object.Param;
+import com.disk91.etl.data.object.sub.BeaconHistory;
+import com.disk91.etl.data.object.sub.Witness;
+import com.disk91.etl.data.repository.BeaconsRepository;
+import com.disk91.etl.data.repository.HotspotsRepository;
+import fr.ingeniousthings.tools.HeliumHelper;
+import fr.ingeniousthings.tools.HexaConverters;
+import fr.ingeniousthings.tools.Now;
+import fr.ingeniousthings.tools.ObjectCache;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import xyz.nova.grpc.lora_beacon_ingest_report_v1;
+import xyz.nova.grpc.lora_witness_ingest_report_v1;
+
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class BeaconROCache {
+
+    // @TODO - we could have multiple beacon in cache with the same data
+    //         so we should add a timestamp in the 5 minute round before
+    //         to the key to avoid this risk of conflict
+
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private MeterRegistry registry;
+    public BeaconROCache(MeterRegistry registry) {
+        this.registry = registry;
+    }
+
+    protected int runningJobs;
+    protected boolean serviceEnable; // false to stop the services
+
+    private ObjectCache<String, Beacon> beaconCache;
+
+    @PostConstruct
+    private void initBeaconCacheService() {
+        this.beaconCache = new ObjectCache<String, Beacon>(
+                "BeaconCache",
+                100_000,
+                Now.ONE_HOUR
+        ) {
+            @Override
+            public void onCacheRemoval(String key, Beacon obj) {
+
+            }
+        };
+
+        Gauge.builder("etl.beacon.cache_total_time", this.beaconCache.getTotalCacheTime())
+                .description("total time beacon cache execution")
+                .register(registry);
+        Gauge.builder("etl.beacon.cache_total", this.beaconCache.getTotalCacheTry())
+                .description("total beacon cache try")
+                .register(registry);
+        Gauge.builder("etl.beacon.cache_miss", this.beaconCache.getCacheMissStat())
+                .description("total beacon cache miss")
+                .register(registry);
+
+        this.serviceEnable = true;
+    }
+
+    @Scheduled(fixedRateString = "${logging.cache.fixedrate}", initialDelay = 63_000)
+    protected void cacheStatus() {
+        if ( ! this.serviceEnable ) return;
+        this.runningJobs++;
+        try {
+            this.beaconCache.log();
+        } finally {
+            this.runningJobs--;
+        }
+    }
+
+    public void stopService() {
+        this.serviceEnable = false;
+    }
+    public boolean hasStopped() {
+        return (this.serviceEnable == false && this.runningJobs == 0);
+    }
+
+    @Autowired
+    protected BeaconsRepository beaconsRepository;
+
+    public Beacon getBeacon(String dataId, long closeTimestamp) {
+        Beacon b = beaconCache.get(dataId);
+        if ( b == null ) {
+            List<Beacon> bs = beaconsRepository.findBeaconByData(dataId);
+            if ( bs != null && bs.size() > 0 ) {
+                long tdist=1000_000_000_000L;
+                Beacon closest = null;
+                for ( Beacon _b : bs ) {
+                    if (  Math.abs(_b.getTimestamp() - closeTimestamp) < tdist ) {
+                        tdist = Math.abs(_b.getTimestamp() - closeTimestamp);
+                        closest = _b;
+                    }
+                }
+                if ( closest != null ) {
+                    beaconCache.put(closest, closest.getData());
+                    return closest;
+                }
+            }
+            log.warn("Can't find beacon");
+            return null;
+        }
+        return b;
+    }
+
+    public void addBeacon(Beacon b) {
+        this.beaconCache.put(b,b.getData());
+    }
+
+}
