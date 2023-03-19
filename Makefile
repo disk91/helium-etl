@@ -7,6 +7,7 @@ build: back
 
 install: back
     cp -R ./etl /etl
+    -sudo apt-get install default-jdk
     docker compose start mongo-all
 
 start:
