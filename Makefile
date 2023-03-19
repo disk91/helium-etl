@@ -1,3 +1,5 @@
+DOCKER_COMP_CMD=/usr/local/bin/docker-compose
+
 .FORCE:
 
 back: .FORCE
@@ -8,7 +10,7 @@ build: back
 install: back
 	cp -R ./etl /etl
 	-sudo apt-get install default-jdk
-	docker compose start mongo-all
+	$(DOCKER_COMP_CMD) start mongo-all
 
 start:
 	-docker stop etl
