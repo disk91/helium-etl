@@ -6,7 +6,7 @@ back: .FORCE
 	./gradlew build -x test && docker build -t disk91/etl .
 
 setup: .FORCE
-	cp -R ./etl /etl
+	cp -R ./etl /
 	-sudo apt-get install default-jdk
 	-sudo apt-get install docker-compose
 	$(DOCKER_COMP_CMD) start mongo-all
