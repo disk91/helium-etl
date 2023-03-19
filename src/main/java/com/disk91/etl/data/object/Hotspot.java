@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Sharded;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @CompoundIndexes({
         @CompoundIndex(name = "hotspotId", def = "{'hotspotId' : 1}")
 })
+@Sharded(shardKey = { "hotspotId" })
 public class Hotspot {
 
     @Id

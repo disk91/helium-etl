@@ -1,0 +1,187 @@
+version: "3"
+
+services:
+
+  etl:
+    image: disk91/etl
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - 8091:8091
+
+  ## Router - get the traffic request
+  mongo-all:
+    depends_on:
+      - mongo-router01
+      - mongo-router02
+      - mongo-configsvr01
+      - mongo-configsvr02
+      - mongo-configsvr03
+      - mongo-shard01a
+      - mongo-shard02a
+      - mongo-shard03a
+
+  mongo-router01:
+    image: mongo:6.0.1
+    container_name: mongo-router-01
+    command: mongos --port 27017 --configdb rs-config-server/configsvr01:27017,configsvr02:27017,configsvr03:27017 --bind_ip_all
+    ports:
+      - 27120:27017
+    restart: always
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/router-01:/data/db
+      - /etl/configuration/mongo/router-01:/data/configdb
+  mongo-router02:
+    image: mongo:6.0.1
+    container_name: mongo-router-02
+    command: mongos --port 27017 --configdb rs-config-server/configsvr01:27017,configsvr02:27017,configsvr03:27017 --bind_ip_all
+    ports:
+      - 27121:27017
+    restart: always
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/router-02:/data/db
+      - /etl/configuration/mongo/router-02:/data/configdb
+    links:
+      - mongo-router01
+
+  ## Config Servers - know the cluster configuration
+  mongo-configsvr01:
+    image: mongo:6.0.1
+    container_name: mongo-config-01
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/config-01:/data/db
+      - /etl/configuration/mongo/config-01:/data/configdb
+    ports:
+      - 27130:27017
+    restart: always
+    links:
+      - mongo-shard01
+      - mongo-shard02
+      - mongo-shard03
+  mongo-configsvr02:
+    image: mongo:6.0.1
+    container_name: mongo-config-02
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/config-02:/data/db
+      - /etl/configuration/mongo/config-02:/data/configdb
+    ports:
+      - 27131:27017
+    restart: always
+    links:
+      - mongo-configsvr01
+  mong-configsvr03:
+    image: mongo:6.0.1
+    container_name: mongo-config-03
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/config-03:/data/db
+      - /etl/configuration/mongo/config-03:/data/configdb
+    ports:
+      - 27132:27017
+    restart: always
+    links:
+      - mongo-configsvr02
+
+  ## Shards
+  mongo-shard01a:
+    image: mongo:6.0.1
+    container_name: shard-01-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/shard-01a:/data/db
+      - /etl/configuration/mongo/shard-01a:/data/configdb
+    ports:
+      - 27140:27017
+    restart: always
+
+  mongo-shard02a:
+    image: mongo:6.0.1
+    container_name: shard-02-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-02
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/shard-02a:/data/db
+      - /etl/configuration/mongo/shard-02a:/data/configdb
+    ports:
+      - 27141:27017
+    restart: always
+
+  mongo-shard03a:
+    image: mongo:6.0.1
+    container_name: shard-03-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-03
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/shard-03a:/data/db
+      - /etl/configuration/mongo/shard-03a:/data/configdb
+    ports:
+      - 27142:27017
+    restart: always
+
+  prometheus:
+    image: prom/prometheus
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - /etl/configuration/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /etl/prometheus:/prometheus
+  node_exporter:
+    image: prom/node-exporter:latest
+    command:
+      - '--path.rootfs=/host'
+      - "--collector.filesystem"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+      - "--collector.netstat"
+      - "--collector.meminfo"
+      - "--collector.cpu"
+      - "--collector.loadavg"
+      - "--collector.systemd"
+      - "--collector.processes"
+      - "--collector.ethtool"
+      - "--collector.interrupts"
+      - "--collector.tcpstat"
+    network_mode: host
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /cgroup:/cgroup:ro
+    command:
+      - '-port=8093'
+    restart: unless-stopped
+    network_mode: host
+
+  grafana:
+    image: grafana/grafana-oss
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - /etl/grafana:/var/lib/grafana
+      - /etl/configuration/grafana:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_HTTP_PORT=8092
+    depends_on:
+      - prometheus
