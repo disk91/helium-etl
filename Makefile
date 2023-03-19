@@ -9,7 +9,7 @@ setup: .FORCE
 	cp -R ./etl /
 	-sudo apt-get install default-jdk
 	-sudo apt-get install docker-compose
-	$(DOCKER_COMP_CMD) start mongo-all
+	$(DOCKER_COMP_CMD) --profile mongo up -d
 
 build: back
 

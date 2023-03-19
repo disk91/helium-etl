@@ -9,20 +9,10 @@ services:
       - mongo-all
     ports:
       - 8091:8091
+    profiles:
+      - etl
 
   ## Router - get the traffic request
-  mongo-all:
-    image: hello-world
-    depends_on:
-      - mongo-router01
-      - mongo-router02
-      - mongo-configsvr01
-      - mongo-configsvr02
-      - mongo-configsvr03
-      - mongo-shard01a
-      - mongo-shard02a
-      - mongo-shard03a
-
   mongo-router01:
     image: mongo:6.0.1
     container_name: mongo-router-01
@@ -34,6 +24,8 @@ services:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/router-01:/data/db
       - /etl/configuration/mongo/router-01:/data/configdb
+    profiles:
+      - mongo
   mongo-router02:
     image: mongo:6.0.1
     container_name: mongo-router-02
@@ -47,6 +39,8 @@ services:
       - /etl/configuration/mongo/router-02:/data/configdb
     links:
       - mongo-router01
+    profiles:
+      - mongo
 
   ## Config Servers - know the cluster configuration
   mongo-configsvr01:
@@ -64,6 +58,9 @@ services:
       - mongo-shard01a
       - mongo-shard02a
       - mongo-shard03a
+    profiles:
+      - mongo
+
   mongo-configsvr02:
     image: mongo:6.0.1
     container_name: mongo-config-02
@@ -77,7 +74,10 @@ services:
     restart: always
     links:
       - mongo-configsvr01
-  mong-configsvr03:
+    profiles:
+      - mongo
+
+  mongo-configsvr03:
     image: mongo:6.0.1
     container_name: mongo-config-03
     command: mongod --port 27017 --configsvr --replSet rs-config-server
@@ -90,6 +90,8 @@ services:
     restart: always
     links:
       - mongo-configsvr02
+    profiles:
+      - mongo
 
   ## Shards
   mongo-shard01a:
@@ -103,6 +105,8 @@ services:
     ports:
       - 27140:27017
     restart: always
+    profiles:
+      - mongo
 
   mongo-shard02a:
     image: mongo:6.0.1
@@ -115,6 +119,8 @@ services:
     ports:
       - 27141:27017
     restart: always
+    profiles:
+      - mongo
 
   mongo-shard03a:
     image: mongo:6.0.1
@@ -127,6 +133,8 @@ services:
     ports:
       - 27142:27017
     restart: always
+    profiles:
+      - mongo
 
   prometheus:
     image: prom/prometheus
@@ -135,6 +143,9 @@ services:
     volumes:
       - /etl/configuration/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - /etl/prometheus:/prometheus
+    profiles:
+      - monitoring
+
   node_exporter:
     image: prom/node-exporter:latest
     command:
@@ -155,6 +166,8 @@ services:
     restart: unless-stopped
     volumes:
       - '/:/host:ro,rslave'
+    profiles:
+      - monitoring
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -171,6 +184,8 @@ services:
       - '-port=8093'
     restart: unless-stopped
     network_mode: host
+    profiles:
+      - monitoring
 
   grafana:
     image: grafana/grafana-oss
@@ -186,3 +201,5 @@ services:
       - GF_SERVER_HTTP_PORT=8092
     depends_on:
       - prometheus
+    profiles:
+      - monitoring
