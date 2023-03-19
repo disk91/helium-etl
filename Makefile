@@ -22,6 +22,13 @@ setup: .FORCE
 	-sleep 10
 	$(DOCKER_CMD) exec mongo-router-01 sh -c "mongosh < /scripts/router-server"
 
+clear-setup: .FORCE
+	echo "Are you sure, this will delete all mongodb data ?"
+	read
+	$(DOCKER_COMP_CMD) --profile mongo stop
+	rm -rf /etl/mongo
+	rm -rf /etl/configuration/mongo
+
 build: back
 
 install: back setup
