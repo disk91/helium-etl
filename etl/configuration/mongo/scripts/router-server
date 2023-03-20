@@ -1,5 +1,5 @@
 use helium-etl
-sh.enableSharding("helium-etl")
 sh.addShard("rs-shard-01/mongo-shard01a:27017")
 sh.addShard("rs-shard-02/mongo-shard02a:27017")
 sh.addShard("rs-shard-03/mongo-shard03a:27017")
+sh.enableSharding("helium-etl")
