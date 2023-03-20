@@ -4,7 +4,6 @@ package com.disk91.etl.data.object;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Sharded;
 import org.springframework.data.mongodb.core.mapping.ShardingStrategy;
@@ -38,7 +37,6 @@ public class Witness {
 
     private String beaconId; // link to beacon
 
-    @Indexed
     private String hotspotId;
 
     // Hex string of the data to find link beacon & witnesses

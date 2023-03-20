@@ -6,7 +6,6 @@ import com.disk91.etl.data.object.sub.WitnessHistory;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Sharded;
 import org.springframework.data.mongodb.core.mapping.ShardingStrategy;
@@ -23,7 +22,6 @@ public class Hotspot {
     @Id
     private String id;
 
-    @Indexed
     private String hotspotId;
 
     private int version;
