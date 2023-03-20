@@ -14,9 +14,10 @@ import java.util.List;
 
 @Document(collection = "etl_hotspots")
 @CompoundIndexes({
-        @CompoundIndex(name = "hotspotId", def = "{'hotspotId' : 'hashed'}")
+        @CompoundIndex(name = "hotspotId", def = "{'hotspotId' : 'hashed'}"),
+        @CompoundIndex(name = "hotspotId_Id", def = "{'hotspotId' : 'hashed', 'id' : 'hashed'}")
 })
-@Sharded(shardKey = { "hotspotId" }, shardingStrategy = ShardingStrategy.HASH)
+@Sharded(shardKey = { "hotspotId", "id" }, shardingStrategy = ShardingStrategy.HASH)
 public class Hotspot {
 
     @Id

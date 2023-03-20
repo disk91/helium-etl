@@ -10,9 +10,10 @@ import org.springframework.data.mongodb.core.mapping.ShardingStrategy;
 
 @Document(collection = "etl_witnesses")
 @CompoundIndexes({
-        @CompoundIndex(name = "hotspotId", def = "{'hotspotId' : 'hashed'}")
+        @CompoundIndex(name = "hotspotId", def = "{'hotspotId' : 'hashed'}"),
+        @CompoundIndex(name = "hotspotId_Id", def = "{'hotspotId' : 'hashed', 'id' : 'hashed'}")
 })
-@Sharded(shardKey = { "hotspotId" }, shardingStrategy = ShardingStrategy.HASH)
+@Sharded(shardKey = { "hotspotId", "id" }, shardingStrategy = ShardingStrategy.HASH)
 public class Witness {
 
     /*
