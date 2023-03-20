@@ -26,6 +26,7 @@ setup: .FORCE
 	$(DOCKER_CMD) exec mongo-router-01 sh -c "mongosh < /scripts/router-server"
 	-sleep 5
 	$(DOCKER_CMD) exec mongo-router-01 sh -c "mongosh < /scripts/create-db"
+	-sleep 10
 	$(DOCKER_COMP_CMD) --profile mongo stop
 
 clear-setup: stop
