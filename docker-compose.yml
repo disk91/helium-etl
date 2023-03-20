@@ -4,9 +4,11 @@ services:
 
   etl:
     image: disk91/etl
+    container_name: etl
     restart: unless-stopped
     depends_on:
       - mongo-router01
+      - mongo-router02
     environment:
       - AWS_ACCESS_KEY=
       - AWS_SECRET_KET=
@@ -14,6 +16,9 @@ services:
       - 127.0.0.1:8091:8091
     profiles:
       - etl
+    links:
+      - mongo-router01
+      - mongo-router02
 
   ## Router - get the traffic request
   mongo-router01:
@@ -129,6 +134,7 @@ services:
 
   prometheus:
     image: prom/prometheus
+    container_name: etl-prometheus
     network_mode: host
     restart: unless-stopped
     volumes:
@@ -139,6 +145,7 @@ services:
 
   node_exporter:
     image: prom/node-exporter:latest
+    container_name: etl-node-exp
     command:
       - '--path.rootfs=/host'
       - "--collector.filesystem"
@@ -162,6 +169,7 @@ services:
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
+    container_name: etl-cadvisor
     privileged: true
     devices:
       - /dev/kmsg:/dev/kmsg
@@ -180,6 +188,7 @@ services:
 
   grafana:
     image: grafana/grafana-oss
+    container_name: etl-grafana
     network_mode: host
     restart: unless-stopped
     volumes:
