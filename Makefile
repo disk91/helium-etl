@@ -23,6 +23,7 @@ setup: .FORCE
 	$(DOCKER_CMD) exec mongo-router-01 sh -c "mongosh < /scripts/router-server"
 	-sleep 5
 	$(DOCKER_CMD) exec mongo-router-01 sh -c "mongosh < /scripts/create-db"
+	$(DOCKER_COMP_CMD) --profile mongo stop
 
 clear-setup: .FORCE
 	echo "Are you sure, this will delete all mongodb data ?"
@@ -36,11 +37,6 @@ build: back
 install: back setup
 
 start:
-	-docker stop etl
-	-docker rm etl
-	docker run --name etl \
-	           --restart always \
-	           --net=host \
-       	       -d disk91/etl
+	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring up -d
 
 
