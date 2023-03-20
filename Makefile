@@ -27,7 +27,7 @@ setup: .FORCE
 	$(DOCKER_CMD) exec mongo-router-01 sh -c "mongosh < /scripts/create-db"
 	$(DOCKER_COMP_CMD) --profile mongo stop
 
-clear-setup: .FORCE
+clear-setup: stop
 	echo "Are you sure, this will delete all mongodb data ?"
 	read response
 	$(DOCKER_COMP_CMD) --profile mongo stop
