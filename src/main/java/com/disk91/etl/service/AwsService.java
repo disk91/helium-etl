@@ -9,6 +9,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
+import com.disk91.etl.EtlApplication;
 import com.disk91.etl.EtlConfig;
 import com.disk91.etl.data.object.Param;
 import com.disk91.etl.data.repository.ParamRepository;
@@ -45,6 +46,13 @@ public class AwsService {
 
     @PostConstruct
     private void initAwsService() {
+
+        if ( etlConfig.getAwsAccessKey().length() < 2 || etlConfig.getAwsSecretKey().length() < 2) {
+            log.error("========= CONFIG ERROR ========");
+            log.error(">> You need to setup your AWS credentials");
+            EtlApplication.requestingExitForStartupFailure = true;
+            return;
+        }
 
         this.awsCredentials = new BasicAWSCredentials(
                 etlConfig.getAwsAccessKey(),

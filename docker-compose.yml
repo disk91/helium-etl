@@ -7,6 +7,9 @@ services:
     restart: unless-stopped
     depends_on:
       - mongo-router01
+    environment:
+      - AWS_ACCESS_KEY=
+      - AWS_SECRET_KET=
     ports:
       - 127.0.0.1:8091:8091
     profiles:
