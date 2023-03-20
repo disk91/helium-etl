@@ -39,4 +39,8 @@ install: back setup
 start:
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring up -d
 
+stop:
+	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring stop
+
+
 

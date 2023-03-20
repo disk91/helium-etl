@@ -34,6 +34,11 @@ services:
       - /etl/configuration/mongo/router-01:/data/configdb
     profiles:
       - mongo
+    depends_on:
+      - mongo-shard01a
+      - mongo-shard02a
+      - mongo-shard03a
+
   mongo-router02:
     image: mongo:6.0.1
     container_name: mongo-router-02
@@ -49,6 +54,10 @@ services:
       - mongo-router01
     profiles:
       - mongo
+    depends_on:
+      - mongo-shard01a
+      - mongo-shard02a
+      - mongo-shard03a
 
   ## Config Servers - know the cluster configuration
   mongo-configsvr01:
@@ -107,6 +116,10 @@ services:
     restart: always
     profiles:
       - mongo
+    depends_on:
+      - mongo-configsvr01
+      - mongo-configsvr02
+      - mongo-configsvr03
 
   mongo-shard02a:
     image: mongo:6.0.1
@@ -119,6 +132,10 @@ services:
     restart: always
     profiles:
       - mongo
+    depends_on:
+      - mongo-configsvr01
+      - mongo-configsvr02
+      - mongo-configsvr03
 
   mongo-shard03a:
     image: mongo:6.0.1
@@ -131,6 +148,10 @@ services:
     restart: always
     profiles:
       - mongo
+    depends_on:
+      - mongo-configsvr01
+      - mongo-configsvr02
+      - mongo-configsvr03
 
   prometheus:
     image: prom/prometheus
