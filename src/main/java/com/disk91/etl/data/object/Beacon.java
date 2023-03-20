@@ -7,13 +7,14 @@ import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Sharded;
+import org.springframework.data.mongodb.core.mapping.ShardingStrategy;
 
 @Document(collection = "etl_beacons")
 @CompoundIndexes({
-        @CompoundIndex(name = "hotspotId", def = "{'hotspotId' : 1}"),
+        @CompoundIndex(name = "hotspotId", def = "{'hotspotId' : 'hashed'}"),
         @CompoundIndex(name = "data", def = "{'data' : 1}")
 })
-@Sharded(shardKey = { "hotspotId" })
+@Sharded(shardKey = { "hotspotId" }, shardingStrategy = ShardingStrategy.HASH)
 public class Beacon {
 
     /*

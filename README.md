@@ -73,3 +73,6 @@ import "data_rate.proto";
 ./protoc/bin/protoc --java_out=./myHeliumProto/proto/out --proto_path=./myHeliumProto/proto/src/ data_rate.proto
 ./protoc/bin/protoc --java_out=./myHeliumProto/proto/out --proto_path=./myHeliumProto/proto/src/ service/poc_lora.proto
 ```
+
+### Mongo clustering
+- largely inspired from https://github.com/minhhungit/mongodb-cluster-docker-compose
