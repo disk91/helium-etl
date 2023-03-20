@@ -176,7 +176,7 @@ public class HotspotCache {
 
         long oldest = Now.NowUtcMs();
         boolean updated = false;
-        for (BeaconHistory bh :  h.getBeaconHistory()) {
+        for (BeaconHistory bh : h.getBeaconHistory()) {
             if ( bh.getTimeRef() == hRef ) {
                 // update
                 bh.setCountBeacon(bh.getCountBeacon()+1);
@@ -202,6 +202,7 @@ public class HotspotCache {
                 }
                 h.setBeaconHistory(nl);
             }
+            h.getBeaconHistory().add(bh);
         }
         // mark as updated
         this.updateHotspot(h);
@@ -302,6 +303,7 @@ public class HotspotCache {
                 }
                 h.setWitnessesHistory(nl);
             }
+            h.getWitnessesHistory().add(wh);
         }
         // mark as updated
         this.updateHotspot(h);
