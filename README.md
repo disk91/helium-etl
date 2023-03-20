@@ -6,14 +6,37 @@ hotposts health. It also moves data into a MongoDb Database for later research o
 The choice of MongoDB allows to create a scalable architecture with sharding and mirroring to avoid having
 too large single tenant DB as we have with postgresql.
 
-### Build
-- build prerequisites
+### Install
+- **setup AWS S3 credentials** in `docker-compose.yml`
+```yaml
+  environment:
+    - AWS_ACCESS_KEY=
+    - AWS_SECRET_KEY=
 ```
-apt-get install default-jdk
+AWS credential are needed to retrieve data from helium repository, these data are
+accessible with *requester_pays* mode. It means you pay for any S3 action made on the
+repository. Your credentials are created with IAM AWS tool and need to have `AmazonS3ReadOnlyAccess` role.
+
+- **create the environment**
+```agsl
+make setup
 ```
-- edit `application.properties` file to add your S3 credentials
-- `make build`
-- `make start`
+This is creating the Mongo cluster with 3 shards, 3 config service and 2 routers.
+All the configuration files are located in /etl. You can pre-make the /etl directory to
+point where you want. The purpose is to move the different shards on different ssd to improve
+the performance. 
+
+You can eventually move the data on different SSD after this setup by remapping the
+directories on different drives.
+
+- **start etl**
+```
+make start
+```
+This is starting every thing, including Mongo, the monitoring suite, the etl software.
+If later you need to stop the etl, it's important to let it time to terminate data loading properly.
+For this, use the following command `make stop-etl`. If you need to stop everything, you
+can use `make stop`.
 
 ### Create MongoDb index
 ```

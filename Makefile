@@ -10,7 +10,8 @@ back: .FORCE
 # this is related to docker login
 # run gpg2 --full-generate-key
 setup: .FORCE
-	cp -R ./etl /
+	-mkdir /etl
+	cp -R ./etl/* /etl/
 	chown nobody:nogroup /etl/prometheus
 	chown 472:root /etl/grafana
 	-sudo apt-get install default-jdk
@@ -41,7 +42,7 @@ start:
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring up -d
 
 stop-etl: .FORCE
-	$(DOCKER_CMD) stop -t 90 etl
+	$(DOCKER_CMD) stop -t 300 etl
 
 stop: stop-etl
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring stop
