@@ -1,2 +1,0 @@
-db.createCollection("helium-etl")
-sh.enableSharding("helium-etl")
