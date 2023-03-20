@@ -19,7 +19,7 @@ repository. Your credentials are created with IAM AWS tool and need to have `Ama
 
 - **create the environment**
 ```agsl
-make setup
+make install
 ```
 This is creating the Mongo cluster with 3 shards, 3 config service and 2 routers.
 All the configuration files are located in /etl. You can pre-make the /etl directory to
@@ -38,13 +38,12 @@ If later you need to stop the etl, it's important to let it time to terminate da
 For this, use the following command `make stop-etl`. If you need to stop everything, you
 can use `make stop`.
 
-### Create MongoDb index
-```
-db.getCollection('etl_beacons').createIndex( { "hotspotId": -1 } )
-db.getCollection('etl_beacons').createIndex( { "data": -1 } )
-```
+
+## Developpers
+This is only for developper who want to work on the etl solution
 
 ### Re-Generate protobug 
+
 - Nova service GRPC proto can be found on - https://github.com/helium/proto/blob/master/src/service/iot_config.proto
 - Update data_rate.proto file
 ```agsl
@@ -67,7 +66,6 @@ option java_multiple_files = true;
 
 import "data_rate.proto";
 ```
-
 
 - Protoc - https://github.com/protocolbuffers/protobuf
 - Command lines
