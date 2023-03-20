@@ -11,7 +11,7 @@ services:
       - mongo-router02
     environment:
       - AWS_ACCESS_KEY=
-      - AWS_SECRET_KET=
+      - AWS_SECRET_KEY=
     ports:
       - 127.0.0.1:8091:8091
     profiles:
@@ -35,9 +35,9 @@ services:
     profiles:
       - mongo
     depends_on:
-      - mongo-shard01a
-      - mongo-shard02a
-      - mongo-shard03a
+      - mongo-configsvr01
+      - mongo-configsvr02
+      - mongo-configsvr03
 
   mongo-router02:
     image: mongo:6.0.1
@@ -55,9 +55,9 @@ services:
     profiles:
       - mongo
     depends_on:
-      - mongo-shard01a
-      - mongo-shard02a
-      - mongo-shard03a
+      - mongo-configsvr01
+      - mongo-configsvr02
+      - mongo-configsvr03
 
   ## Config Servers - know the cluster configuration
   mongo-configsvr01:
@@ -116,10 +116,6 @@ services:
     restart: always
     profiles:
       - mongo
-    depends_on:
-      - mongo-configsvr01
-      - mongo-configsvr02
-      - mongo-configsvr03
 
   mongo-shard02a:
     image: mongo:6.0.1
@@ -132,10 +128,6 @@ services:
     restart: always
     profiles:
       - mongo
-    depends_on:
-      - mongo-configsvr01
-      - mongo-configsvr02
-      - mongo-configsvr03
 
   mongo-shard03a:
     image: mongo:6.0.1
@@ -148,10 +140,6 @@ services:
     restart: always
     profiles:
       - mongo
-    depends_on:
-      - mongo-configsvr01
-      - mongo-configsvr02
-      - mongo-configsvr03
 
   prometheus:
     image: prom/prometheus
