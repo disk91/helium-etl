@@ -51,8 +51,6 @@ services:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/config-01:/data/db
       - /etl/configuration/mongo/config-01:/data/configdb
-    ports:
-      - 27130:27017
     restart: always
     links:
       - mongo-shard01a
@@ -69,8 +67,6 @@ services:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/config-02:/data/db
       - /etl/configuration/mongo/config-02:/data/configdb
-    ports:
-      - 27131:27017
     restart: always
     links:
       - mongo-configsvr01
@@ -85,8 +81,6 @@ services:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/config-03:/data/db
       - /etl/configuration/mongo/config-03:/data/configdb
-    ports:
-      - 27132:27017
     restart: always
     links:
       - mongo-configsvr02
@@ -102,8 +96,6 @@ services:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-01a:/data/db
       - /etl/configuration/mongo/shard-01a:/data/configdb
-    ports:
-      - 27140:27017
     restart: always
     profiles:
       - mongo
@@ -116,8 +108,6 @@ services:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-02a:/data/db
       - /etl/configuration/mongo/shard-02a:/data/configdb
-    ports:
-      - 27141:27017
     restart: always
     profiles:
       - mongo
@@ -130,8 +120,6 @@ services:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-03a:/data/db
       - /etl/configuration/mongo/shard-03a:/data/configdb
-    ports:
-      - 27142:27017
     restart: always
     profiles:
       - mongo
