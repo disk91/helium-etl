@@ -11,6 +11,8 @@ back: .FORCE
 # run gpg2 --full-generate-key
 setup: .FORCE
 	cp -R ./etl /
+	chown nobody:nogroup /etl/prometheus
+	chown 472:root /etl/grafana
 	-sudo apt-get install default-jdk
 	-sudo apt-get install docker-compose
 	-sudo apt install gnupg2 pass
@@ -39,7 +41,10 @@ install: back setup
 start:
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring up -d
 
-stop:
+stop-etl: .FORCE
+	$(DOCKER_CMD) stop -t 90 etl
+
+stop: stop-etl
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring stop
 
 
