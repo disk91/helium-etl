@@ -30,7 +30,6 @@ setup: .FORCE
 clear-setup: stop
 	echo "Are you sure, this will delete all mongodb data ?"
 	read response
-	$(DOCKER_COMP_CMD) --profile mongo stop
 	rm -rf /etl/mongo
 	rm -rf /etl/configuration/mongo
 
