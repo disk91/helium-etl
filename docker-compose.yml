@@ -2,13 +2,21 @@ version: "3"
 
 services:
 
+  sleep:
+    image: disk91/sleep
+    container_name: tmp_sleep
+    restart: none
+
   etl:
     image: disk91/etl
     container_name: etl
     restart: unless-stopped
+    stop_grace_period: 5m
     depends_on:
-      - mongo-router01
-      - mongo-router02
+      - mongo-router01:
+          condition: service_healthy
+      - mongo-router02:
+          condition: service_healthy
     environment:
       - AWS_ACCESS_KEY=
       - AWS_SECRET_KEY=
@@ -25,6 +33,8 @@ services:
     image: mongo:6.0.1
     container_name: mongo-router-01
     command: mongos --port 27017 --configdb rs-config-server/mongo-configsvr01:27017,mongo-configsvr02:27017,mongo-configsvr03:27017 --bind_ip_all
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
     ports:
       - 127.0.0.1:27120:27017
     restart: always
@@ -43,6 +53,8 @@ services:
     image: mongo:6.0.1
     container_name: mongo-router-02
     command: mongos --port 27017 --configdb rs-config-server/mongo-configsvr01:27017,mongo-configsvr02:27017,mongo-configsvr03:27017 --bind_ip_all
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
     ports:
       - 127.0.0.1:27121:27017
     restart: always
