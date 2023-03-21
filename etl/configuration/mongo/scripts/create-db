@@ -1,0 +1,4 @@
+# Manage inside Java
+db.adminCommand( { shardCollection: "helium-etl.etl_beacons", key: {hotspotId : 1, id : 1} } )
+db.adminCommand( { shardCollection: "helium-etl.etl_hotspots", key: {hotspotId : 1, id : 1} } )
+db.adminCommand( { shardCollection: "helium-etl.etl_witnesses", key: {hotspotId : 1, id : 1} } )
