@@ -2,21 +2,16 @@ version: "3"
 
 services:
 
-  sleep:
-    image: disk91/sleep
-    container_name: tmp_sleep
-    restart: none
-
   etl:
     image: disk91/etl
     container_name: etl
     restart: unless-stopped
     stop_grace_period: 5m
     depends_on:
-      - mongo-router01:
-          condition: service_healthy
-      - mongo-router02:
-          condition: service_healthy
+      mongo-router01:
+        condition: service_healthy
+      mongo-router02:
+        condition: service_healthy
     environment:
       - AWS_ACCESS_KEY=
       - AWS_SECRET_KEY=
