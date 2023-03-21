@@ -1,7 +1,7 @@
 ### Helium Off-chain Poc extractor
 
 This project aim to extract the data coming from off-PoC helium foundation and build information about
-hotposts health. It also moves data into a MongoDb Database for later research on it.
+hotspots health. It also moves data into a MongoDb Database for later research on it.
 
 The choice of MongoDB allows to create a scalable architecture with sharding and mirroring to avoid having
 too large single tenant DB as we have with postgresql.
@@ -44,10 +44,10 @@ For this, use the following command `make stop-etl`. If you need to stop everyth
 can use `make stop`.
 
 
-## Developpers
-This is only for developper who want to work on the etl solution
+## Developers
+This is only for developers who want to work on the etl solution
 
-### Re-Generate protobug 
+### Re-Generate protobuf
 
 - Nova service GRPC proto can be found on - https://github.com/helium/proto/blob/master/src/service/iot_config.proto
 - Update data_rate.proto file
