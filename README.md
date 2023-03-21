@@ -7,6 +7,11 @@ The choice of MongoDB allows to create a scalable architecture with sharding and
 too large single tenant DB as we have with postgresql.
 
 ### Install
+Tested on Ubuntu 22.04LTS
+- [Install Docker](https://docs.docker.com/engine/install/ubuntu/)
+- Install make `sudo apt-get install make`
+- Clone this repo locally
+
 - **setup AWS S3 credentials** in `docker-compose.yml`
 ```yaml
   environment:

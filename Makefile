@@ -37,7 +37,7 @@ clear-setup: stop
 
 build: back
 
-install: back setup
+install: setup back
 
 start:
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring up -d
