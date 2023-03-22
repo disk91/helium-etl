@@ -147,6 +147,7 @@ public class AwsService {
                     totalObject++;
                     totalSize+=object.getSize();
                     if ( object.getSize() == 0 ) continue;
+                    long fileStart = Now.NowUtcMs();
 
                     // Identify the type of objects
                     //  iot_beacon_ingest_report => beacons
@@ -174,7 +175,6 @@ public class AwsService {
                         GZIPInputStream stream = new GZIPInputStream(fileObject.getObjectContent());
                         BufferedInputStream bufferedInputStream = new BufferedInputStream(stream);
                         while ( bufferedInputStream.available() > 0 ) {
-                            long fileStart = Now.NowUtcMs();
                             try {
                                 byte[] sz = bufferedInputStream.readNBytes(4);
                                 long len = Stuff.getLongValueFromBytes(sz);
@@ -235,13 +235,12 @@ public class AwsService {
                                     log.info("Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tBeacon: " + totalBeacon + " tWitness: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
                                     lastLog = Now.NowUtcMs();
                                 }
-
-                                prometeusService.addFileProcessed();
-                                prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
-                            } catch ( EOFException x ) {
+                            } catch ( IOException x ) {
+                                // in case of IOException Better skip the file
                                 prometeusService.addAwsFailure();
                                 log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
                                 if ( serviceEnable == false ) return;
+                                else break;
                             } catch ( Exception x ) {
                                 log.error(x.getMessage());
                                 if ( serviceEnable == false ) return;
@@ -251,6 +250,8 @@ public class AwsService {
                         }
                         bufferedInputStream.close();
                         stream.close();
+                        prometeusService.addFileProcessed();
+                        prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
 
                     } catch (IOException x) {
                         prometeusService.addAwsFailure();
