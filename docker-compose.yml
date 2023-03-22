@@ -192,16 +192,24 @@ services:
       - monitoring
 
   mongo_exporter:
-    image: percona/mongodb_exporter
+    image: percona/mongodb_exporter:2.36
     container_name: etl-mongo-exporter
     restart: unless-stopped
+    command:
+      - "--discovering-mode"
+      - "--collector.diagnosticdata"
+      - "--collector.replicasetstatus"
+      - "--collector.dbstats"
+      - "--collector.topmetrics"
+      - "--collector.indexstats"
+      - "--collector.collstats"
+      - "--compatible-mode"
     ports:
       - 8094:9216
     environment:
       - MONGODB_URI=mongodb://mongo-router01:27017
-    depends_on:
-      mongo-router01:
-        condition: service_healthy
+    profiles:
+      - monitoring
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
