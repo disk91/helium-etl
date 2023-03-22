@@ -207,7 +207,7 @@ services:
     ports:
       - 8094:9216
     environment:
-      - MONGODB_URI=mongodb://mongo-router01:27017
+      - MONGODB_URI=mongodb://mongo-shard01a:27017
     profiles:
       - monitoring
 
