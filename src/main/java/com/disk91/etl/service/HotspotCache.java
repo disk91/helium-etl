@@ -142,7 +142,7 @@ public class HotspotCache {
     public void updateHotspot(Hotspot o) {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
-        if ( modifications > 1000 ) {
+        if ( modifications > 10000 ) {
             heliumHotspotCache.commit();
             modifications = 0;
         }
@@ -151,6 +151,8 @@ public class HotspotCache {
     // ---------------------------
     // Manage how we update the data into the hotspot elements
 
+    @Autowired
+    protected PrometeusService prometeusService;
 
     @Autowired
     private EtlConfig etlConfig;
@@ -168,6 +170,8 @@ public class HotspotCache {
             //log.info("TopLine is"+beaconTopLine.getLongValue());
             return false;
         }
+
+        long start = Now.NowUtcMs();
 
         String hsId = HeliumHelper.pubAddressToName(b.getReport().getPubKey());
         Hotspot h = this.getHotspot(hsId,true);
@@ -225,6 +229,10 @@ public class HotspotCache {
         if ( b.getReceivedTimestamp() > this.beaconTopTs ) {
             this.beaconTopTs = b.getReceivedTimestamp();
         }
+
+        prometeusService.addBeaconProcessed();
+        prometeusService.addBeaconProcessedTime(Now.NowUtcMs()-start);
+
         return true;
     }
 
@@ -235,6 +243,8 @@ public class HotspotCache {
 
         // already process
         if ( w.getReceivedTimestamp() < witnessTopLine.getLongValue() ) return false;
+
+        long start = Now.NowUtcMs();
 
         String hsId = HeliumHelper.pubAddressToName(w.getReport().getPubKey());
         Hotspot h = this.getHotspot(hsId,true);
@@ -325,6 +335,9 @@ public class HotspotCache {
         if ( w.getReceivedTimestamp() > this.witnessTopTs ) {
             this.witnessTopTs = w.getReceivedTimestamp();
         }
+
+        prometeusService.addWitnessProcessed();
+        prometeusService.addWitnessProcessedTime(Now.NowUtcMs()-start);
         return true;
     }
 

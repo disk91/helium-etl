@@ -109,7 +109,7 @@ public class AwsService {
     private boolean readyToSync = false;
     private boolean syncInProgress = false;
 
-    @Scheduled(fixedDelay = Long.MAX_VALUE, initialDelay = 10_000)
+    @Scheduled(fixedDelay = 60_000, initialDelay = 10_000)
     protected void InitialAwsSync() {
         if ( ! readyToSync ) return;
         this.runningJobs++;
@@ -146,6 +146,8 @@ public class AwsService {
                 for (S3ObjectSummary object : objects) {
                     totalObject++;
                     totalSize+=object.getSize();
+                    if ( object.getSize() == 0 ) continue;
+
                     // Identify the type of objects
                     //  iot_beacon_ingest_report => beacons
                     //  iot_witness_ingest_report => witnesses
@@ -172,6 +174,7 @@ public class AwsService {
                         GZIPInputStream stream = new GZIPInputStream(fileObject.getObjectContent());
                         BufferedInputStream bufferedInputStream = new BufferedInputStream(stream);
                         while ( bufferedInputStream.available() > 0 ) {
+                            long fileStart = Now.NowUtcMs();
                             try {
                                 byte[] sz = bufferedInputStream.readNBytes(4);
                                 long len = Stuff.getLongValueFromBytes(sz);
@@ -233,19 +236,24 @@ public class AwsService {
                                     lastLog = Now.NowUtcMs();
                                 }
 
+                                prometeusService.addFileProcessed();
+                                prometeusService.addFileProcessedTime(Now.NowUtcMs()-fileStart);
                             } catch ( Exception x ) {
                                 log.error(x.getMessage());
                                 if ( serviceEnable == false ) return;
                                 x.printStackTrace();
                             }
 
-
                         }
                         bufferedInputStream.close();
                         stream.close();
 
                     } catch (IOException x) {
-                        log.error("Failed to gunzip for Key "+object.getKey()+ " "+x.getMessage());
+                        prometeusService.addAwsFailure();
+                        log.error("Failed to gunzip for Key "+object.getKey()+" "+x.getMessage());
+                    } catch (Exception x) {
+                        prometeusService.addAwsFailure();
+                        log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
                     }
 
                     p.setStringValue(object.getKey());
@@ -268,6 +276,9 @@ public class AwsService {
             prometeusService.addAwsFailure();
             log.error(x.getMessage());
             x.printStackTrace();
+        } catch (Exception x) {
+            prometeusService.addAwsFailure();
+            log.error("Batch Failure "+x.getMessage());
         } finally {
             runningJobs--;
             synchronized (this) {
