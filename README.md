@@ -6,6 +6,10 @@ hotspots health. It also moves data into a MongoDb Database for later research o
 The choice of MongoDB allows to create a scalable architecture with sharding and mirroring to avoid having
 too large single tenant DB as we have with postgresql.
 
+### Recommanded HW
+- 32GB RAM server
+- 3x or 4x SSD/NVMe units for storage
+
 ### Install
 Tested on Ubuntu 22.04LTS
 - [Install Docker](https://docs.docker.com/engine/install/ubuntu/)
@@ -26,7 +30,7 @@ repository. Your credentials are created with IAM AWS tool and need to have `Ama
 ```agsl
 make install
 ```
-This is creating the Mongo cluster with 3 shards, 3 config service and 2 routers.
+This is creating the MongoDB cluster with 3 shards, 3 config service and 2 routers.
 All the configuration files are located in /etl. You can pre-make the /etl directory to
 point where you want. The purpose is to move the different shards on different ssd to improve
 the performance. 
