@@ -1,5 +1,6 @@
 package com.disk91.etl.service;
 
+import fr.ingeniousthings.tools.Now;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
@@ -71,6 +72,18 @@ public class PrometeusService {
         return ()->fileProcessingTime;
     }
 
+    private long lastFileTimestamp = 0;
+    private long lastFileDistance = 0;
+    synchronized public void changeFileTimestamp(long ms) {
+        this.lastFileDistance= Now.NowUtcMs()-ms;
+        this.lastFileTimestamp=ms;
+    }
+    protected Supplier<Number> getLastFileTimestamp() {
+        return ()->lastFileTimestamp;
+    }
+    protected Supplier<Number> getLastFileDistance() {
+        return ()->lastFileDistance;
+    }
 
 
     // ---
@@ -103,6 +116,14 @@ public class PrometeusService {
 
         Gauge.builder("etl.file.processed.time", getFileProcesseTimes())
                 .description("Processing time for files")
+                .register(registry);
+
+        Gauge.builder("etl.file.time", getLastFileTimestamp())
+                .description("Timestamp for the last processed file")
+                .register(registry);
+
+        Gauge.builder("etl.file.distance", getLastFileDistance())
+                .description("Distance from now for the last processed file")
                 .register(registry);
 
     }

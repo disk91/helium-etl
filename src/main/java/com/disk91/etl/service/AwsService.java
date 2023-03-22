@@ -252,6 +252,13 @@ public class AwsService {
                         stream.close();
                         prometeusService.addFileProcessed();
                         prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
+                        try {
+                            String time_s = object.getKey().split("\\.")[1];
+                            prometeusService.changeFileTimestamp(Long.parseLong(time_s));
+                        } catch (Exception x) {
+                            // don't care that is monitoring
+                            log.error("Can't parse file timestamp for "+object.getKey());
+                        }
 
                     } catch (IOException x) {
                         prometeusService.addAwsFailure();
