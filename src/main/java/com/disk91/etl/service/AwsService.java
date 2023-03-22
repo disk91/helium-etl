@@ -178,22 +178,22 @@ public class AwsService {
                             try {
                                 byte[] sz = bufferedInputStream.readNBytes(4);
                                 long len = Stuff.getLongValueFromBytes(sz);
-                                if ( len > 0 ) {
-                                    byte[] r = bufferedInputStream.readNBytes((int)len);
-                                    switch ( fileType ) {
+                                if (len > 0) {
+                                    byte[] r = bufferedInputStream.readNBytes((int) len);
+                                    switch (fileType) {
                                         case 1: // beacon
                                             totalBeacon++;
                                             lora_beacon_ingest_report_v1 b = lora_beacon_ingest_report_v1.parseFrom(r);
-                                            if ( ! hotspotCache.addBeacon(b) ) {
-                                                log.warn("beacon not processed "+b.getReceivedTimestamp());
+                                            if (!hotspotCache.addBeacon(b)) {
+                                                log.warn("beacon not processed " + b.getReceivedTimestamp());
                                             }
 
                                             // filter to 11etKgw9Lb6FndJnU17pKQVtsgbPJRvzE8eHny4J5f78NFvEXUD
                                             //if ( b.getReport().getPubKey().size() > 0 ) {
                                             //    String hs = HeliumHelper.pubAddressToName(b.getReport().getPubKey());
-                                                //log.info(hs);
+                                            //log.info(hs);
                                             //    if (hs.compareTo("11etKgw9Lb6FndJnU17pKQVtsgbPJRvzE8eHny4J5f78NFvEXUD") == 0) {
-                                                    //12h6o6fakZRPu5x6YHHBgMWrWCmcvrdxyLV3z7rVRQq83Q3Zw37
+                                            //12h6o6fakZRPu5x6YHHBgMWrWCmcvrdxyLV3z7rVRQq83Q3Zw37
                                             //        log.info("TS :" + b.getReceivedTimestamp() + " Pub: " + b.getReport().getPubKey() + " Pwr: " + b.getReport().getTxPower());
                                             //    }
                                             //}
@@ -202,8 +202,8 @@ public class AwsService {
                                         case 2: // witness
                                             totalWitness++;
                                             lora_witness_ingest_report_v1 w = lora_witness_ingest_report_v1.parseFrom(r);
-                                            if ( ! hotspotCache.addWitness(w) ) {
-                                                log.warn("witness not processed "+w.getReceivedTimestamp());
+                                            if (!hotspotCache.addWitness(w)) {
+                                                log.warn("witness not processed " + w.getReceivedTimestamp());
                                             }
 
 
@@ -225,19 +225,23 @@ public class AwsService {
                                     }
 
                                 } else {
-                                    log.error("Found 0 len entry "+HexaConverters.byteToHexStringWithSpace(sz));
+                                    log.error("Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
                                 }
 
                                 // print progress log on regular basis
-                                if ( (Now.NowUtcMs() - lastLog) > 30_000 ) {
+                                if ((Now.NowUtcMs() - lastLog) > 30_000) {
                                     String distance_s = object.getKey().split("\\.")[1];
                                     long distance = Now.NowUtcMs() - Long.parseLong(distance_s);
-                                    log.info("Dist: "+Math.floor(distance / Now.ONE_FULL_DAY) +" days, tObject: "+totalObject+" tBeacon: "+totalBeacon+" tWitness: "+totalWitness+" tSize: "+totalSize/(1024*1024)+"MB, Duration: "+(Now.NowUtcMs()-start)/60_000+"m");
+                                    log.info("Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tBeacon: " + totalBeacon + " tWitness: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
                                     lastLog = Now.NowUtcMs();
                                 }
 
                                 prometeusService.addFileProcessed();
-                                prometeusService.addFileProcessedTime(Now.NowUtcMs()-fileStart);
+                                prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
+                            } catch ( EOFException x ) {
+                                prometeusService.addAwsFailure();
+                                log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
+                                if ( serviceEnable == false ) return;
                             } catch ( Exception x ) {
                                 log.error(x.getMessage());
                                 if ( serviceEnable == false ) return;
