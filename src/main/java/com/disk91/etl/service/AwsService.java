@@ -24,7 +24,10 @@ import xyz.nova.grpc.lora_witness_ingest_report_v1;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.zip.GZIPInputStream;
 
 @Service
@@ -281,6 +284,42 @@ public class AwsService {
     }
 
 
+    // is a power of 2 for hotspot hashing
+    public static final int PARALLELISM = 8;
+    public static final int MAXQUEUESZ = 128;
+
+    public class ProcessWitness implements Runnable {
+
+        Queue<lora_witness_ingest_report_v1> queue;
+        Boolean status;
+        int id;
+
+        public ProcessWitness(int _id, Queue<lora_witness_ingest_report_v1> _queue, Boolean _status) {
+            id = _id;
+            queue = _queue;
+            status = _status;
+        }
+        public void run() {
+            this.status = true;
+            log.info("Staring witness process thread "+id);
+            while ( this.queue.size() > 0 || serviceEnable ) {
+                if ( this.queue.size() > 0 ) {
+                    try {
+                        lora_witness_ingest_report_v1 w = queue.remove();
+                        if (!hotspotCache.addWitness(w)) {
+                            log.debug("Th("+id+") witness not processed " + w.getReceivedTimestamp());
+                        }
+                    } catch ( NoSuchElementException x) {}
+                } else {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException x) {}
+                }
+            }
+            log.info("Closing witness process thread "+id);
+        }
+    }
+
     @Scheduled(fixedDelay = 60_000, initialDelay = 15_000)
     protected void AwsWitnessSync() {
         if ( ! readyToSync ) return;
@@ -292,8 +331,20 @@ public class AwsService {
         long start = Now.NowUtcMs();
         long lastLog = start;
 
-        try {
 
+        // Create queues for parallelism
+        Queue<lora_witness_ingest_report_v1> queues[] = new Queue[PARALLELISM];
+        Boolean threadRunning[] = new Boolean[PARALLELISM];
+        Thread threads[] = new Thread[PARALLELISM];
+        for ( int q = 0 ; q < PARALLELISM ; q++) {
+            queues[q] = new LinkedList<lora_witness_ingest_report_v1>();
+            threadRunning[q] = Boolean.FALSE;
+            Runnable r = new ProcessWitness(q,queues[q],threadRunning[q]);
+            threads[q] = new Thread(r);
+            threads[q].start();
+        }
+
+        try {
             final ListObjectsV2Request lor = new ListObjectsV2Request();
             lor.setBucketName(etlConfig.getAwsBucketName());
             lor.setPrefix("foundation-iot-ingest");
@@ -353,9 +404,22 @@ public class AwsService {
                                     byte[] r = bufferedInputStream.readNBytes((int) len);
                                     totalWitness++;
                                     lora_witness_ingest_report_v1 w = lora_witness_ingest_report_v1.parseFrom(r);
+                                    // Add in queues - find it with a random element in the pub key
+                                    // to make sure a single hotspot goes to the same queues to not
+                                    // have collisions
+                                    int q = w.getReport().getPubKey().byteAt(4);
+                                    q &= (PARALLELISM-1);
+                                    try {
+                                        // when a queue is full just wait, it should be balanced
+                                        while (queues[q].size() >= MAXQUEUESZ) Thread.sleep(2);
+                                    } catch ( InterruptedException x ) {};
+                                    queues[q].add(w);
+
+                                    /*
                                     if (!hotspotCache.addWitness(w)) {
                                         log.debug("witness not processed " + w.getReceivedTimestamp());
                                     }
+                                    */
 
                                 } else {
                                     log.error("Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
@@ -427,12 +491,22 @@ public class AwsService {
             prometeusService.addAwsFailure();
             log.error("Witness Batch Failure "+x.getMessage());
         } finally {
+            // wait the parallel Thread to stop max 5 minutes
+            boolean terminated = false;
+            long waitStart = Now.NowUtcMs();
+            while ( !terminated && ((Now.NowUtcMs() - waitStart) < 300_000 )) {
+                terminated = true;
+                for (int t = 0; t < PARALLELISM; t++) {
+                    if (threads[t].getState() != Thread.State.TERMINATED) terminated = false;
+                }
+            }
+            if ( !terminated ) {
+                log.error("Cancelling Thread before ending enqueing");
+            }
             synchronized (this) {
                 runningJobs--;
             }
         }
-
     }
-
 
 }
