@@ -97,7 +97,7 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "µs"
         },
         "overrides": []
       },
@@ -192,7 +192,7 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "µs"
         },
         "overrides": []
       },
@@ -1413,6 +1413,6 @@
   "timezone": "",
   "title": "ETL",
   "uid": "ED-II4fVz",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
