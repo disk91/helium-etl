@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public abstract class ObjectCache<K, T> {
@@ -91,7 +92,7 @@ public abstract class ObjectCache<K, T> {
             return (Now.NowUtcMs() > this.expirationTime);
         }
     }
-    protected HashMap<K, CachedObject<K,T>> cache;
+    protected ConcurrentHashMap<K, CachedObject<K,T>> cache;
     protected int maxCacheSize;
     protected int cacheSize;
     protected long cacheMissStat;
@@ -120,7 +121,7 @@ public abstract class ObjectCache<K, T> {
     }
 
     public ObjectCache(String name, int maxSize, long expirationMs ) {
-        this.cache = new HashMap<K,CachedObject<K,T>>(256,0.8f);
+        this.cache = new ConcurrentHashMap<K,CachedObject<K,T>>(maxSize,0.8f);
         this.maxCacheSize = maxSize;
         this.cacheMissStat = 0;
         this.totalCacheTime = 0;

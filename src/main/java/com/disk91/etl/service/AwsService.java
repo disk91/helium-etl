@@ -352,7 +352,7 @@ public class AwsService {
                                     totalWitness++;
                                     lora_witness_ingest_report_v1 w = lora_witness_ingest_report_v1.parseFrom(r);
                                     if (!hotspotCache.addWitness(w)) {
-                                        log.warn("witness not processed " + w.getReceivedTimestamp());
+                                        log.debug("witness not processed " + w.getReceivedTimestamp());
                                     }
 
                                 } else {

@@ -139,12 +139,12 @@ public class HotspotCache {
     }
 
     public int modifications = 0;
-    public void updateHotspot(Hotspot o) {
+    public synchronized void updateHotspot(Hotspot o) {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
         if ( modifications > 10000 ) {
-            heliumHotspotCache.commit();
             modifications = 0;
+            heliumHotspotCache.commit();
         }
     }
 
@@ -209,9 +209,7 @@ public class HotspotCache {
             h.getBeaconHistory().add(bh);
         }
         // mark as updated
-        synchronized (this) {
-            this.updateHotspot(h);
-        }
+        this.updateHotspot(h);
 
         // add a line in global storage
         Beacon be = new Beacon();
@@ -325,9 +323,7 @@ public class HotspotCache {
             h.getWitnessesHistory().add(wh);
         }
         // mark as updated
-        synchronized (this) {
-            this.updateHotspot(h);
-        }
+        this.updateHotspot(h);
 
         // add a line in global storage
         com.disk91.etl.data.object.Witness wi = new com.disk91.etl.data.object.Witness();
