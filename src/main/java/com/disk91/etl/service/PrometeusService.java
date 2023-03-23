@@ -48,6 +48,15 @@ public class PrometeusService {
         return ()->witnessProccessed;
     }
 
+    private long witnessValidProcessed = 0;
+    synchronized public void addValidWitnessProcessed() {
+        this.witnessValidProcessed++;
+    }
+    protected Supplier<Number> getValidWitnessProcesses() {
+        return ()->witnessValidProcessed;
+    }
+
+
     private long witnessProcessingTime = 0;
     synchronized public void addWitnessProcessedTime(long ms) {
         this.beaconProcessingTime+=ms;
@@ -72,19 +81,31 @@ public class PrometeusService {
         return ()->fileProcessingTime;
     }
 
-    private long lastFileTimestamp = 0;
-    private long lastFileDistance = 0;
-    synchronized public void changeFileTimestamp(long ms) {
-        this.lastFileDistance= Now.NowUtcMs()-ms;
-        this.lastFileTimestamp=ms;
+    private long lastFileBeaconTimestamp = 0;
+    private long lastFileBeaconDistance = 0;
+    synchronized public void changeFileBeaconTimestamp(long ms) {
+        this.lastFileBeaconDistance= Now.NowUtcMs()-ms;
+        this.lastFileBeaconTimestamp=ms;
     }
-    protected Supplier<Number> getLastFileTimestamp() {
-        return ()->lastFileTimestamp;
+    protected Supplier<Number> getLastFileBeaconTimestamp() {
+        return ()->lastFileBeaconTimestamp;
     }
-    protected Supplier<Number> getLastFileDistance() {
-        return ()->lastFileDistance;
+    protected Supplier<Number> getLastFileBeaconDistance() {
+        return ()->lastFileBeaconDistance;
     }
 
+    private long lastFileWitnessTimestamp = 0;
+    private long lastFileWitnessDistance = 0;
+    synchronized public void changeFileWitnessTimestamp(long ms) {
+        this.lastFileWitnessDistance= Now.NowUtcMs()-ms;
+        this.lastFileWitnessTimestamp=ms;
+    }
+    protected Supplier<Number> getLastFileWitnessTimestamp() {
+        return ()->lastFileWitnessTimestamp;
+    }
+    protected Supplier<Number> getLastFileWitnessDistance() {
+        return ()->lastFileWitnessDistance;
+    }
 
     // ---
     // Prometeus
@@ -106,6 +127,10 @@ public class PrometeusService {
                 .description("Counter number of witnesses processed")
                 .register(registry);
 
+        Gauge.builder("etl.witness.valid", getWitnessProcesses())
+                .description("Counter number of valid witnesses processed")
+                .register(registry);
+
         Gauge.builder("etl.witness.processed.time", getWitnessProcesseTimes())
                 .description("Processing time for witnesses")
                 .register(registry);
@@ -118,11 +143,19 @@ public class PrometeusService {
                 .description("Processing time for files")
                 .register(registry);
 
-        Gauge.builder("etl.file.time", getLastFileTimestamp())
+        Gauge.builder("etl.file.beacon.time", getLastFileBeaconTimestamp())
                 .description("Timestamp for the last processed file")
                 .register(registry);
 
-        Gauge.builder("etl.file.distance", getLastFileDistance())
+        Gauge.builder("etl.file.beacon.distance", getLastFileBeaconDistance())
+                .description("Distance from now for the last processed file")
+                .register(registry);
+
+        Gauge.builder("etl.file.witness.time", getLastFileWitnessTimestamp())
+                .description("Timestamp for the last processed file")
+                .register(registry);
+
+        Gauge.builder("etl.file.witness.distance", getLastFileWitnessDistance())
                 .description("Distance from now for the last processed file")
                 .register(registry);
 

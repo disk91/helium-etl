@@ -91,27 +91,32 @@ public class BeaconROCache {
     @Autowired
     protected BeaconsRepository beaconsRepository;
 
+    public final long ACCEPTED_TIME_DISTANCE = 10_000_000_000L;
+
     public Beacon getBeacon(String dataId, long closeTimestamp) {
         Beacon b = beaconCache.get(dataId);
-        if ( b == null ) {
+        if ( b == null || Math.abs(b.getTimestamp() - closeTimestamp) > ACCEPTED_TIME_DISTANCE ) {
             List<Beacon> bs = beaconsRepository.findBeaconByData(dataId);
             if ( bs != null && bs.size() > 0 ) {
-                long tdist=1000_000_000_000L;
+                long tdist=ACCEPTED_TIME_DISTANCE;
                 Beacon closest = null;
                 for ( Beacon _b : bs ) {
-                    if (  Math.abs(_b.getTimestamp() - closeTimestamp) < tdist ) {
-                        tdist = Math.abs(_b.getTimestamp() - closeTimestamp);
+                    long d = Math.abs(_b.getTimestamp() - closeTimestamp);
+                    if ( d < tdist ) {
+                        tdist = d;
                         closest = _b;
                     }
                 }
                 if ( closest != null ) {
                     beaconCache.put(closest, closest.getData());
+                    //log.info((closeTimestamp/1_000_000)+"Found beacon with "+tdist/1_000_000+"ms");
                     return closest;
                 }
             }
-            log.warn("Can't find beacon");
+            //log.warn((closeTimestamp/1_000_000)+"Can't find beacon " + dataId);
             return null;
         }
+        //log.info((closeTimestamp/1_000_000)+"found beacon");
         return b;
     }
 

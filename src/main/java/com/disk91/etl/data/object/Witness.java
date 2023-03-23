@@ -52,6 +52,8 @@ public class Witness {
     private long frequency;
     private int datarate;
 
+    private boolean valid;
+
     // ---
 
 
@@ -141,5 +143,13 @@ public class Witness {
 
     public void setBeaconId(String beaconId) {
         this.beaconId = beaconId;
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
     }
 }

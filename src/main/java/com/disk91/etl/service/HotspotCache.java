@@ -209,7 +209,9 @@ public class HotspotCache {
             h.getBeaconHistory().add(bh);
         }
         // mark as updated
-        this.updateHotspot(h);
+        synchronized (this) {
+            this.updateHotspot(h);
+        }
 
         // add a line in global storage
         Beacon be = new Beacon();
@@ -254,7 +256,13 @@ public class HotspotCache {
         // Search the related beacon
         String dataId = HexaConverters.byteToHexString(w.getReport().getData().toByteArray());
         Beacon b = beaconROCache.getBeacon(dataId, w.getReport().getTimestamp());
-        if ( b != null && (w.getReport().getTimestamp() - b.getTimestamp()) > 10_000_000_000L) {
+        if ( b != null
+                && (w.getReport().getTimestamp() - b.getTimestamp()) > 0
+                && (w.getReport().getTimestamp() - b.getTimestamp()) < beaconROCache.ACCEPTED_TIME_DISTANCE
+        ) {
+            // checks (self witnessing)
+            if ( b.getHotspotId().compareTo(hsId) == 0 ) return false;
+
             // sounds good
             // find the hotspot in the witnesser
             boolean found = false;
@@ -283,6 +291,7 @@ public class HotspotCache {
             }
         } else {
             log.debug("Impossible to find the beaconer for witness "+w.getReceivedTimestamp());
+            b = null;
         }
 
         long oldest = Now.NowUtcMs();
@@ -316,13 +325,20 @@ public class HotspotCache {
             h.getWitnessesHistory().add(wh);
         }
         // mark as updated
-        this.updateHotspot(h);
+        synchronized (this) {
+            this.updateHotspot(h);
+        }
 
         // add a line in global storage
         com.disk91.etl.data.object.Witness wi = new com.disk91.etl.data.object.Witness();
         wi.setHotspotId(hsId);
-        if ( b != null ) wi.setBeaconId(b.getId());
-        else wi.setBeaconId("Unknown");
+        if ( b != null ) {
+            wi.setBeaconId(b.getId());
+            wi.setValid(true);
+        } else {
+            wi.setBeaconId("Unknown");
+            wi.setValid(false);
+        }
         wi.setVersion(1);
         wi.setData(dataId);
         wi.setSignal(w.getReport().getSignal());
@@ -336,6 +352,7 @@ public class HotspotCache {
             this.witnessTopTs = w.getReceivedTimestamp();
         }
 
+        if ( wi.isValid() ) prometeusService.addValidWitnessProcessed();
         prometeusService.addWitnessProcessed();
         prometeusService.addWitnessProcessedTime(Now.NowUtcMs()-start);
         return true;
