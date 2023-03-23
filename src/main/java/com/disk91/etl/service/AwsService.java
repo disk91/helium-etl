@@ -247,8 +247,10 @@ public class AwsService {
                         log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
                     }
 
-                    beaconFile.setStringValue(object.getKey());
-                    paramRepository.save(beaconFile);
+                    if ( fileType == 1 ) {
+                        beaconFile.setStringValue(object.getKey());
+                        paramRepository.save(beaconFile);
+                    }
                     hotspotCache.flushTopLines();
                     if ( serviceEnable == false ) {
                         // we had a request to quit and at this point we can make it
@@ -399,8 +401,10 @@ public class AwsService {
                         log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
                     }
 
-                    witnessFile.setStringValue(object.getKey());
-                    paramRepository.save(witnessFile);
+                    if ( fileType == 2 ) {
+                        witnessFile.setStringValue(object.getKey());
+                        paramRepository.save(witnessFile);
+                    }
                     hotspotCache.flushTopLines();
                     if ( serviceEnable == false ) {
                         // we had a request to quit and at this point we can make it
