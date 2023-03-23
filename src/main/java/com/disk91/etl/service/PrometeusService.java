@@ -59,10 +59,10 @@ public class PrometeusService {
 
     private long witnessProcessingTime = 0;
     synchronized public void addWitnessProcessedTime(long ms) {
-        this.beaconProcessingTime+=ms;
+        this.witnessProcessingTime+=ms;
     }
     protected Supplier<Number> getWitnessProcesseTimes() {
-        return ()->beaconProcessingTime;
+        return ()->witnessProcessingTime;
     }
 
     private long fileProccessed = 0;
@@ -127,7 +127,7 @@ public class PrometeusService {
                 .description("Counter number of witnesses processed")
                 .register(registry);
 
-        Gauge.builder("etl.witness.valid", getWitnessProcesses())
+        Gauge.builder("etl.witness.valid", getValidWitnessProcesses())
                 .description("Counter number of valid witnesses processed")
                 .register(registry);
 
