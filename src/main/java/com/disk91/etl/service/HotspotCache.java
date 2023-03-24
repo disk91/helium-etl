@@ -142,7 +142,7 @@ public class HotspotCache {
     public synchronized void updateHotspot(Hotspot o) {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
-        if ( modifications > 10000 ) {
+        if ( modifications > 100000 ) {
             modifications = 0;
             heliumHotspotCache.commit();
         }

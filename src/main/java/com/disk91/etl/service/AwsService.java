@@ -301,7 +301,7 @@ public class AwsService {
         }
         public void run() {
             this.status = true;
-            log.info("Staring witness process thread "+id);
+            log.info("Starting witness process thread "+id);
             while ( this.queue.size() > 0 || serviceEnable ) {
                 if ( this.queue.size() > 0 ) {
                     try {
@@ -309,11 +309,11 @@ public class AwsService {
                         if (!hotspotCache.addWitness(w)) {
                             log.debug("Th("+id+") witness not processed " + w.getReceivedTimestamp());
                         }
-                    } catch ( NoSuchElementException x) {}
+                    } catch ( NoSuchElementException x) {x.printStackTrace();}
                 } else {
                     try {
                         Thread.sleep(10);
-                    } catch (InterruptedException x) {}
+                    } catch (InterruptedException x) {x.printStackTrace();}
                 }
             }
             log.info("Closing witness process thread "+id);
@@ -412,7 +412,7 @@ public class AwsService {
                                     try {
                                         // when a queue is full just wait, it should be balanced
                                         while (queues[q].size() >= MAXQUEUESZ) Thread.sleep(2);
-                                    } catch ( InterruptedException x ) {};
+                                    } catch ( InterruptedException x ) {x.printStackTrace();};
                                     queues[q].add(w);
 
                                     /*
