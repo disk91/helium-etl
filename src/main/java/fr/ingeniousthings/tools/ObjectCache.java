@@ -143,6 +143,10 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
      */
     public abstract void onCacheRemoval(K key,T obj);
 
+    // bulk update on a list of updated objects
+    // call by commit with bulk option
+    public abstract void bulkCacheUpdate(List<T> objects);
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     public T get(K key) {
@@ -243,7 +247,6 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
      * @param callAction - true when you want to call the flush action on removal if modified
      */
     public void remove(K key, boolean callAction) {
-        while (this.runningAsyncCommit>0); // wait for end of async process
         CachedObject<K,T> c = this.cache.get(key);
         if  ( c != null ) {
             if ( c.isUpdated() && callAction ) {
@@ -263,8 +266,6 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         long now = Now.NowUtcMs();
         int toRemove = (this.maxCacheSize * 10) / 100;
         this.lastGCMs = now;
-
-        while (this.runningAsyncCommit>0); // wait for end of async process
 
         int [] countValues = new int[1900];
         ArrayList<K> keysToBeRemoved = new ArrayList<K>();
@@ -322,7 +323,6 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     // Before clearing the cache, we want to sync the modifications
     // or just to make it on regular basis, expired object are also removed
     public void flush() {
-        while (this.runningAsyncCommit>0); // wait for end of async process
 
         ArrayList<K> toRemove = new ArrayList<K>();
         for (CachedObject<K,T> c : this.cache.values() ) {
@@ -341,17 +341,14 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
 
     // Search for all the modified element and call the onRemoval function
     // but keep it to the cache
-    public void commit(boolean async) {
+    public void commit(boolean bulk) {
         ArrayList<T> upd = null;
-        if ( async ) {
-            synchronized (this.runningAsyncCommit) {
-                if (this.runningAsyncCommit > 0) return;
-            }
+        if ( bulk ) {
             upd = new ArrayList<T>();
         }
         for (CachedObject<K,T> c : this.cache.values() ) {
             if ( c.isUpdated() ) {
-                if ( async ) {
+                if ( bulk ) {
                     T cl = c.getObj().clone();
                     if ( cl != null ) {
                         upd.add(cl);
@@ -363,29 +360,11 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
                 }
             }
         }
-        if ( async ) {
-            asyncCommit(upd);
+        if ( bulk ) {
+            bulkCacheUpdate(upd);
         }
     }
 
-    volatile Integer runningAsyncCommit = Integer.valueOf(0);
-
-    @Async
-    public void asyncCommit(List<T> list) {
-        synchronized (this.runningAsyncCommit) {
-            this.runningAsyncCommit = 1;
-        }
-
-        log.info(">> Async commit "+list.size()+" elements");
-        for ( T t : list ) {
-            onCacheRemoval(null,t);
-        }
-        list = null; // clean memory
-        log.info(">> Async commit done");
-        synchronized (this.runningAsyncCommit) {
-            this.runningAsyncCommit = 0;
-        }
-    }
 
     // Some logs
     public void log() {

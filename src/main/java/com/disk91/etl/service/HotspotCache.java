@@ -20,6 +20,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import xyz.nova.grpc.lora_beacon_ingest_report_v1;
@@ -27,6 +28,7 @@ import xyz.nova.grpc.lora_witness_ingest_report_v1;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class HotspotCache {
@@ -51,6 +53,9 @@ public class HotspotCache {
     protected Param witnessTopLine = null;
     protected long witnessTopTs = 0;
 
+    @Autowired
+    protected HotspotCacheAsync hotspotCacheAsync;
+
     @PostConstruct
     private void initHotspotCacheService() {
         this.heliumHotspotCache = new ObjectCache<String, Hotspot>(
@@ -62,6 +67,12 @@ public class HotspotCache {
             public void onCacheRemoval(String key, Hotspot obj) {
                 hotspotsRepository.save(obj);
             }
+
+            @Override
+            public void bulkCacheUpdate(List<Hotspot> objects) {
+                hotspotCacheAsync.processAsyncCacheCommit(objects);
+            }
+
         };
 
         Gauge.builder("etl.hotspot.cache_total_time", this.heliumHotspotCache.getTotalCacheTime())
@@ -103,6 +114,9 @@ public class HotspotCache {
     }
 
     public void stopService() {
+        while (hotspotCacheAsync.isRunning() ) {
+           try { Thread.sleep(100); } catch ( InterruptedException x) {};
+        };
         this.heliumHotspotCache.flush();
         this.flushTopLines();
         this.serviceEnable = false;

@@ -55,6 +55,12 @@ public class BeaconROCache {
             public void onCacheRemoval(String key, Beacon obj) {
 
             }
+
+            @Override
+            public void bulkCacheUpdate(List<Beacon> objects) {
+
+            }
+
         };
 
         Gauge.builder("etl.beacon.cache_total_time", this.beaconCache.getTotalCacheTime())
