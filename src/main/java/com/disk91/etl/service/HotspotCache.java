@@ -142,6 +142,7 @@ public class HotspotCache {
     public synchronized void updateHotspot(Hotspot o) {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
+        // @TODO - could be more in relation with the distance
         if ( modifications > 100000 ) {
             modifications = 0;
             heliumHotspotCache.commit();
@@ -292,38 +293,41 @@ public class HotspotCache {
             b = null;
         }
 
-        long oldest = Now.NowUtcMs();
-        boolean updated = false;
-        for (WitnessHistory wh :  h.getWitnessesHistory()) {
-            if ( wh.getTimeRef() == hRef ) {
-                // update
-                wh.setCountWitnesses(wh.getCountWitnesses()+1);
-                updated = true;
-                break;
-            }
-            if ( oldest > wh.getTimeRef() ) oldest = wh.getTimeRef();
-        }
-        if ( ! updated ) {
-            // need to create a new one
-            WitnessHistory wh = new WitnessHistory();
-            wh.setTimeRef(hRef);
-            wh.setCountWitnesses(1);
-
-            // need to clean an older one ?
-            if ( h.getWitnessesHistory().size() > etlConfig.getHotspotWitnessHistoryEntries() ) {
-                ArrayList<WitnessHistory> nl = new ArrayList<>();
-                nl.add(wh);
-                for (WitnessHistory _wh :  h.getWitnessesHistory()) {
-                    if ( _wh.getTimeRef() != oldest ) {
-                        nl.add(_wh);
-                    }
+        // no need to update with witness w/o corresponding beacon
+        if ( b != null ) {
+            long oldest = Now.NowUtcMs();
+            boolean updated = false;
+            for (WitnessHistory wh : h.getWitnessesHistory()) {
+                if (wh.getTimeRef() == hRef) {
+                    // update
+                    wh.setCountWitnesses(wh.getCountWitnesses() + 1);
+                    updated = true;
+                    break;
                 }
-                h.setWitnessesHistory(nl);
+                if (oldest > wh.getTimeRef()) oldest = wh.getTimeRef();
             }
-            h.getWitnessesHistory().add(wh);
+            if (!updated) {
+                // need to create a new one
+                WitnessHistory wh = new WitnessHistory();
+                wh.setTimeRef(hRef);
+                wh.setCountWitnesses(1);
+
+                // need to clean an older one ?
+                if (h.getWitnessesHistory().size() > etlConfig.getHotspotWitnessHistoryEntries()) {
+                    ArrayList<WitnessHistory> nl = new ArrayList<>();
+                    nl.add(wh);
+                    for (WitnessHistory _wh : h.getWitnessesHistory()) {
+                        if (_wh.getTimeRef() != oldest) {
+                            nl.add(_wh);
+                        }
+                    }
+                    h.setWitnessesHistory(nl);
+                }
+                h.getWitnessesHistory().add(wh);
+            }
+            // mark as updated
+            this.updateHotspot(h);
         }
-        // mark as updated
-        this.updateHotspot(h);
 
         // add a line in global storage
         com.disk91.etl.data.object.Witness wi = new com.disk91.etl.data.object.Witness();
