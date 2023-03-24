@@ -1,6 +1,8 @@
 package com.disk91.etl.data.object;
 
 
+import com.disk91.etl.data.object.sub.Witness;
+import fr.ingeniousthings.tools.ClonnableObject;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
@@ -15,7 +17,7 @@ import org.springframework.data.mongodb.core.mapping.ShardingStrategy;
         @CompoundIndex(name = "hotspotId_Id", def = "{'hotspotId' : 1, 'id' : 1}")
 })
 @Sharded(shardKey = { "hotspotId", "id" }, shardingStrategy = ShardingStrategy.RANGE)
-public class Beacon {
+public class Beacon implements ClonnableObject<Beacon> {
 
     /*
           bytes local_entropy = 3;
@@ -52,6 +54,25 @@ public class Beacon {
     // reception time in NS
     private long timestamp;
     private int tmst;
+
+    // ---
+
+    public Beacon clone() {
+        Beacon c = new Beacon();
+        c.setId(id);
+        c.setVersion(version);
+        c.setHotspotId(hotspotId);
+        c.setData(data);
+        c.setFrequency(frequency);
+        c.setChannel(channel);
+        c.setDatarate(datarate);
+        c.setTx_power(tx_power);
+        c.setTimestamp(timestamp);
+        c.setTmst(tmst);
+        return c;
+    }
+
+
 
     // ---
 

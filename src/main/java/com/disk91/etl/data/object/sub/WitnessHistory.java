@@ -1,9 +1,20 @@
 package com.disk91.etl.data.object.sub;
 
-public class WitnessHistory {
+import fr.ingeniousthings.tools.ClonnableObject;
+
+public class WitnessHistory  implements ClonnableObject<WitnessHistory> {
 
     private long timeRef;           // corresponding to the hour of the history
     private int countWitnesses;     // number of witness during this period of time
+
+    // ---------
+
+    public WitnessHistory clone() {
+        WitnessHistory c = new WitnessHistory();
+        c.setTimeRef(timeRef);
+        c.setCountWitnesses(countWitnesses);
+        return c;
+    }
 
 
     // ---------

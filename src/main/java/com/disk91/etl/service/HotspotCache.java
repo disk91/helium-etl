@@ -60,8 +60,7 @@ public class HotspotCache {
         ) {
             @Override
             public void onCacheRemoval(String key, Hotspot obj) {
-                Hotspot o = hotspotsRepository.save(obj);
-                if ( obj.getId() == null || obj.getId().length() < 2 ) obj.setId(o.getId());
+                hotspotsRepository.save(obj);
             }
         };
 
@@ -130,9 +129,10 @@ public class HotspotCache {
                 hs.setLastBeacon(0);
                 hs.setLastWitness(0);
                 hs.setVersion(1);
+                hs = hotspotsRepository.save(hs);   // to get the Id provided, will be simple to manage later
             }
             if ( cache && hs != null ) {
-                heliumHotspotCache.put(hs,hotspotId,true);
+                heliumHotspotCache.put(hs,hotspotId,false);
             }
         }
         return hs;
@@ -142,12 +142,13 @@ public class HotspotCache {
     public synchronized void updateHotspot(Hotspot o) {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
-        // @TODO - could be more in relation with the distance
-        if ( modifications > 100000 ) {
+        if ( modifications > 100_000 ) {
             modifications = 0;
-            heliumHotspotCache.commit();
+            heliumHotspotCache.commit(true); // async commit to quit immediately
         }
     }
+
+
 
     // ---------------------------
     // Manage how we update the data into the hotspot elements

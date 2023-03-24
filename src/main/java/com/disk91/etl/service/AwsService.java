@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.zip.GZIPInputStream;
 
 @Service
@@ -291,11 +292,11 @@ public class AwsService {
 
     public class ProcessWitness implements Runnable {
 
-        Queue<lora_witness_ingest_report_v1> queue;
+        ConcurrentLinkedQueue<lora_witness_ingest_report_v1> queue;
         Boolean status;
         int id;
 
-        public ProcessWitness(int _id, Queue<lora_witness_ingest_report_v1> _queue, Boolean _status) {
+        public ProcessWitness(int _id, ConcurrentLinkedQueue<lora_witness_ingest_report_v1> _queue, Boolean _status) {
             id = _id;
             queue = _queue;
             status = _status;
@@ -332,11 +333,12 @@ public class AwsService {
 
 
         // Create queues for parallelism
-        Queue<lora_witness_ingest_report_v1> queues[] = new Queue[PARALLELISM];
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        ConcurrentLinkedQueue<lora_witness_ingest_report_v1> queues[] =  new ConcurrentLinkedQueue[PARALLELISM];
         Boolean threadRunning[] = new Boolean[PARALLELISM];
         Thread threads[] = new Thread[PARALLELISM];
         for ( int q = 0 ; q < PARALLELISM ; q++) {
-            queues[q] = new ConcurrentLinkedDeque<lora_witness_ingest_report_v1>();
+            queues[q] = new ConcurrentLinkedQueue<lora_witness_ingest_report_v1>();
             threadRunning[q] = Boolean.FALSE;
             Runnable r = new ProcessWitness(q,queues[q],threadRunning[q]);
             threads[q] = new Thread(r);

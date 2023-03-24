@@ -3,6 +3,7 @@ package com.disk91.etl.data.object;
 import com.disk91.etl.data.object.sub.BeaconHistory;
 import com.disk91.etl.data.object.sub.Witness;
 import com.disk91.etl.data.object.sub.WitnessHistory;
+import fr.ingeniousthings.tools.ClonnableObject;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
@@ -10,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Sharded;
 import org.springframework.data.mongodb.core.mapping.ShardingStrategy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "etl_hotspots")
@@ -18,7 +20,7 @@ import java.util.List;
         @CompoundIndex(name = "hotspotId_Id", def = "{'hotspotId' : 1, 'id' : 1}")
 })
 @Sharded(shardKey = { "hotspotId", "id" }, shardingStrategy = ShardingStrategy.RANGE)
-public class Hotspot {
+public class Hotspot implements ClonnableObject<Hotspot> {
 
     @Id
     private String id;
@@ -35,6 +37,37 @@ public class Hotspot {
 
     // ---
 
+    // Clone the object
+    public Hotspot clone() {
+        Hotspot c = new Hotspot();
+        c.setId(id);
+        c.setHotspotId(hotspotId);
+        c.setVersion(version);
+        c.setLastBeacon(lastBeacon);
+        c.setLastWitness(lastWitness);
+
+        List<Witness> ws = new ArrayList<>();
+        for (Witness w : witnesses) {
+            ws.add(w.clone());
+        }
+        c.setWitnesses(ws);
+
+        List<WitnessHistory> whs = new ArrayList<>();
+        for (WitnessHistory wh : witnessesHistory) {
+            whs.add(wh.clone());
+        }
+        c.setWitnessesHistory(whs);
+
+        List<BeaconHistory> bhs = new ArrayList<>();
+        for (BeaconHistory bh : beaconHistory) {
+            bhs.add(bh.clone());
+        }
+        c.setBeaconHistory(bhs);
+
+        return c;
+    }
+
+    // --
 
     public String getId() {
         return id;

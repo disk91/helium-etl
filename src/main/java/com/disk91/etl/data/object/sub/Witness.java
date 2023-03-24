@@ -1,6 +1,8 @@
 package com.disk91.etl.data.object.sub;
 
-public class Witness {
+import fr.ingeniousthings.tools.ClonnableObject;
+
+public class Witness implements ClonnableObject<Witness> {
 
     private long lastSeen;
     private String hs;
@@ -10,6 +12,21 @@ public class Witness {
     private double totRssi;
     private double totSnr;
     private double countWitnesses;
+
+    // --------
+
+    public Witness clone() {
+        Witness c = new Witness();
+        c.setLastSeen(lastSeen);
+        c.setHs(hs);
+        c.setLastRssi(lastRssi);
+        c.setLastSnr(lastSnr);
+        c.setTotRssi(totRssi);
+        c.setTotSnr(totSnr);
+        c.setCountWitnesses(countWitnesses);
+        return c;
+    }
+
 
     // -----
 

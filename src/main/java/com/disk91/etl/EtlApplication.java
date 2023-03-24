@@ -25,6 +25,7 @@ import javax.annotation.PreDestroy;
 
 //@EnableAsync
 @EnableScheduling
+@EnableAsync
 @EnableWebMvc
 @Configuration
 @SpringBootApplication
