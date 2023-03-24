@@ -371,17 +371,17 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     volatile Integer runningAsyncCommit = Integer.valueOf(0);
 
     @Async
-    private void asyncCommit(List<T> list) {
+    public void asyncCommit(List<T> list) {
         synchronized (this.runningAsyncCommit) {
             this.runningAsyncCommit = 1;
         }
 
-        log.info("Async commit "+list.size()+" elements");
+        log.info(">> Async commit "+list.size()+" elements");
         for ( T t : list ) {
             onCacheRemoval(null,t);
         }
         list = null; // clean memory
-
+        log.info(">> Async commit done");
         synchronized (this.runningAsyncCommit) {
             this.runningAsyncCommit = 0;
         }
