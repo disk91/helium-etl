@@ -107,6 +107,15 @@ public class PrometeusService {
         return ()->lastFileWitnessDistance;
     }
 
+    private long pendingHotspotModifications = 0;
+    synchronized public void changeHsModification(long modif) {
+        this.pendingHotspotModifications=modif;
+    }
+    protected Supplier<Number> getChangeHsModification() {
+        return ()->pendingHotspotModifications;
+    }
+
+
     // ---
     // Prometeus
     public PrometeusService(MeterRegistry registry) {
@@ -157,6 +166,10 @@ public class PrometeusService {
 
         Gauge.builder("etl.file.witness.distance", getLastFileWitnessDistance())
                 .description("Distance from now for the last processed file")
+                .register(registry);
+
+        Gauge.builder("etl.cache.hotspot.pending", getChangeHsModification())
+                .description("Pending modification into the hotspots cache")
                 .register(registry);
 
     }

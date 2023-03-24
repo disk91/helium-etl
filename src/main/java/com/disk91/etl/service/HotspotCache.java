@@ -156,6 +156,7 @@ public class HotspotCache {
     public synchronized void updateHotspot(Hotspot o) {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
+        prometeusService.changeHsModification(modifications);
         if ( modifications > 100_000 ) {
             modifications = 0;
             heliumHotspotCache.commit(true); // async commit to quit immediately

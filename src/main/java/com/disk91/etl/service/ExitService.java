@@ -18,10 +18,13 @@ public class ExitService implements Lifecycle {
     private boolean exiting = false;
 
     @Autowired
-    HotspotCache hotspotCache;
+    protected HotspotCache hotspotCache;
 
     @Autowired
-    AwsService awsService;
+    protected AwsService awsService;
+
+    @Autowired
+    protected BeaconROCache beaconROCache;
 
     @Override
     public void start() {
@@ -54,6 +57,7 @@ public class ExitService implements Lifecycle {
         do {
             services = 0;
             if ( ! awsService.hasStopped() ) services++;
+
             if ( (Now.NowUtcMs() - d) > 1000 ) {
                 log.error("Exiting ... Waiting for "+services+" services to stop");
                 d+=1000;
@@ -66,6 +70,8 @@ public class ExitService implements Lifecycle {
 
         log.warn("Exit - flush cache");
         hotspotCache.stopService();
+        beaconROCache.stopService();
+
 
         log.info("Exit - completed");
         this.exiting = true;
