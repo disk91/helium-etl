@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.zip.GZIPInputStream;
 
 @Service
@@ -302,14 +303,12 @@ public class AwsService {
         public void run() {
             this.status = true;
             log.info("Starting witness process thread "+id);
-            while ( this.queue.size() > 0 || serviceEnable ) {
-                if ( this.queue.size() > 0 ) {
-                    try {
-                        lora_witness_ingest_report_v1 w = queue.remove();
-                        if (!hotspotCache.addWitness(w)) {
-                            log.debug("Th("+id+") witness not processed " + w.getReceivedTimestamp());
-                        }
-                    } catch ( NoSuchElementException x) {x.printStackTrace();}
+            while ( !this.queue.isEmpty() || serviceEnable ) {
+                lora_witness_ingest_report_v1 w = queue.poll();
+                if ( w != null) {
+                    if (!hotspotCache.addWitness(w)) {
+                        log.debug("Th(" + id + ") witness not processed " + w.getReceivedTimestamp());
+                    }
                 } else {
                     try {
                         Thread.sleep(10);
@@ -337,7 +336,7 @@ public class AwsService {
         Boolean threadRunning[] = new Boolean[PARALLELISM];
         Thread threads[] = new Thread[PARALLELISM];
         for ( int q = 0 ; q < PARALLELISM ; q++) {
-            queues[q] = new LinkedList<lora_witness_ingest_report_v1>();
+            queues[q] = new ConcurrentLinkedDeque<lora_witness_ingest_report_v1>();
             threadRunning[q] = Boolean.FALSE;
             Runnable r = new ProcessWitness(q,queues[q],threadRunning[q]);
             threads[q] = new Thread(r);
