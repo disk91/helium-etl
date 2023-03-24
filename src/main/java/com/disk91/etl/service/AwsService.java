@@ -145,7 +145,7 @@ public class AwsService {
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 10_000)
     protected void AwsBeaconSync() {
-        if ( ! readyToSync ) return;
+        if ( ! readyToSync || !serviceEnable ) return;
         synchronized (this) {
             this.runningJobs++;
         }
@@ -322,7 +322,7 @@ public class AwsService {
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 15_000)
     protected void AwsWitnessSync() {
-        if ( ! readyToSync ) return;
+        if ( ! readyToSync || !serviceEnable ) return;
         log.info("Running AwsWitnessService Sync");
 
         synchronized (this) {
