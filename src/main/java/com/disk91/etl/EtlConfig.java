@@ -56,6 +56,15 @@ public class EtlConfig {
     @Value("${cache.hotspot.commit}")
     private int cacheHotspotCommit;
 
+    // Do not calculate hotspot update until x days before now, this is to optimize data loading
+    @Value("${hotspot.update.prevent.until.days}")
+    private int hotspotUpdatePreventUntilDays;
+
+
+    public int getHotspotUpdatePreventUntilDays() {
+        return hotspotUpdatePreventUntilDays;
+    }
+
     public int getHotspotBeaconHistoryEntries() {
         return hotspotBeaconHistoryEntries;
     }

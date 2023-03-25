@@ -21,9 +21,6 @@ package fr.ingeniousthings.tools;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
-
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -95,8 +92,8 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         }
     }
     protected ConcurrentHashMap<K, CachedObject<K,T>> cache;
-    protected int maxCacheSize;
-    protected int cacheSize;
+    protected long maxCacheSize;
+    protected long cacheSize;
     protected long cacheMissStat;
 
     // Total time in the cache put & get functions + GC in NS
@@ -261,10 +258,10 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
      * Clear unused element in cache to make space for new elements
      * Target is to clean 10% of cache as a minimum
      */
-    protected void cleanCache() {
+    protected synchronized void cleanCache() {
         long start = Now.NanoTime();
         long now = Now.NowUtcMs();
-        int toRemove = (this.maxCacheSize * 10) / 100;
+        long toRemove = (this.maxCacheSize * 10) / 100;
         this.lastGCMs = now;
 
         int [] countValues = new int[1900];
@@ -378,12 +375,24 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
 
     // Some logs
     public void log() {
+        long toUpdate=0;
+        long total=0;
+        for (CachedObject<K,T> c : this.cache.values() ) {
+            if (c.isUpdated()) toUpdate++;
+            total++;
+        }
+
         log.info("---------- Cache log (" + this.name + ") -------------");
         log.info("-- Size    " + this.cacheUsage() + "% "+ this.cacheSize + " / " + this.maxCacheSize);
+        log.info("-- Updated " + toUpdate + " / " + total+ " objects");
         log.info("-- Miss    " + ((totalCacheTry>0)?Math.floor(100.0 * this.cacheMissStat / this.totalCacheTry):"NA") + "% " + this.cacheMissStat + " / " + this.totalCacheTry);
         log.info("-- Avg Tm  " + ((totalCacheTry>0)?Math.floor(this.totalCacheTime / (double)this.totalCacheTry):"NA") + "ns average");
         if (this.lastGCMs > 0) {
-            log.info("-- GC      " + (Now.NowUtcMs() - this.lastGCMs) / (60_000) + "m ago, duration " + this.lastGCDurationMs + "ms");
+            if ( this.lastGCDurationMs > 1000 ) {
+                log.info("-- GC      " + (Now.NowUtcMs() - this.lastGCMs) / (60_000) + "m ago, duration " + this.lastGCDurationMs/1000 + "s");
+            } else {
+                log.info("-- GC      " + (Now.NowUtcMs() - this.lastGCMs) / (60_000) + "m ago, duration " + this.lastGCDurationMs + "ms");
+            }
         } else {
             log.info("-- GC      NEVER" );
         }
