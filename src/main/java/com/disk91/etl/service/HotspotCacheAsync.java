@@ -42,7 +42,7 @@ public class HotspotCacheAsync {
     public void processAsyncCacheCommit(List<Hotspot> list) {
         synchronized (running) {
             if (running == 1) {
-                log.error(">> Async commit - try to reenter");
+                log.error("Hotspot Async commit - try to reenter");
                 list.clear();
                 return;
             }
@@ -51,17 +51,17 @@ public class HotspotCacheAsync {
         long lastProgress = Now.NowUtcMs();
         total = list.size();
         processed=0;
-        log.info(">> Async commit "+total+" elements");
+        log.info("Hotspot Async commit starts"+total+" elements");
         for ( Hotspot h : list ) {
             hotspotsRepository.save(h);
             processed++;
-            if ( (Now.NowUtcMs() - lastProgress) > 10_000) {
-                log.info(">> Async commit - progress "+getProgress()+"%");
+            if ( (Now.NowUtcMs() - lastProgress) > 30_000) {
+                log.debug("Hotspot Async commit - progress "+getProgress()+"%");
                 lastProgress = Now.NowUtcMs();
             }
         }
         list.clear();
-        log.info(">> Async commit done");
+        log.debug("Hotspot Async commit done");
         synchronized (running) {
             running = 0;
         }

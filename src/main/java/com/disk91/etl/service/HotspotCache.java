@@ -152,14 +152,41 @@ public class HotspotCache {
         return hs;
     }
 
-    public int modifications = 0;
+    /**
+     * Purpose is to update the Hotspot Cache, but we want to push the modification
+     * to the Database. Update takes time, so we need to do this in background
+     * For this a copy of the Cache is made for having a snapshot of the data to
+     * persist. As DB Update time is longer than Memory update rate, we have a risk
+     * to have more object modified than what we can persist.
+     * We only persist the cache.hotspot.commit number of objet to avoid memory
+     * saturation and stay under control. With as a consequence a risk to never persisit
+     * some o the objects (random selection of object to be persisted would be better but
+     * it impacts process time, let see tha later). So on regular basis, we force a full
+     * update, this one is blocking. We do this on every 2 hours.
+     */
+    private long modifications = 0;
+    private boolean forceSyncUpdate = false;
+    private long lastForceSync = Now.NowUtcMs();
     public synchronized void updateHotspot(Hotspot o) {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
         prometeusService.changeHsModification(modifications);
         if ( modifications > etlConfig.getCacheHotspotCommit() && ! hotspotCacheAsync.isRunning() ) {
             modifications = 0;
-            heliumHotspotCache.commit(true); // async commit to quit immediately
+            long updated = heliumHotspotCache.commit(!forceSyncUpdate,etlConfig.getCacheHotspotCommit()); // async commit to quit immediately
+            forceSyncUpdate = false;
+            if ( updated < etlConfig.getCacheHotspotCommit() ) {
+                // basically means that this update takes all the pending updates
+                lastForceSync = Now.NowUtcMs();
+                modifications = 0;
+            } else {
+                // or we have some pending
+                modifications = updated-etlConfig.getCacheHotspotCommit();
+            }
+            if ( updated > 3*(etlConfig.getCacheHotspotCommit()/2) && (Now.NowUtcMs() - lastForceSync) > 2*Now.ONE_HOUR ) {
+                forceSyncUpdate = true; // new one will be a sync one for all the pending updates
+                lastForceSync = Now.NowUtcMs();
+            }
         }
     }
 

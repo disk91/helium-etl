@@ -340,15 +340,24 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     }
 
     // Search for all the modified element and call the onRemoval function
-    // but keep it to the cache
-    public void commit(boolean bulk) {
+    // but keep it to the cache, in bulk mode, keep  max of max element as
+    // we clone element and it a lot of memory (use -1 for infinite)
+    // return number of element to be updated (can be > max)
+    public long commit(boolean bulk, int max) {
         ArrayList<T> upd = null;
         if ( bulk ) {
             upd = new ArrayList<T>();
         }
+        long toUpdate = 0;
         for (CachedObject<K,T> c : this.cache.values() ) {
             if ( c.isUpdated() ) {
+                toUpdate++;
                 if ( bulk ) {
+                    // @TODO - this approach could make some hotspot never updated
+                    //         better to have some time a full update that should
+                    //         be blocking
+                    if ( max > 0 && upd.size() >= max ) continue;
+
                     T cl = c.getObj().clone();
                     if ( cl != null ) {
                         upd.add(cl);
@@ -363,6 +372,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         if ( bulk ) {
             bulkCacheUpdate(upd);
         }
+        return toUpdate;
     }
 
 

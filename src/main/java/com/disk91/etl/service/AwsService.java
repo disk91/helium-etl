@@ -267,6 +267,7 @@ public class AwsService {
                     }
                     hotspotCache.flushTopLines();
                     if ( serviceEnable == false ) {
+                        log.info("Beacon - exit done");
                         // we had a request to quit and at this point we can make it
                         // clean
                         return;
@@ -447,7 +448,7 @@ public class AwsService {
                                 }
                                 // print process state on exit request
                                 if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
-                                    log.info("Beacon - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
+                                    log.info("Witness - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
                                     lastLog = Now.NowUtcMs();
                                 }
 
@@ -463,7 +464,7 @@ public class AwsService {
                                 x.printStackTrace();
                             }
 
-                        }
+                        } // end of current file
                         bufferedInputStream.close();
                         stream.close();
                         prometeusService.addFileProcessed();
@@ -492,6 +493,7 @@ public class AwsService {
                     if ( serviceEnable == false ) {
                         // we had a request to quit and at this point we can make it
                         // clean
+                        log.info("Witness - exit ready");
                         return;
                     }
                 }
@@ -513,11 +515,13 @@ public class AwsService {
             // wait the parallel Thread to stop max 5 minutes
             boolean terminated = false;
             long waitStart = Now.NowUtcMs();
-            while ( !terminated && ((Now.NowUtcMs() - waitStart) < 300_000 )) {
+            while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
                 terminated = true;
                 for (int t = 0; t < PARALLELISM; t++) {
                     if (threads[t].getState() != Thread.State.TERMINATED) terminated = false;
+                    else log.warn("Thread state "+threads[t].getState());
                 }
+                try { Thread.sleep(500); } catch (InterruptedException x ) {};
             }
             if ( !terminated ) {
                 log.error("Cancelling Thread before ending enqueing");
@@ -525,6 +529,7 @@ public class AwsService {
             synchronized (this) {
                 runningJobs--;
             }
+            log.info("Witness - exit completed");
         }
     }
 
