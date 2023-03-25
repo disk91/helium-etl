@@ -983,7 +983,7 @@
           "refId": "A"
         }
       ],
-      "title": "Files Processed",
+      "title": "Files Processed / m",
       "type": "timeseries"
     },
     {
@@ -1078,7 +1078,7 @@
           "refId": "A"
         }
       ],
-      "title": "Witnesses Processed",
+      "title": "Witnesses Processed / m",
       "type": "timeseries"
     },
     {
@@ -1172,7 +1172,7 @@
           "refId": "A"
         }
       ],
-      "title": "Beacon Processed",
+      "title": "Beacon Processed / m",
       "type": "timeseries"
     },
     {
