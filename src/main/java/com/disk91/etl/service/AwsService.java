@@ -172,6 +172,8 @@ public class AwsService {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3ObjectSummary> objects = list.getObjectSummaries();
                 for (S3ObjectSummary object : objects) {
+                    long cSize = object.getSize();
+                    long rSize = 0;
                     totalObject++;
                     totalSize+=object.getSize();
                     if ( object.getSize() == 0 ) continue;
@@ -200,6 +202,7 @@ public class AwsService {
                             try {
                                 byte[] sz = bufferedInputStream.readNBytes(4);
                                 long len = Stuff.getLongValueFromBytes(sz);
+                                rSize += len+4; // read size total for progress
                                 if (len > 0) {
                                     byte[] r = bufferedInputStream.readNBytes((int) len);
                                     totalBeacon++;
@@ -219,6 +222,12 @@ public class AwsService {
                                     log.info("Beacon Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tBeacon: " + totalBeacon + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
                                     lastLog = Now.NowUtcMs();
                                 }
+                                // print process state on exit request
+                                if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
+                                    log.info("Beacon - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
+                                    lastLog = Now.NowUtcMs();
+                                }
+
                             } catch ( IOException x ) {
                                 // in case of IOException Better skip the file
                                 prometeusService.addAwsFailure();
@@ -359,6 +368,8 @@ public class AwsService {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3ObjectSummary> objects = list.getObjectSummaries();
                 for (S3ObjectSummary object : objects) {
+                    long cSize = object.getSize();
+                    long rSize = 0;
                     totalObject++;
                     totalSize+=object.getSize();
                     if ( object.getSize() == 0 ) continue;
@@ -401,6 +412,7 @@ public class AwsService {
                             try {
                                 byte[] sz = bufferedInputStream.readNBytes(4);
                                 long len = Stuff.getLongValueFromBytes(sz);
+                                rSize += len+4;
                                 if (len > 0) {
                                     byte[] r = bufferedInputStream.readNBytes((int) len);
                                     totalWitness++;
@@ -433,6 +445,12 @@ public class AwsService {
                                     log.info("Witness Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tWitness: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
                                     lastLog = Now.NowUtcMs();
                                 }
+                                // print process state on exit request
+                                if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
+                                    log.info("Beacon - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
+                                    lastLog = Now.NowUtcMs();
+                                }
+
                             } catch ( IOException x ) {
                                 // in case of IOException Better skip the file
                                 prometeusService.addAwsFailure();
