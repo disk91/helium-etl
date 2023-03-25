@@ -48,7 +48,7 @@ public class BeaconROCache {
     private void initBeaconCacheService() {
         this.beaconCache = new ObjectCache<String, Beacon>(
                 "BeaconCache",
-                300_000,
+                200_000,
                 Now.ONE_HOUR
         ) {
             @Override

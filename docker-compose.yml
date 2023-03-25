@@ -15,6 +15,10 @@ services:
     environment:
       - AWS_ACCESS_KEY=
       - AWS_SECRET_KEY=
+    deploy:
+      resources:
+        limits:
+          memory: 6500m
     ports:
       - 127.0.0.1:8091:8091
     profiles:
@@ -124,7 +128,10 @@ services:
     image: mongo:6.0.1
     container_name: shard-01-node-a
     command: mongod --port 27017 --shardsvr --replSet rs-shard-01
-    mem_limit: 2048m
+    deploy:
+      resources:
+        limits:
+          memory: 1600m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-01a:/data/db
@@ -137,7 +144,10 @@ services:
     image: mongo:6.0.1
     container_name: shard-02-node-a
     command: mongod --port 27017 --shardsvr --replSet rs-shard-02
-    mem_limit: 2048m
+    deploy:
+      resources:
+        limits:
+          memory: 1600m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-02a:/data/db
@@ -150,7 +160,10 @@ services:
     image: mongo:6.0.1
     container_name: shard-03-node-a
     command: mongod --port 27017 --shardsvr --replSet rs-shard-03
-    mem_limit: 2048m
+    deploy:
+      resources:
+        limits:
+          memory: 1600m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-03a:/data/db
