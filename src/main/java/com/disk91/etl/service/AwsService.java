@@ -24,11 +24,7 @@ import xyz.nova.grpc.lora_witness_ingest_report_v1;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.zip.GZIPInputStream;
 

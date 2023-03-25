@@ -176,6 +176,9 @@ public class HotspotCache {
         if ( modifications > etlConfig.getCacheHotspotCommit() && ! hotspotCacheAsync.isRunning() ) {
             modifications = 0;
             long updated = heliumHotspotCache.commit(!forceSyncUpdate,etlConfig.getCacheHotspotCommit()); // async commit to quit immediately
+            // avoid to have a parallel request to start as the async process can take a few mx to start and another pending updateHotspot takes
+            // the opportunity to run a concurrent request and consume memory we need
+            if ( !forceSyncUpdate ) { long s = Now.NowUtcMs() ; while ( !hotspotCacheAsync.isRunning() && ((Now.NowUtcMs()-s) < 5_000) ); }
             forceSyncUpdate = false;
             if ( updated < etlConfig.getCacheHotspotCommit() ) {
                 // basically means that this update takes all the pending updates

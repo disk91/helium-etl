@@ -60,7 +60,7 @@ public class ExitService implements Lifecycle {
 
             if ( (Now.NowUtcMs() - d) > 10_000 ) {
                 log.error("Exiting ... Waiting for "+services+" services to stop for "+(Now.NowUtcMs()-s)/60_000+"m");
-                d+=1000;
+                d+=10_000;
             }
             if ( (Now.NowUtcMs() - s) > 600_000 ) {
                 log.error("Services not stopping, force stop");
