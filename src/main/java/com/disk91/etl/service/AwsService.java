@@ -521,7 +521,6 @@ public class AwsService {
                 terminated = true;
                 for (int t = 0; t < PARALLELISM; t++) {
                     if (threads[t].getState() != Thread.State.TERMINATED) terminated = false;
-                    else log.warn("Thread state "+threads[t].getState());
                 }
                 try { Thread.sleep(500); } catch (InterruptedException x ) {};
             }
