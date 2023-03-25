@@ -117,7 +117,9 @@ public class HotspotCache {
         while (hotspotCacheAsync.isRunning() ) {
            try { Thread.sleep(100); } catch ( InterruptedException x) {};
         };
+        log.info("Flush hotspot cache");
         this.heliumHotspotCache.flush();
+        log.info("Flush top lines");
         this.flushTopLines();
         this.serviceEnable = false;
     }
