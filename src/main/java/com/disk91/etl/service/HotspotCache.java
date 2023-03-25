@@ -157,7 +157,7 @@ public class HotspotCache {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
         prometeusService.changeHsModification(modifications);
-        if ( modifications > etlConfig.getCacheHotspotCommit() ) {
+        if ( modifications > etlConfig.getCacheHotspotCommit() && ! hotspotCacheAsync.isRunning() ) {
             modifications = 0;
             heliumHotspotCache.commit(true); // async commit to quit immediately
         }
