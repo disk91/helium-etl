@@ -51,7 +51,7 @@ public class HotspotCacheAsync {
         long lastProgress = Now.NowUtcMs();
         total = list.size();
         processed=0;
-        log.info("Hotspot Async commit starts"+total+" elements");
+        log.info("Hotspot Async commit starts "+total+" elements");
         for ( Hotspot h : list ) {
             hotspotsRepository.save(h);
             processed++;

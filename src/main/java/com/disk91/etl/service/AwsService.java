@@ -300,6 +300,7 @@ public class AwsService {
     public static final int PARALLELISM = 8;
     public static final int MAXQUEUESZ = 128;
 
+    protected boolean threadEnable = true;
     public class ProcessWitness implements Runnable {
 
         ConcurrentLinkedQueue<lora_witness_ingest_report_v1> queue;
@@ -314,8 +315,8 @@ public class AwsService {
         public void run() {
             this.status = true;
             log.info("Starting witness process thread "+id);
-            while ( !this.queue.isEmpty() || serviceEnable ) {
-                lora_witness_ingest_report_v1 w = queue.poll();
+            lora_witness_ingest_report_v1 w;
+            while ( (w = queue.poll()) != null || threadEnable ) {
                 if ( w != null) {
                     if (!hotspotCache.addWitness(w)) {
                         log.debug("Th(" + id + ") witness not processed " + w.getReceivedTimestamp());
@@ -513,6 +514,7 @@ public class AwsService {
             log.error("Witness Batch Failure "+x.getMessage());
         } finally {
             // wait the parallel Thread to stop max 5 minutes
+            this.threadEnable = false;
             boolean terminated = false;
             long waitStart = Now.NowUtcMs();
             while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
