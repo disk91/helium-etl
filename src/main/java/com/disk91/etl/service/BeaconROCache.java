@@ -33,6 +33,9 @@ public class BeaconROCache {
     //         so we should add a timestamp in the 5 minute round before
     //         to the key to avoid this risk of conflict
 
+    @Autowired
+    protected EtlConfig etlConfig;
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private MeterRegistry registry;
     public BeaconROCache(MeterRegistry registry) {
@@ -48,7 +51,7 @@ public class BeaconROCache {
     private void initBeaconCacheService() {
         this.beaconCache = new ObjectCache<String, Beacon>(
                 "BeaconCache",
-                200_000,
+                etlConfig.getCacheBeaconSize(),
                 Now.ONE_HOUR
         ) {
             @Override

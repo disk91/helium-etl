@@ -47,11 +47,32 @@ public class EtlConfig {
     @Value("${hotspot.witness.history.entries}")
     private int hotspotWitnessHistoryEntries;
 
+    @Value("${cache.hotspot.size}")
+    private int cacheHotspotSize;
+
+    @Value("${cache.beacon.size}")
+    private int cacheBeaconSize;
+
+    @Value("${cache.hotspot.commit}")
+    private int cacheHotspotCommit;
+
     public int getHotspotBeaconHistoryEntries() {
         return hotspotBeaconHistoryEntries;
     }
 
     public int getHotspotWitnessHistoryEntries() {
         return hotspotWitnessHistoryEntries;
+    }
+
+    public int getCacheHotspotSize() {
+        return cacheHotspotSize;
+    }
+
+    public int getCacheBeaconSize() {
+        return cacheBeaconSize;
+    }
+
+    public int getCacheHotspotCommit() {
+        return cacheHotspotCommit;
     }
 }

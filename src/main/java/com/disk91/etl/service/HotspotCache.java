@@ -60,7 +60,7 @@ public class HotspotCache {
     private void initHotspotCacheService() {
         this.heliumHotspotCache = new ObjectCache<String, Hotspot>(
                 "HotspotCache",
-                500_000,
+                etlConfig.getCacheHotspotSize(),
                 24*Now.ONE_HOUR
         ) {
             @Override
@@ -157,7 +157,7 @@ public class HotspotCache {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
         prometeusService.changeHsModification(modifications);
-        if ( modifications > 100_000 ) {
+        if ( modifications > etlConfig.getCacheHotspotCommit() ) {
             modifications = 0;
             heliumHotspotCache.commit(true); // async commit to quit immediately
         }
