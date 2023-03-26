@@ -60,6 +60,19 @@ public class EtlConfig {
     @Value("${hotspot.update.prevent.until.days}")
     private int hotspotUpdatePreventUntilDays;
 
+    @Value("${witness.load.parallel.workers}")
+    private int witnessLoadParallelWorkers;
+
+    @Value("${witness.load.parallel.queue.size}")
+    private int witnessLoadParallelQueueSize;
+
+    public int getWitnessLoadParallelWorkers() {
+        return witnessLoadParallelWorkers;
+    }
+
+    public int getWitnessLoadParallelQueueSize() {
+        return witnessLoadParallelQueueSize;
+    }
 
     public int getHotspotUpdatePreventUntilDays() {
         return hotspotUpdatePreventUntilDays;

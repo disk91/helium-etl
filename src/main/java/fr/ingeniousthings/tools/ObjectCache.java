@@ -179,7 +179,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
      * @param key
      * @return
      */
-    public boolean put(T obj, K key) {
+    public synchronized boolean put(T obj, K key) {
         return put(obj,key,false);
     }
 
@@ -192,7 +192,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
      * @param forceUpdate - when true, a new object is marked at to updated
      * @return
      */
-    public boolean put(T obj, K key, boolean forceUpdate) {
+    public synchronized boolean put(T obj, K key, boolean forceUpdate) {
         long start = Now.NanoTime();
         boolean ret = false;
         long now = Now.NowUtcMs();
@@ -261,7 +261,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     protected synchronized void cleanCache() {
         long start = Now.NanoTime();
         long now = Now.NowUtcMs();
-        long toRemove = (this.maxCacheSize * 10) / 100;
+        long toRemove = (this.maxCacheSize * 25) / 100;
         this.lastGCMs = now;
 
         int [] countValues = new int[1900];
@@ -269,7 +269,9 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         ArrayList<K> keysToBeUpdated = new ArrayList<K>();
         for ( int i = 0 ; i < 1900 ; i++ ) countValues[i] = 0;
 
+        long realCount = 0;
         for (CachedObject<K,T> c : this.cache.values() ) {
+            realCount++;
             if ( c.getScore() >= -900 ){
                 if ( c.getScore() >= 1000 ) {
                     countValues[1899]++;
@@ -306,6 +308,13 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         for ( K key : keysToBeRemoved ) {
             this.cache.remove(key);
             this.cacheSize--;
+            realCount--;
+        }
+
+        // Check cacheSize
+        if ( this.cacheSize != realCount ) {
+            log.warn("Cache "+this.name+" does not have the right count of elements: "+this.cacheSize+" vs real "+realCount);
+            this.cacheSize = realCount;
         }
 
         // Update stats

@@ -292,10 +292,6 @@ public class AwsService {
     }
 
 
-    // is a power of 2 for hotspot hashing
-    public static final int PARALLELISM = 8;
-    public static final int MAXQUEUESZ = 128;
-
     protected boolean threadEnable = true;
     public class ProcessWitness implements Runnable {
 
@@ -341,10 +337,10 @@ public class AwsService {
 
         // Create queues for parallelism
         @SuppressWarnings({"unchecked", "rawtypes"})
-        ConcurrentLinkedQueue<lora_witness_ingest_report_v1> queues[] =  new ConcurrentLinkedQueue[PARALLELISM];
-        Boolean threadRunning[] = new Boolean[PARALLELISM];
-        Thread threads[] = new Thread[PARALLELISM];
-        for ( int q = 0 ; q < PARALLELISM ; q++) {
+        ConcurrentLinkedQueue<lora_witness_ingest_report_v1> queues[] =  new ConcurrentLinkedQueue[etlConfig.getWitnessLoadParallelWorkers()];
+        Boolean threadRunning[] = new Boolean[etlConfig.getWitnessLoadParallelWorkers()];
+        Thread threads[] = new Thread[etlConfig.getWitnessLoadParallelWorkers()];
+        for ( int q = 0 ; q < etlConfig.getWitnessLoadParallelWorkers() ; q++) {
             queues[q] = new ConcurrentLinkedQueue<lora_witness_ingest_report_v1>();
             threadRunning[q] = Boolean.FALSE;
             Runnable r = new ProcessWitness(q,queues[q],threadRunning[q]);
@@ -419,10 +415,10 @@ public class AwsService {
                                     // to make sure a single hotspot goes to the same queues to not
                                     // have collisions
                                     int q = w.getReport().getPubKey().byteAt(4);
-                                    q &= (PARALLELISM-1);
+                                    q &= (etlConfig.getWitnessLoadParallelWorkers()-1);
                                     try {
                                         // when a queue is full just wait, it should be balanced
-                                        while (queues[q].size() >= MAXQUEUESZ) Thread.sleep(2);
+                                        while (queues[q].size() >= etlConfig.getWitnessLoadParallelQueueSize()) Thread.sleep(2);
                                     } catch ( InterruptedException x ) {x.printStackTrace();};
                                     queues[q].add(w);
 
@@ -515,7 +511,7 @@ public class AwsService {
             long waitStart = Now.NowUtcMs();
             while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
                 terminated = true;
-                for (int t = 0; t < PARALLELISM; t++) {
+                for (int t = 0; t < etlConfig.getWitnessLoadParallelWorkers(); t++) {
                     if (threads[t].getState() != Thread.State.TERMINATED) terminated = false;
                 }
                 try { Thread.sleep(500); } catch (InterruptedException x ) {};
