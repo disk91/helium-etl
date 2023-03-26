@@ -358,7 +358,10 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
             upd = new ArrayList<T>();
         }
         long toUpdate = 0;
+        long lastLog=Now.NowUtcMs();
+        long progress=0;
         for (CachedObject<K,T> c : this.cache.values() ) {
+            progress++;
             if ( c.isUpdated() ) {
                 toUpdate++;
                 if ( bulk ) {
@@ -375,6 +378,10 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
                 } else {
                     onCacheRemoval(c.getKey(), c.getObj());
                     c.setUpdated(false);
+                    if ( (Now.NowUtcMs() - lastLog) > 10_000 ) {
+                        lastLog = Now.NowUtcMs();
+                        log.info("CacheObject - commit "+((100*toUpdate)/this.cacheSize)+"% total"+toUpdate);
+                    }
                 }
             }
         }
