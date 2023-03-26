@@ -3,7 +3,6 @@ package com.disk91.etl.data.repository;
 import com.disk91.etl.data.object.Beacon;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
 @Repository

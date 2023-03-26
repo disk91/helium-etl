@@ -11,6 +11,8 @@ import com.disk91.etl.data.repository.BeaconsRepository;
 import com.disk91.etl.data.repository.HotspotsRepository;
 import com.disk91.etl.data.repository.ParamRepository;
 import com.disk91.etl.data.repository.WitnessesRepository;
+import com.mongodb.WriteConcern;
+import com.mongodb.bulk.BulkWriteResult;
 import fr.ingeniousthings.tools.HeliumHelper;
 import fr.ingeniousthings.tools.HexaConverters;
 import fr.ingeniousthings.tools.Now;
@@ -20,6 +22,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.BulkOperations;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -114,6 +118,11 @@ public class HotspotCache {
     }
 
     public void stopService() {
+        // flush pending write
+        log.info("Flush Beacon & Witness pending");
+        bulkInsertWitness();
+        bulkInsertBeacons();
+
         while (hotspotCacheAsync.isRunning() ) {
            try { Thread.sleep(100); } catch ( InterruptedException x) {};
         };
@@ -276,7 +285,9 @@ public class HotspotCache {
         be.setTmst(b.getReport().getTmst());
         be.setTx_power(b.getReport().getTxPower());
         be.setData(HexaConverters.byteToHexString(b.getReport().getData().toByteArray()));
-        beaconsRepository.save(be);
+        // Async bulk write
+        delayedBeaconSave(be);
+        //beaconsRepository.save(be);
 
         // Add in cache for witness search
         beaconROCache.addBeacon(be);
@@ -409,7 +420,9 @@ public class HotspotCache {
         wi.setFrequency(w.getReport().getFrequency());
         wi.setTimestamp(w.getReport().getTimestamp());
         wi.setTmst(w.getReport().getTmst());
-        witnessesRepository.save(wi);
+        // bulk inserting
+        delayedWitnessSave(wi);
+        //witnessesRepository.save(wi);
         if ( w.getReceivedTimestamp() > this.witnessTopTs ) {
             this.witnessTopTs = w.getReceivedTimestamp();
         }
@@ -428,6 +441,53 @@ public class HotspotCache {
 
         paramRepository.save(beaconTopLine);
         paramRepository.save(witnessTopLine);
+    }
+
+
+    @Autowired
+    MongoTemplate mongoTemplate;
+
+    protected ArrayList<Beacon> _beaconDelayedInsert = new ArrayList<>();
+    public synchronized void delayedBeaconSave(Beacon b) {
+        _beaconDelayedInsert.add(b);
+        if ( _beaconDelayedInsert.size() > 500 ) {
+            bulkInsertBeacons();
+            _beaconDelayedInsert.clear();
+        }
+    }
+
+    public int bulkInsertBeacons() {
+
+        mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+        BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Beacon.class);
+        for ( Beacon b : _beaconDelayedInsert ) {
+            bulkInsert.insert(b);
+        }
+        BulkWriteResult bulkWriteResult = bulkInsert.execute();
+        return bulkWriteResult.getInsertedCount();
+
+    }
+
+
+    protected ArrayList<com.disk91.etl.data.object.Witness> _witnessDelayedInsert = new ArrayList<>();
+    public synchronized void delayedWitnessSave(com.disk91.etl.data.object.Witness b) {
+        _witnessDelayedInsert.add(b);
+        if ( _witnessDelayedInsert.size() > 10_000 ) {
+            bulkInsertWitness();
+            _witnessDelayedInsert.clear();
+        }
+    }
+
+    public int bulkInsertWitness() {
+
+        mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+        BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
+        for ( com.disk91.etl.data.object.Witness b : _witnessDelayedInsert ) {
+            bulkInsert.insert(b);
+        }
+        BulkWriteResult bulkWriteResult = bulkInsert.execute();
+        return bulkWriteResult.getInsertedCount();
+
     }
 
 }

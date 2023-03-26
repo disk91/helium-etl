@@ -380,7 +380,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
                     c.setUpdated(false);
                     if ( (Now.NowUtcMs() - lastLog) > 10_000 ) {
                         lastLog = Now.NowUtcMs();
-                        log.info("CacheObject - commit "+((100*toUpdate)/this.cacheSize)+"% total"+toUpdate);
+                        log.info("CacheObject - commit "+((100*toUpdate)/this.cacheSize)+"% total "+toUpdate);
                     }
                 }
             }
