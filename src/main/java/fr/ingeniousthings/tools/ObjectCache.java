@@ -228,8 +228,11 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
             if (expirationMs>0) {
                 c.setExpirationTime(now+expirationMs);
             } else c.setExpirationTime(-1);
-            this.cache.put(key,c);
-            this.cacheSize++;
+            if ( this.cache.put(key,c) == null ) {
+                this.cacheSize++;
+            } else {
+                log.warn("Possible concurrent put - key exists but not found at first");
+            }
             ret = true;
         }
         this.totalCacheTry++;

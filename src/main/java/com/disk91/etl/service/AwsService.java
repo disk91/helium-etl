@@ -347,6 +347,7 @@ public class AwsService {
             threads[q] = new Thread(r);
             threads[q].start();
         }
+        this.threadEnable = true;
 
         try {
             final ListObjectsV2Request lor = new ListObjectsV2Request();
