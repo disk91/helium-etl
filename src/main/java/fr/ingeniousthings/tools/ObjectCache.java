@@ -34,6 +34,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         protected long lastAccessTime; // ms
         protected int score;
         protected boolean updated;
+        protected boolean unsaved;
         protected long expirationTime;
 
         //  ---
@@ -90,6 +91,14 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         public boolean isExpired() {
             return (Now.NowUtcMs() > this.expirationTime);
         }
+
+        public boolean isUnsaved() {
+            return unsaved;
+        }
+
+        public void setUnsaved(boolean unsaved) {
+            this.unsaved = unsaved;
+        }
     }
     protected ConcurrentHashMap<K, CachedObject<K,T>> cache;
     protected long maxCacheSize;
@@ -99,6 +108,13 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     // Total time in the cache put & get functions + GC in NS
     protected long totalCacheTime;
     protected long totalCacheTry;
+
+    // Take stat on 100 call to detect bad behavior on a cache
+    protected long total100CacheTime;
+    protected long total100CacheTry;
+    protected boolean tooLong;    // true when the cache performance is really bad
+
+    protected boolean inAsyncSync;  // true when an async sync process has ben started
 
     // Last Garbage collection call duration
     protected long lastGCDurationMs;
@@ -125,12 +141,19 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         this.cacheMissStat = 0;
         this.totalCacheTime = 0;
         this.totalCacheTry = 0;
+        this.total100CacheTime = 0;
+        this.total100CacheTry = 0;
         this.cacheSize = 0;
         this.lastGCDurationMs = 0;
         this.lastGCMs = 0;
         this.name = name;
+        this.tooLong = false;
+        this.inAsyncSync = false;
     }
 
+    public boolean isTooLong() {
+        return tooLong;
+    }
 
     /**
      * This class defines what to do when an object is modified and removed from cache
@@ -168,6 +191,19 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         }
         this.totalCacheTry++;
         this.totalCacheTime+=(Now.NanoTime()-start);
+
+        this.total100CacheTry++;
+        this.total100CacheTime+=(Now.NanoTime()-start);
+        if ( this.totalCacheTry >= 100 ) {
+            // average situation... when above 2ms, better not use the cache !
+            if ( (this.total100CacheTime / total100CacheTry) > 2_000_000 ) {
+                this.tooLong = true;
+            }
+            // go to next verification
+            this.total100CacheTry=0;
+            this.total100CacheTime=0;
+        }
+
         log.debug("get duration "+(Now.NanoTime()-start)+"ns");
         return (c!=null)?c.getObj():null;
     }
@@ -334,13 +370,23 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     public void flush() {
 
         ArrayList<K> toRemove = new ArrayList<K>();
+        long lastLog=Now.NowUtcMs();
+        long now=Now.NowUtcMs();
+        long progress = 0;
         for (CachedObject<K,T> c : this.cache.values() ) {
+            progress++;
             boolean expired = (c.expirationTime >  0 && c.expirationTime < Now.NowUtcMs() );
             if ( c.isUpdated() || expired ) {
                 onCacheRemoval(c.getKey(),c.getObj());
                 c.setUpdated(false);
             }
             if ( expired ) toRemove.add(c.getKey());
+
+            if ( (Now.NowUtcMs() - lastLog) > 10_000 ) {
+                lastLog = Now.NowUtcMs();
+                log.info("CacheObject - flush "+((100*progress)/this.cacheSize)+"% total "+progress);
+            }
+
         }
         for ( K key : toRemove ) {
             this.cache.remove(key);
@@ -348,45 +394,66 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         }
     }
 
+    public void deleteCache() {
+        for (CachedObject<K,T> c : this.cache.values() ) {
+            if ( c.isUpdated() ) {
+                onCacheRemoval(c.getKey(),c.getObj());
+            }
+        }
+        this.cache.clear();
+    }
+
     // Search for all the modified element and call the onRemoval function
     // but keep it to the cache, in bulk mode, keep  max of max element as
     // we clone element and it a lot of memory (use -1 for infinite)
     // return number of element to be updated (can be > max)
+    // We take as a priority the old hotspot
     public long commit(boolean bulk, int max) {
-        ArrayList<T> upd = null;
-        if ( bulk ) {
-            upd = new ArrayList<T>();
-        }
         long toUpdate = 0;
         long lastLog=Now.NowUtcMs();
         long progress=0;
-        for (CachedObject<K,T> c : this.cache.values() ) {
-            progress++;
-            if ( c.isUpdated() ) {
-                toUpdate++;
-                if ( bulk ) {
-                    // @TODO - this approach could make some hotspot never updated
-                    //         better to have some time a full update that should
-                    //         be blocking
-                    if ( max > 0 && upd.size() >= max ) continue;
-
-                    T cl = c.getObj().clone();
-                    if ( cl != null ) {
-                        upd.add(cl);
-                        c.setUpdated(false);
-                    }
-                } else {
-                    onCacheRemoval(c.getKey(), c.getObj());
-                    c.setUpdated(false);
-                    if ( (Now.NowUtcMs() - lastLog) > 10_000 ) {
-                        lastLog = Now.NowUtcMs();
-                        log.info("CacheObject - commit "+((100*toUpdate)/this.cacheSize)+"% total "+toUpdate);
+        if ( bulk ) {
+            ArrayList<T> upd = null;
+            upd = new ArrayList<T>();
+            if ( ! inAsyncSync ) {
+                // snapshot the object to be saved
+                this.inAsyncSync = true;
+                for (CachedObject<K,T> c : this.cache.values() ) {
+                    if (c.isUpdated()) {
+                        c.setUnsaved(true);
                     }
                 }
             }
-        }
-        if ( bulk ) {
+            // take a maximum of unsaved objects
+            for (CachedObject<K,T> c : this.cache.values() ) {
+                if (c.isUpdated() && c.isUnsaved()) {
+                    toUpdate++;
+                    if (max > 0 && upd.size() >= max) break; // maximum reached
+                    T cl = c.getObj().clone();
+                    if (cl != null) {
+                        upd.add(cl);
+                        c.setUpdated(false);
+                    }
+                }
+            }
+            // take some others if we have some available place
+            if ( max == 0 || upd.size() < max) {
+                this.inAsyncSync = false; // this batch of update is terminated
+            }
             bulkCacheUpdate(upd);
+        } else {
+            for (CachedObject<K, T> c : this.cache.values()) {
+                progress++;
+                if (c.isUpdated()) {
+                    toUpdate++;
+                    onCacheRemoval(c.getKey(), c.getObj());
+                    c.setUpdated(false);
+                    if ((Now.NowUtcMs() - lastLog) > 10_000) {
+                        lastLog = Now.NowUtcMs();
+                        log.info("CacheObject - commit " + ((100 * progress) / this.cacheSize) + "% total " + toUpdate);
+                    }
+                }
+            }
         }
         return toUpdate;
     }
@@ -396,14 +463,16 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     public void log() {
         long toUpdate=0;
         long total=0;
+        long unSaved=0;
         for (CachedObject<K,T> c : this.cache.values() ) {
             if (c.isUpdated()) toUpdate++;
+            if (c.isUnsaved()) unSaved++;
             total++;
         }
 
         log.info("---------- Cache log (" + this.name + ") -------------");
         log.info("-- Size    " + this.cacheUsage() + "% "+ this.cacheSize + " / " + this.maxCacheSize);
-        log.info("-- Updated " + toUpdate + " / " + total+ " objects");
+        log.info("-- Updated " + toUpdate + " - unsaved: "+unSaved+" / " + total+ " objects");
         log.info("-- Miss    " + ((totalCacheTry>0)?Math.floor(100.0 * this.cacheMissStat / this.totalCacheTry):"NA") + "% " + this.cacheMissStat + " / " + this.totalCacheTry);
         log.info("-- Avg Tm  " + ((totalCacheTry>0)?Math.floor(this.totalCacheTime / (double)this.totalCacheTry):"NA") + "ns average");
         if (this.lastGCMs > 0) {

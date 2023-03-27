@@ -49,6 +49,23 @@ public class BeaconROCache {
 
     @PostConstruct
     private void initBeaconCacheService() {
+
+        initCache();
+
+        Gauge.builder("etl.beacon.cache_total_time", this.beaconCache.getTotalCacheTime())
+                .description("total time beacon cache execution")
+                .register(registry);
+        Gauge.builder("etl.beacon.cache_total", this.beaconCache.getTotalCacheTry())
+                .description("total beacon cache try")
+                .register(registry);
+        Gauge.builder("etl.beacon.cache_miss", this.beaconCache.getCacheMissStat())
+                .description("total beacon cache miss")
+                .register(registry);
+
+        this.serviceEnable = true;
+    }
+
+    private void initCache() {
         this.beaconCache = new ObjectCache<String, Beacon>(
                 "BeaconCache",
                 etlConfig.getCacheBeaconSize(),
@@ -66,17 +83,6 @@ public class BeaconROCache {
 
         };
 
-        Gauge.builder("etl.beacon.cache_total_time", this.beaconCache.getTotalCacheTime())
-                .description("total time beacon cache execution")
-                .register(registry);
-        Gauge.builder("etl.beacon.cache_total", this.beaconCache.getTotalCacheTry())
-                .description("total beacon cache try")
-                .register(registry);
-        Gauge.builder("etl.beacon.cache_miss", this.beaconCache.getCacheMissStat())
-                .description("total beacon cache miss")
-                .register(registry);
-
-        this.serviceEnable = true;
     }
 
     @Scheduled(fixedRateString = "${logging.cache.fixedrate}", initialDelay = 63_000)
@@ -103,6 +109,19 @@ public class BeaconROCache {
     public final long ACCEPTED_TIME_DISTANCE = 10_000_000_000L;
 
     public Beacon getBeacon(String dataId, long closeTimestamp) {
+        synchronized (beaconCache) {
+            if (beaconCache.isTooLong()) {
+                log.warn("BeaconROCache is too slow, destroy and recreate it");
+                // wait a bit we need to make sure no other process is in the next part
+                try { Thread.sleep(50); } catch (InterruptedException x) {}
+                // after a while this cache is becoming really slow,
+                // possibly related to swap & memory issue
+                // in this case better deleting cache and recreate it
+                beaconCache.deleteCache();
+                initCache();
+            }
+        }
+
         Beacon b = beaconCache.get(dataId);
         if ( b == null || Math.abs(b.getTimestamp() - closeTimestamp) > ACCEPTED_TIME_DISTANCE ) {
             List<Beacon> bs = beaconsRepository.findBeaconByData(dataId);

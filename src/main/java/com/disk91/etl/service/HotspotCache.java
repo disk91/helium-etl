@@ -184,22 +184,17 @@ public class HotspotCache {
         prometeusService.changeHsModification(modifications);
         if ( modifications > etlConfig.getCacheHotspotCommit() && ! hotspotCacheAsync.isRunning() ) {
             modifications = 0;
-            long updated = heliumHotspotCache.commit(!forceSyncUpdate,etlConfig.getCacheHotspotCommit()); // async commit to quit immediately
+            long updated = heliumHotspotCache.commit(true,etlConfig.getCacheHotspotCommit()); // async commit to quit immediately
             // avoid to have a parallel request to start as the async process can take a few mx to start and another pending updateHotspot takes
             // the opportunity to run a concurrent request and consume memory we need
-            if ( !forceSyncUpdate ) { long s = Now.NowUtcMs() ; while ( !hotspotCacheAsync.isRunning() && ((Now.NowUtcMs()-s) < 5_000) ); }
-            forceSyncUpdate = false;
+            long s = Now.NowUtcMs() ; while ( !hotspotCacheAsync.isRunning() && ((Now.NowUtcMs()-s) < 5_000) );
+
             if ( updated < etlConfig.getCacheHotspotCommit() ) {
                 // basically means that this update takes all the pending updates
-                lastForceSync = Now.NowUtcMs();
                 modifications = 0;
             } else {
                 // or we have some pending
                 modifications = updated-etlConfig.getCacheHotspotCommit();
-            }
-            if ( updated > 3*(etlConfig.getCacheHotspotCommit()/2) && (Now.NowUtcMs() - lastForceSync) > 2*Now.ONE_HOUR ) {
-                forceSyncUpdate = true; // new one will be a sync one for all the pending updates
-                lastForceSync = Now.NowUtcMs();
             }
         }
     }
