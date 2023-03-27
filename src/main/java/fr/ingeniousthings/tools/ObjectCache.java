@@ -187,21 +187,26 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
             }
             c.setLastAccessTime(now);
         } else {
-            this.cacheMissStat++;
-        }
-        this.totalCacheTry++;
-        this.totalCacheTime+=(Now.NanoTime()-start);
-
-        this.total100CacheTry++;
-        this.total100CacheTime+=(Now.NanoTime()-start);
-        if ( this.totalCacheTry >= 100 ) {
-            // average situation... when above 2ms, better not use the cache !
-            if ( (this.total100CacheTime / total100CacheTry) > 2_000_000 ) {
-                this.tooLong = true;
+            synchronized (this) {
+                this.cacheMissStat++;
             }
-            // go to next verification
-            this.total100CacheTry=0;
-            this.total100CacheTime=0;
+        }
+
+        synchronized (this) {
+            this.totalCacheTry++;
+            this.totalCacheTime+=(Now.NanoTime()-start);
+
+            this.total100CacheTry++;
+            this.total100CacheTime+=(Now.NanoTime()-start);
+            if (this.totalCacheTry >= 100) {
+                // average situation... when above 2ms, better not use the cache !
+                if ((this.total100CacheTime / total100CacheTry) > 2_000_000) {
+                    this.tooLong = true;
+                }
+                // go to next verification
+                this.total100CacheTry = 0;
+                this.total100CacheTime = 0;
+            }
         }
 
         log.debug("get duration "+(Now.NanoTime()-start)+"ns");
