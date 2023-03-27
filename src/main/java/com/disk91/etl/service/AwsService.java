@@ -141,7 +141,7 @@ public class AwsService {
 
     private boolean readyToSync = false;
 
-    @Scheduled(fixedDelay = 60_000, initialDelay = 10_000)
+    @Scheduled(fixedDelay = 180_000, initialDelay = 10_000)
     protected void AwsBeaconSync() {
         if ( ! readyToSync || !serviceEnable ) return;
         synchronized (this) {
