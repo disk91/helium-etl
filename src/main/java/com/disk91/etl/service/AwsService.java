@@ -339,6 +339,7 @@ public class AwsService {
         }
         long start = Now.NowUtcMs();
         long lastLog = start;
+        this.threadEnable = true;
 
 
         // Create queues for parallelism
@@ -353,7 +354,6 @@ public class AwsService {
             threads[q] = new Thread(r);
             threads[q].start();
         }
-        this.threadEnable = true;
 
         try {
             final ListObjectsV2Request lor = new ListObjectsV2Request();
