@@ -66,6 +66,21 @@ public class EtlConfig {
     @Value("${witness.load.parallel.queue.size}")
     private int witnessLoadParallelQueueSize;
 
+    @Value("${beacon.history.startdate}")
+    private long beaconHistoryStartDate;
+
+    @Value("${witness.history.startdate}")
+    private long witnessHistoryStartDate;
+
+
+    public long getBeaconHistoryStartDate() {
+        return beaconHistoryStartDate;
+    }
+
+    public long getWitnessHistoryStartDate() {
+        return witnessHistoryStartDate;
+    }
+
     public int getWitnessLoadParallelWorkers() {
         return witnessLoadParallelWorkers;
     }

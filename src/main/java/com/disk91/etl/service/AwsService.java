@@ -181,7 +181,13 @@ public class AwsService {
                     if ( ! object.getKey().contains(".gz") ) continue; // not a file
                     String fileName = object.getKey().split("/")[1];
                     int fileType = this.getFileType(fileName);
+                    long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
                     if ( fileType != 1 ) continue;
+                    if ( fileDate/1000 < etlConfig.getBeaconHistoryStartDate() ) {
+                        beaconFile.setStringValue(object.getKey());
+                        paramRepository.save(beaconFile);
+                        continue;
+                    }
                     //log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - Long.parseLong(object.getKey().split("\\.")[1]) )/(Now.ONE_FULL_DAY)+") days");
 
                     final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
@@ -376,7 +382,14 @@ public class AwsService {
                     if ( ! object.getKey().contains(".gz") ) continue; // not a file
                     String fileName = object.getKey().split("/")[1];
                     int fileType = getFileType(fileName);
+                    long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
                     if ( fileType != 2 ) continue;
+                    if ( fileDate/1000 < etlConfig.getWitnessHistoryStartDate() ) {
+                        witnessFile.setStringValue(object.getKey());
+                        paramRepository.save(witnessFile);
+                        continue;
+                    }
+
                     try {
                         long fileTimestamp = Long.parseLong(object.getKey().split("\\.")[1]);
                         long beaconTimestamp = Long.parseLong(beaconFile.getStringValue().split("\\.")[1]);

@@ -182,7 +182,11 @@ public class HotspotCache {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
         prometeusService.changeHsModification(modifications);
-        if ( modifications > etlConfig.getCacheHotspotCommit() && ! hotspotCacheAsync.isRunning() ) {
+        if ( ! hotspotCacheAsync.isRunning()
+        && (    modifications > etlConfig.getCacheHotspotCommit()   // to commit the modifications
+             || heliumHotspotCache.isInAsyncSync()                  // to terminate async sync in batch
+           )
+        ) {
             modifications = 0;
             long updated = heliumHotspotCache.commit(true,etlConfig.getCacheHotspotCommit()); // async commit to quit immediately
             // avoid to have a parallel request to start as the async process can take a few mx to start and another pending updateHotspot takes
