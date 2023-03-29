@@ -113,6 +113,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     protected long total100CacheTime;
     protected long total100CacheTry;
     protected boolean tooLong;    // true when the cache performance is really bad
+    private boolean inClean;        // clean operation in progress
 
     protected boolean inAsyncSync;  // true when an async sync process has ben started
 
@@ -149,6 +150,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         this.name = name;
         this.tooLong = false;
         this.inAsyncSync = false;
+        this.inClean = false;
     }
 
     public boolean isTooLong() {
@@ -157,6 +159,10 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
 
     public boolean isInAsyncSync() {
         return inAsyncSync;
+    }
+
+    public boolean isInClean() {
+        return inClean;
     }
 
     /**
@@ -200,19 +206,21 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
             this.totalCacheTry++;
             this.totalCacheTime+=(Now.NanoTime()-start);
 
-            this.total100CacheTry++;
-            if ( this.total100CacheTry >= 100 ) this.total100CacheTime+=(Now.NanoTime()-start);
-            if ( this.total100CacheTry >= 1000 ) {
-                // average situation... when above 2ms, better not use the cache !
-                // forget the 100 first request as the creation can be really long
-                // and get bad stats
-                if ((this.total100CacheTime / (total100CacheTry-100)) > 2_000_000) {
-                    this.tooLong = true;
+            if ( ! inClean ) {
+                this.total100CacheTry++;
+                if (this.total100CacheTry >= 100) this.total100CacheTime += (Now.NanoTime() - start);
+                if (this.total100CacheTry >= 1000) {
+                    // average situation... when above 2ms, better not use the cache !
+                    // forget the 100 first request as the creation can be really long
+                    // and get bad stats
+                    if ((this.total100CacheTime / (total100CacheTry - 100)) > 2_000_000) {
+                        this.tooLong = true;
+                    }
+                    log.info(this.name + " avg cache tm : " + (this.total100CacheTime / (total100CacheTry - 100)) + "ns");
+                    // go to next verification
+                    this.total100CacheTry = 0;
+                    this.total100CacheTime = 0;
                 }
-                log.info(this.name+" avg cache tm : "+(this.total100CacheTime / (total100CacheTry-100))+"ns");
-                // go to next verification
-                this.total100CacheTry = 0;
-                this.total100CacheTime = 0;
             }
         }
 
@@ -310,6 +318,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
      * Target is to clean 10% of cache as a minimum
      */
     protected synchronized void cleanCache() {
+        this.inClean = true;
         long start = Now.NanoTime();
         long now = Now.NowUtcMs();
         long toRemove = (this.maxCacheSize * 25) / 100;
@@ -370,6 +379,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
 
         // Update stats
         this.lastGCDurationMs = (Now.NanoTime() - start)/1000;
+        this.inClean = false;
     }
 
     // returns %age of cache usage
@@ -445,6 +455,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
                     if (cl != null) {
                         upd.add(cl);
                         c.setUpdated(false);
+                        c.setUnsaved(false);
                     }
                 }
             }

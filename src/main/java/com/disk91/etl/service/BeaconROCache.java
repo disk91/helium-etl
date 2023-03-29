@@ -25,6 +25,7 @@ import xyz.nova.grpc.lora_witness_ingest_report_v1;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 public class BeaconROCache {
@@ -47,18 +48,30 @@ public class BeaconROCache {
 
     private ObjectCache<String, Beacon> beaconCache;
 
+    // Because the cache can be rebuilt so we need an indirection
+    private Supplier<Number> getCacheTotalCacheTime() {
+        return this.beaconCache.getTotalCacheTime();
+    }
+
+    private Supplier<Number> getCacheTotalCacheTry() {
+        return this.beaconCache.getTotalCacheTry();
+    }
+
+    private Supplier<Number> getCacheTotalCacheMiss() {
+        return this.beaconCache.getCacheMissStat();
+    }
+
     @PostConstruct
     private void initBeaconCacheService() {
 
         initCache();
-
-        Gauge.builder("etl.beacon.cache_total_time", this.beaconCache.getTotalCacheTime())
+        Gauge.builder("etl.beacon.cache_total_time", this.getCacheTotalCacheTime())
                 .description("total time beacon cache execution")
                 .register(registry);
-        Gauge.builder("etl.beacon.cache_total", this.beaconCache.getTotalCacheTry())
+        Gauge.builder("etl.beacon.cache_total", this.getCacheTotalCacheTime())
                 .description("total beacon cache try")
                 .register(registry);
-        Gauge.builder("etl.beacon.cache_miss", this.beaconCache.getCacheMissStat())
+        Gauge.builder("etl.beacon.cache_miss", this.getCacheTotalCacheMiss())
                 .description("total beacon cache miss")
                 .register(registry);
 
@@ -110,7 +123,7 @@ public class BeaconROCache {
 
     public Beacon getBeacon(String dataId, long closeTimestamp) {
         synchronized (beaconCache) {
-            if (beaconCache.isTooLong()) {
+            if (beaconCache.isTooLong() && !beaconCache.isInClean()) {
                 log.warn("BeaconROCache is too slow, destroy and recreate it");
                 // wait a bit we need to make sure no other process is in the next part
                 try { Thread.sleep(50); } catch (InterruptedException x) {}
