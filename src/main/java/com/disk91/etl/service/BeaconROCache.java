@@ -46,35 +46,11 @@ public class BeaconROCache {
     protected int runningJobs;
     protected boolean serviceEnable; // false to stop the services
 
-    private ObjectCache<String, Beacon> beaconCache;
-
-    // Because the cache can be rebuilt so we need an indirection
-    private Supplier<Number> getCacheTotalCacheTime() {
-        return this.beaconCache.getTotalCacheTime();
-    }
-
-    private Supplier<Number> getCacheTotalCacheTry() {
-        return this.beaconCache.getTotalCacheTry();
-    }
-
-    private Supplier<Number> getCacheTotalCacheMiss() {
-        return this.beaconCache.getCacheMissStat();
-    }
+    private volatile ObjectCache<String, Beacon> beaconCache;
 
     @PostConstruct
     private void initBeaconCacheService() {
-
         initCache();
-        Gauge.builder("etl.beacon.cache_total_time", this.getCacheTotalCacheTime())
-                .description("total time beacon cache execution")
-                .register(registry);
-        Gauge.builder("etl.beacon.cache_total", this.getCacheTotalCacheTry())
-                .description("total beacon cache try")
-                .register(registry);
-        Gauge.builder("etl.beacon.cache_miss", this.getCacheTotalCacheMiss())
-                .description("total beacon cache miss")
-                .register(registry);
-
         this.serviceEnable = true;
     }
 
@@ -95,6 +71,31 @@ public class BeaconROCache {
             }
 
         };
+
+        Gauge gauge = registry.find("etl.beacon.cache_total_time").gauge();
+        if (gauge != null) {
+            registry.remove(gauge);
+        }
+        Gauge.builder("etl.beacon.cache_total_time", this.beaconCache.getTotalCacheTime())
+                .description("total time beacon cache execution")
+                .register(registry);
+
+        gauge = registry.find("etl.beacon.cache_total").gauge();
+        if (gauge != null) {
+            registry.remove(gauge);
+        }
+        Gauge.builder("etl.beacon.cache_total", this.beaconCache.getTotalCacheTry())
+                .description("total beacon cache try")
+                .register(registry);
+
+        gauge = registry.find("etl.beacon.cache_total").gauge();
+        if (gauge != null) {
+            registry.remove(gauge);
+        }
+        Gauge.builder("etl.beacon.cache_miss", this.beaconCache.getCacheMissStat())
+                .description("total beacon cache miss")
+                .register(registry);
+
 
     }
 
@@ -120,37 +121,39 @@ public class BeaconROCache {
     protected BeaconsRepository beaconsRepository;
 
     public final long ACCEPTED_TIME_DISTANCE = 10_000_000_000L;
-
-    public Beacon getBeacon(String dataId, long closeTimestamp) {
-        synchronized (beaconCache) {
-            if (beaconCache.isTooLong() && !beaconCache.isInClean()) {
-                log.warn("BeaconROCache is too slow, destroy and recreate it");
-                // wait a bit we need to make sure no other process is in the next part
-                try { Thread.sleep(50); } catch (InterruptedException x) {}
-                if ( !beaconCache.isInClean() ) {
-                    // after a while this cache is becoming really slow,
-                    // possibly related to swap & memory issue
-                    // in this case better deleting cache and recreate it
-                    beaconCache.deleteCache();
-                    initCache();
-                }
+    
+    protected synchronized void checkCacheState() {
+        if (beaconCache.isTooLong() && !beaconCache.isInClean()) {
+            log.warn("BeaconROCache is too slow, destroy and recreate it");
+            // wait a bit we need to make sure no other process is in the next part
+            try { Thread.sleep(100); } catch (InterruptedException x) {}
+            if ( !beaconCache.isInClean() ) {
+                // after a while this cache is becoming really slow,
+                // possibly related to swap & memory issue
+                // in this case better deleting cache and recreate it
+                beaconCache.deleteCache();
+                initCache();
             }
         }
+    }
 
+
+    public Beacon getBeacon(String dataId, long closeTimestamp) {
+        checkCacheState();
         Beacon b = beaconCache.get(dataId);
-        if ( b == null || Math.abs(b.getTimestamp() - closeTimestamp) > ACCEPTED_TIME_DISTANCE ) {
+        if (b == null || Math.abs(b.getTimestamp() - closeTimestamp) > ACCEPTED_TIME_DISTANCE) {
             List<Beacon> bs = beaconsRepository.findBeaconByData(dataId);
-            if ( bs != null && bs.size() > 0 ) {
-                long tdist=ACCEPTED_TIME_DISTANCE;
+            if (bs != null && bs.size() > 0) {
+                long tdist = ACCEPTED_TIME_DISTANCE;
                 Beacon closest = null;
-                for ( Beacon _b : bs ) {
+                for (Beacon _b : bs) {
                     long d = Math.abs(_b.getTimestamp() - closeTimestamp);
-                    if ( d < tdist ) {
+                    if (d < tdist) {
                         tdist = d;
                         closest = _b;
                     }
                 }
-                if ( closest != null ) {
+                if (closest != null) {
                     beaconCache.put(closest, closest.getData());
                     //log.info((closeTimestamp/1_000_000)+"Found beacon with "+tdist/1_000_000+"ms");
                     return closest;
@@ -164,6 +167,7 @@ public class BeaconROCache {
     }
 
     public void addBeacon(Beacon b) {
+        checkCacheState();
         this.beaconCache.put(b,b.getData());
     }
 
