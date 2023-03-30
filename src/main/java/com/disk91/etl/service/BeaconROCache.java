@@ -68,7 +68,7 @@ public class BeaconROCache {
         Gauge.builder("etl.beacon.cache_total_time", this.getCacheTotalCacheTime())
                 .description("total time beacon cache execution")
                 .register(registry);
-        Gauge.builder("etl.beacon.cache_total", this.getCacheTotalCacheTime())
+        Gauge.builder("etl.beacon.cache_total", this.getCacheTotalCacheTry())
                 .description("total beacon cache try")
                 .register(registry);
         Gauge.builder("etl.beacon.cache_miss", this.getCacheTotalCacheMiss())
@@ -127,11 +127,13 @@ public class BeaconROCache {
                 log.warn("BeaconROCache is too slow, destroy and recreate it");
                 // wait a bit we need to make sure no other process is in the next part
                 try { Thread.sleep(50); } catch (InterruptedException x) {}
-                // after a while this cache is becoming really slow,
-                // possibly related to swap & memory issue
-                // in this case better deleting cache and recreate it
-                beaconCache.deleteCache();
-                initCache();
+                if ( !beaconCache.isInClean() ) {
+                    // after a while this cache is becoming really slow,
+                    // possibly related to swap & memory issue
+                    // in this case better deleting cache and recreate it
+                    beaconCache.deleteCache();
+                    initCache();
+                }
             }
         }
 

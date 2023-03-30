@@ -113,7 +113,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     protected long total100CacheTime;
     protected long total100CacheTry;
     protected boolean tooLong;    // true when the cache performance is really bad
-    private boolean inClean;        // clean operation in progress
+    private volatile boolean inClean;        // clean operation in progress
 
     protected boolean inAsyncSync;  // true when an async sync process has ben started
 
