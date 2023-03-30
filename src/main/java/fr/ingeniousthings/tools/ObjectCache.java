@@ -209,14 +209,18 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
             if ( ! inClean ) {
                 this.total100CacheTry++;
                 if (this.total100CacheTry >= 100) this.total100CacheTime += (Now.NanoTime() - start);
-                if (this.total100CacheTry >= 1000) {
+                if (this.total100CacheTry >= 5_000) {
                     // average situation... when above 2ms, better not use the cache !
                     // forget the 100 first request as the creation can be really long
                     // and get bad stats
                     if ((this.total100CacheTime / (total100CacheTry - 100)) > 2_000_000) {
                         this.tooLong = true;
                     }
-                    log.info(this.name + " avg cache tm : " + (this.total100CacheTime / (total100CacheTry - 100)) + "ns");
+
+                    if (this.tooLong || (this.total100CacheTime / (total100CacheTry - 100)) > 5_000) {
+                        log.info(this.name + " avg cache tm : " + (this.total100CacheTime / (total100CacheTry - 100)) + "ns");
+                    }
+
                     // go to next verification
                     this.total100CacheTry = 0;
                     this.total100CacheTime = 0;

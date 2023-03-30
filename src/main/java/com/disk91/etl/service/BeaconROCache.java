@@ -61,19 +61,15 @@ public class BeaconROCache {
                 Now.ONE_HOUR
         ) {
             @Override
-            public void onCacheRemoval(String key, Beacon obj) {
-
-            }
-
+            public void onCacheRemoval(String key, Beacon obj) {}
             @Override
-            public void bulkCacheUpdate(List<Beacon> objects) {
-
-            }
+            public void bulkCacheUpdate(List<Beacon> objects) {}
 
         };
 
         Gauge gauge = registry.find("etl.beacon.cache_total_time").gauge();
         if (gauge != null) {
+            log.info(">> found to be removed");
             registry.remove(gauge);
         }
         Gauge.builder("etl.beacon.cache_total_time", this.beaconCache.getTotalCacheTime())
@@ -95,7 +91,6 @@ public class BeaconROCache {
         Gauge.builder("etl.beacon.cache_miss", this.beaconCache.getCacheMissStat())
                 .description("total beacon cache miss")
                 .register(registry);
-
 
     }
 
@@ -121,7 +116,7 @@ public class BeaconROCache {
     protected BeaconsRepository beaconsRepository;
 
     public final long ACCEPTED_TIME_DISTANCE = 10_000_000_000L;
-    
+
     protected synchronized void checkCacheState() {
         if (beaconCache.isTooLong() && !beaconCache.isInClean()) {
             log.warn("BeaconROCache is too slow, destroy and recreate it");
