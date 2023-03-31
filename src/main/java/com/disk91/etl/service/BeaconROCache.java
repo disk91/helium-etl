@@ -84,7 +84,7 @@ public class BeaconROCache {
                 .description("total beacon cache try")
                 .register(registry);
 
-        gauge = registry.find("etl.beacon.cache_total").gauge();
+        gauge = registry.find("etl.beacon.cache_miss").gauge();
         if (gauge != null) {
             registry.remove(gauge);
         }
