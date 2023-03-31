@@ -2,14 +2,7 @@ package com.disk91.etl.service;
 
 import com.disk91.etl.EtlConfig;
 import com.disk91.etl.data.object.Beacon;
-import com.disk91.etl.data.object.Hotspot;
-import com.disk91.etl.data.object.Param;
-import com.disk91.etl.data.object.sub.BeaconHistory;
-import com.disk91.etl.data.object.sub.Witness;
 import com.disk91.etl.data.repository.BeaconsRepository;
-import com.disk91.etl.data.repository.HotspotsRepository;
-import fr.ingeniousthings.tools.HeliumHelper;
-import fr.ingeniousthings.tools.HexaConverters;
 import fr.ingeniousthings.tools.Now;
 import fr.ingeniousthings.tools.ObjectCache;
 import io.micrometer.core.instrument.Gauge;
@@ -19,13 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import xyz.nova.grpc.lora_beacon_ingest_report_v1;
-import xyz.nova.grpc.lora_witness_ingest_report_v1;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 @Service
 public class BeaconROCache {

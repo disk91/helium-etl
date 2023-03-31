@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import xyz.nova.grpc.lora_beacon_ingest_report_v1;
-import xyz.nova.grpc.lora_witness_ingest_report_v1;
+import com.helium.grpc.lora_beacon_ingest_report_v1;
+import com.helium.grpc.lora_witness_ingest_report_v1;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
@@ -36,6 +36,8 @@ public class AwsService {
     static final String BEACON_FIRST_OBJECT = "foundation-iot-ingest/iot_beacon_ingest_report.1674760089530.gz";
     static final String WITNESS_FIRST_OBJECT = "foundation-iot-ingest/iot_witness_ingest_report.1674760086500.gz";
 
+    static final String IOTPOC_FIRST_OBJECT = "foundation-iot-verified-rewards/iot_poc.1674760086500.gz";
+
     @Autowired
     protected EtlConfig etlConfig;
 
@@ -50,6 +52,7 @@ public class AwsService {
 
     Param beaconFile = null;
     Param witnessFile = null;
+    Param iotPocFile = null;
 
 
     @PostConstruct
@@ -74,6 +77,13 @@ public class AwsService {
             witnessFile = new Param();
             witnessFile.setParamName("aws_last_wit_sync");
             witnessFile.setStringValue(WITNESS_FIRST_OBJECT);
+        }
+
+        iotPocFile = paramRepository.findOneParamByParamName("aws_last_iotpoc_sync");
+        if ( iotPocFile == null ) {
+            iotPocFile = new Param();
+            iotPocFile.setParamName("aws_last_iotpoc_sync");
+            iotPocFile.setStringValue(IOTPOC_FIRST_OBJECT);
         }
 
 
@@ -130,6 +140,8 @@ public class AwsService {
             return 1;
         } else if ( fileName.startsWith("iot_witness_ingest_report") ) {
             return 2;
+        } else if ( fileName.startsWith("iot_poc") ) {
+            return 3;
         } else {
             log.warn("Unknown type of file discovered "+fileName);
         }
@@ -537,6 +549,221 @@ public class AwsService {
                 runningJobs--;
             }
             log.info("Witness - exit completed");
+        }
+    }
+
+
+    @Scheduled(fixedDelay = 60_000, initialDelay = 17_000)
+    protected void AwsValidWitnessSync() {
+        if ( ! readyToSync || !serviceEnable ) return;
+        log.info("Running AwsValidWitnessService Sync");
+
+        synchronized (this) {
+            this.runningJobs++;
+        }
+        long start = Now.NowUtcMs();
+        long lastLog = start;
+        this.threadEnable = true;
+
+
+        // Create queues for parallelism
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        ConcurrentLinkedQueue<lora_witness_ingest_report_v1> queues[] =  new ConcurrentLinkedQueue[etlConfig.getWitnessLoadParallelWorkers()];
+        Boolean threadRunning[] = new Boolean[etlConfig.getWitnessLoadParallelWorkers()];
+        Thread threads[] = new Thread[etlConfig.getWitnessLoadParallelWorkers()];
+        for ( int q = 0 ; q < etlConfig.getWitnessLoadParallelWorkers() ; q++) {
+            queues[q] = new ConcurrentLinkedQueue<lora_witness_ingest_report_v1>();
+            threadRunning[q] = Boolean.FALSE;
+            Runnable r = new ProcessWitness(q,queues[q],threadRunning[q]);
+            threads[q] = new Thread(r);
+            threads[q].start();
+        }
+
+        try {
+            final ListObjectsV2Request lor = new ListObjectsV2Request();
+            lor.setBucketName(etlConfig.getAwsBucketName());
+            lor.setPrefix("foundation-iot-verified-rewards");
+            lor.setStartAfter(iotPocFile.getStringValue());
+            lor.setRequesterPays(true);
+            ListObjectsV2Result list;
+            long totalObject = 0;
+            long totalSize = 0;
+            long totalWitness = 0;
+            do {
+                list = this.s3Client.listObjectsV2(lor);
+                List<S3ObjectSummary> objects = list.getObjectSummaries();
+                for (S3ObjectSummary object : objects) {
+                    long cSize = object.getSize();
+                    long rSize = 0;
+                    totalObject++;
+                    totalSize+=object.getSize();
+                    if ( object.getSize() == 0 ) continue;
+                    long fileStart = Now.NowUtcMs();
+
+                    // Identify the type of objects
+                    //  iot_poc => valid poc
+                    if ( ! object.getKey().contains(".gz") ) continue; // not a file
+                    String fileName = object.getKey().split("/")[1];
+                    int fileType = getFileType(fileName);
+                    long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
+                    if ( fileType != 3 ) continue;
+                    if ( fileDate/1000 < etlConfig.getWitnessHistoryStartDate() ) {
+                        iotPocFile.setStringValue(object.getKey());
+                        paramRepository.save(iotPocFile);
+                        continue;
+                    }
+
+                    try {
+                        long fileTimestamp = Long.parseLong(object.getKey().split("\\.")[1]);
+                        long beaconTimestamp = Long.parseLong(beaconFile.getStringValue().split("\\.")[1]);
+                        if ( fileTimestamp > (beaconTimestamp - 20*60_000) ) {
+                            // in this situation, the witness file can be too much fresh and we could
+                            // have a problem to make the link with the beacon
+                            // better waiting
+                            return;
+                        }
+                    } catch (Exception x ) {
+                        log.error("Impossible to parse file name for "+object.getKey());
+                        // better skip it
+                        continue;
+                    }
+                    //log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - Long.parseLong(object.getKey().split("\\.")[1]) )/(Now.ONE_FULL_DAY)+") days");
+
+                    final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
+                    or.setRequesterPays(true);
+                    S3Object fileObject = this.s3Client.getObject(or);
+
+                    try {
+                        // File is GZiped Version of a stream of protobuf messages
+                        // each protobuf messages is encapsulated with a header
+                        // int4 containing the length of the protobuf message following.
+                        GZIPInputStream stream = new GZIPInputStream(fileObject.getObjectContent());
+                        BufferedInputStream bufferedInputStream = new BufferedInputStream(stream);
+                        while ( bufferedInputStream.available() > 0 ) {
+                            try {
+                                byte[] sz = bufferedInputStream.readNBytes(4);
+                                long len = Stuff.getLongValueFromBytes(sz);
+                                rSize += len+4;
+                                if (len > 0) {
+                                    byte[] r = bufferedInputStream.readNBytes((int) len);
+                                    totalWitness++;
+
+                                    /*
+                                    lora_witness_ingest_report_v1 w = lora_witness_ingest_report_v1.parseFrom(r);
+                                    // Add in queues - find it with a random element in the pub key
+                                    // to make sure a single hotspot goes to the same queues to not
+                                    // have collisions
+                                    int q = w.getReport().getPubKey().byteAt(4);
+                                    q &= (etlConfig.getWitnessLoadParallelWorkers()-1);
+                                    try {
+                                        // when a queue is full just wait, it should be balanced
+                                        while (queues[q].size() >= etlConfig.getWitnessLoadParallelQueueSize()) Thread.sleep(2);
+                                    } catch ( InterruptedException x ) {x.printStackTrace();};
+                                    queues[q].add(w);
+                                    */
+
+
+                                    /*
+                                    if (!hotspotCache.addWitness(w)) {
+                                        log.debug("witness not processed " + w.getReceivedTimestamp());
+                                    }
+                                    */
+
+                                } else {
+                                    log.error("Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
+                                }
+
+                                // print progress log on regular basis
+                                if ((Now.NowUtcMs() - lastLog) > 30_000) {
+                                    String distance_s = object.getKey().split("\\.")[1];
+                                    long distance = Now.NowUtcMs() - Long.parseLong(distance_s);
+                                    log.info("IoTPoc Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tWitness: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                    lastLog = Now.NowUtcMs();
+                                }
+                                // print process state on exit request
+                                if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
+                                    log.info("IoTPoc - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
+                                    lastLog = Now.NowUtcMs();
+                                }
+
+                            } catch ( IOException x ) {
+                                // in case of IOException Better skip the file
+                                prometeusService.addAwsFailure();
+                                log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
+                                if ( serviceEnable == false ) return;
+                                else break;
+                            } catch ( Exception x ) {
+                                log.error(x.getMessage());
+                                if ( serviceEnable == false ) return;
+                                x.printStackTrace();
+                            }
+
+                        } // end of current file
+                        bufferedInputStream.close();
+                        stream.close();
+                        prometeusService.addFileProcessed();
+                        prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
+                        try {
+                            String time_s = object.getKey().split("\\.")[1];
+                            prometeusService.changeFileWitnessTimestamp(Long.parseLong(time_s));
+                        } catch (Exception x) {
+                            // don't care that is monitoring
+                            log.error("Can't parse file timestamp for "+object.getKey());
+                        }
+
+                    } catch (IOException x) {
+                        prometeusService.addAwsFailure();
+                        log.error("Failed to gunzip for Key "+object.getKey()+" "+x.getMessage());
+                    } catch (Exception x) {
+                        prometeusService.addAwsFailure();
+                        log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
+                    }
+
+                    if ( fileType == 3 ) {
+                        iotPocFile.setStringValue(object.getKey());
+                        paramRepository.save(iotPocFile);
+                    }
+                    hotspotCache.flushTopLines();
+                    if ( serviceEnable == false ) {
+                        // we had a request to quit and at this point we can make it
+                        // clean
+                        log.info("IoTPoc - exit ready");
+                        return;
+                    }
+                }
+                lor.setContinuationToken(list.getNextContinuationToken());
+
+            } while (list.isTruncated());
+        } catch (AmazonServiceException x) {
+            prometeusService.addAwsFailure();
+            log.error(x.getMessage());
+            x.printStackTrace();
+        } catch (AmazonClientException x) {
+            prometeusService.addAwsFailure();
+            log.error(x.getMessage());
+            x.printStackTrace();
+        } catch (Exception x) {
+            prometeusService.addAwsFailure();
+            log.error("IoTPoc Batch Failure "+x.getMessage());
+        } finally {
+            // wait the parallel Thread to stop max 5 minutes
+            this.threadEnable = false;
+            boolean terminated = false;
+            long waitStart = Now.NowUtcMs();
+            while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
+                terminated = true;
+                for (int t = 0; t < etlConfig.getWitnessLoadParallelWorkers(); t++) {
+                    if (threads[t].getState() != Thread.State.TERMINATED) terminated = false;
+                }
+                try { Thread.sleep(500); } catch (InterruptedException x ) {};
+            }
+            if ( !terminated ) {
+                log.error("Cancelling Thread before ending enqueing");
+            }
+            synchronized (this) {
+                runningJobs--;
+            }
+            log.info("IoTPoc - exit completed");
         }
     }
 

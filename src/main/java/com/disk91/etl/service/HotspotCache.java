@@ -24,11 +24,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import xyz.nova.grpc.lora_beacon_ingest_report_v1;
-import xyz.nova.grpc.lora_witness_ingest_report_v1;
+import com.helium.grpc.lora_beacon_ingest_report_v1;
+import com.helium.grpc.lora_witness_ingest_report_v1;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
