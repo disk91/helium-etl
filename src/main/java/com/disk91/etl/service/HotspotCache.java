@@ -167,7 +167,7 @@ public class HotspotCache {
     @Autowired
     protected HotspotsRepository hotspotsRepository;
 
-    public Hotspot getHotspot(String hotspotId, boolean cache) {
+    synchronized public Hotspot getHotspot(String hotspotId, boolean cache) {
         Hotspot hs = heliumHotspotCache.get(hotspotId);
         if ( hs == null ) {
             hs = hotspotsRepository.findOneHotspotByHotspotId(hotspotId);
