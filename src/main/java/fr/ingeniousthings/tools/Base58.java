@@ -120,10 +120,11 @@ public class Base58 {
      * @return the decoded data bytes
      * @throws ITParseException if the given string is not a valid base58 string
      */
-    public static byte[] decode(String input) throws ITParseException {
+    public static byte[] decode(String input, boolean wCheck) throws ITParseException {
         if (input.length() == 0) {
             return new byte[0];
         }
+
         // Convert the base58-encoded ASCII chars to a base58 byte sequence (base58 digits).
         byte[] input58 = new byte[input.length()];
         for (int i = 0; i < input.length(); ++i) {
@@ -153,11 +154,15 @@ public class Base58 {
             ++outputStart;
         }
         // Return decoded data (including original number of leading zeros).
-        return Arrays.copyOfRange(decoded, outputStart - zeros, decoded.length);
+        if ( wCheck ) {
+            return Arrays.copyOfRange(decoded, outputStart - zeros, decoded.length-4);
+        } else {
+            return Arrays.copyOfRange(decoded, outputStart - zeros, decoded.length);
+        }
     }
 
     public static BigInteger decodeToBigInteger(String input) throws ITParseException {
-        return new BigInteger(1, decode(input));
+        return new BigInteger(1, decode(input,false));
     }
 
     /**

@@ -38,7 +38,7 @@ public class Witness implements ClonnableObject<Witness> {
     }
 
     public void addWitness(long _lastSeen, double _rssi, double _snr ) {
-        this.lastSeen = lastSeen;
+        this.lastSeen = _lastSeen;
         this.lastRssi = _rssi;
         this.lastSnr = _snr;
         this.totRssi += _rssi;

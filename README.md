@@ -53,28 +53,7 @@ This is only for developers who want to work on the etl solution
 
 ### Re-Generate protobuf
 
-- Nova service GRPC proto can be found on - https://github.com/helium/proto/blob/master/src/service/iot_config.proto
-- Update data_rate.proto file
-```agsl
-syntax = "proto3";
-
-package helium;
-option java_package = "xyz.nova.grpc";
-option java_outer_classname = "PocLoRa";
-option java_multiple_files = true;
-
-enum data_rate {
-```
-
-- Update service/poc_lora.proto file
-```agsl
-package helium.poc_lora;
-option java_package = "xyz.nova.grpc";
-option java_outer_classname = "PocLoRa";
-option java_multiple_files = true;
-
-import "data_rate.proto";
-```
+- Helium service GRPC proto can be found on - https://github.com/helium/proto/blob/master/src/
 
 - Protoc - https://github.com/protocolbuffers/protobuf
 - Command lines

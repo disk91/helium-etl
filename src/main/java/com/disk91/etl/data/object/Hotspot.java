@@ -1,6 +1,7 @@
 package com.disk91.etl.data.object;
 
 import com.disk91.etl.data.object.sub.BeaconHistory;
+import com.disk91.etl.data.object.sub.LatLng;
 import com.disk91.etl.data.object.sub.Witness;
 import com.disk91.etl.data.object.sub.WitnessHistory;
 import fr.ingeniousthings.tools.ClonnableObject;
@@ -26,13 +27,26 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     private String id;
 
     private String hotspotId;
+    private String animalName;
 
+    private LatLng position;
+
+    private List<LatLng> posHistory;
     private int version;
 
     private long lastBeacon;
     private long lastWitness;
+
+    // List of hotspots receiving this hotspot
+    private List<Witness> beaconned;
+
+    // List of hotspot this one is receiving
     private List<Witness> witnesses;
+
+    // Quantitiative history
     private List<WitnessHistory> witnessesHistory;
+
+    // Quantitative history
     private List<BeaconHistory> beaconHistory;
 
     // ---
@@ -45,12 +59,25 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         c.setVersion(version);
         c.setLastBeacon(lastBeacon);
         c.setLastWitness(lastWitness);
+        c.setAnimalName(animalName);
+        c.setPosition(position.clone());
+
+        List<LatLng> ph = new ArrayList<>();
+        for (LatLng p : posHistory) {
+            ph.add(p.clone());
+        }
 
         List<Witness> ws = new ArrayList<>();
         for (Witness w : witnesses) {
             ws.add(w.clone());
         }
         c.setWitnesses(ws);
+
+        List<Witness> bs = new ArrayList<>();
+        for (Witness w : beaconned) {
+            bs.add(w.clone());
+        }
+        c.setBeaconned(bs);
 
         List<WitnessHistory> whs = new ArrayList<>();
         for (WitnessHistory wh : witnessesHistory) {
@@ -131,5 +158,37 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public List<Witness> getBeaconned() {
+        return beaconned;
+    }
+
+    public void setBeaconned(List<Witness> beaconned) {
+        this.beaconned = beaconned;
+    }
+
+    public String getAnimalName() {
+        return animalName;
+    }
+
+    public void setAnimalName(String animalName) {
+        this.animalName = animalName;
+    }
+
+    public LatLng getPosition() {
+        return position;
+    }
+
+    public void setPosition(LatLng position) {
+        this.position = position;
+    }
+
+    public List<LatLng> getPosHistory() {
+        return posHistory;
+    }
+
+    public void setPosHistory(List<LatLng> posHistory) {
+        this.posHistory = posHistory;
     }
 }

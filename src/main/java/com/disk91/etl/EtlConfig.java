@@ -72,6 +72,48 @@ public class EtlConfig {
     @Value("${witness.history.startdate}")
     private long witnessHistoryStartDate;
 
+    @Value("${iotpoc.history.startdate}")
+    private long iotpocHistoryStartDate;
+
+    @Value("${beacon.load.enable}")
+    private boolean beaconLoadEnable;
+
+    @Value("${witness.load.enable}")
+    private boolean witnessLoadEnable;
+
+    @Value("${iotpoc.load.enable}")
+    private boolean iotpocLoadEnable;
+
+    @Value("${iotpoc.load.parallel.workers}")
+    private int iotpocLoadParallelWorkers;
+
+    @Value("${iotpoc.load.parallel.queue.size}")
+    private int iotpocLoadParallelQueueSize;
+
+
+    public boolean isBeaconLoadEnable() {
+        return beaconLoadEnable;
+    }
+
+    public long getIotpocHistoryStartDate() {
+        return iotpocHistoryStartDate;
+    }
+
+    public boolean isWitnessLoadEnable() {
+        return witnessLoadEnable;
+    }
+
+    public boolean isIotpocLoadEnable() {
+        return iotpocLoadEnable;
+    }
+
+    public int getIotpocLoadParallelWorkers() {
+        return iotpocLoadParallelWorkers;
+    }
+
+    public int getIotpocLoadParallelQueueSize() {
+        return iotpocLoadParallelQueueSize;
+    }
 
     public long getBeaconHistoryStartDate() {
         return beaconHistoryStartDate;

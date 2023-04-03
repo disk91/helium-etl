@@ -13,6 +13,7 @@ import com.disk91.etl.EtlApplication;
 import com.disk91.etl.EtlConfig;
 import com.disk91.etl.data.object.Param;
 import com.disk91.etl.data.repository.ParamRepository;
+import com.helium.grpc.lora_poc_v1;
 import fr.ingeniousthings.tools.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ public class AwsService {
     static final String BEACON_FIRST_OBJECT = "foundation-iot-ingest/iot_beacon_ingest_report.1674760089530.gz";
     static final String WITNESS_FIRST_OBJECT = "foundation-iot-ingest/iot_witness_ingest_report.1674760086500.gz";
 
-    static final String IOTPOC_FIRST_OBJECT = "foundation-iot-verified-rewards/iot_poc.1674760086500.gz";
+    static final String IOTPOC_FIRST_OBJECT = "foundation-iot-verified-rewards/iot_poc.1674766530034.gz";
 
     @Autowired
     protected EtlConfig etlConfig;
@@ -156,6 +157,8 @@ public class AwsService {
     @Scheduled(fixedDelay = 180_000, initialDelay = 10_000)
     protected void AwsBeaconSync() {
         if ( ! readyToSync || !serviceEnable ) return;
+        if ( !etlConfig.isBeaconLoadEnable() ) return;
+
         synchronized (this) {
             this.runningJobs++;
         }
@@ -344,6 +347,8 @@ public class AwsService {
     @Scheduled(fixedDelay = 60_000, initialDelay = 15_000)
     protected void AwsWitnessSync() {
         if ( ! readyToSync || !serviceEnable ) return;
+        if ( ! etlConfig.isWitnessLoadEnable() ) return;
+
         log.info("Running AwsWitnessService Sync");
 
         synchronized (this) {
@@ -405,10 +410,11 @@ public class AwsService {
                     try {
                         long fileTimestamp = Long.parseLong(object.getKey().split("\\.")[1]);
                         long beaconTimestamp = Long.parseLong(beaconFile.getStringValue().split("\\.")[1]);
-                        if ( fileTimestamp > (beaconTimestamp - 20*60_000) ) {
+                        if ( fileTimestamp > (beaconTimestamp - 20*60_000) && etlConfig.isBeaconLoadEnable() ) {
                             // in this situation, the witness file can be too much fresh and we could
                             // have a problem to make the link with the beacon
                             // better waiting
+                            // Only makes sense when raw beaons are loaded
                             return;
                         }
                     } catch (Exception x ) {
@@ -448,7 +454,7 @@ public class AwsService {
                                     } catch ( InterruptedException x ) {x.printStackTrace();};
                                     queues[q].add(w);
 
-                                    /*
+                                    /* -- if not parallelized
                                     if (!hotspotCache.addWitness(w)) {
                                         log.debug("witness not processed " + w.getReceivedTimestamp());
                                     }
@@ -553,9 +559,41 @@ public class AwsService {
     }
 
 
+    public class ProcessIoTPoc implements Runnable {
+
+        ConcurrentLinkedQueue<lora_poc_v1> queue;
+        Boolean status;
+        int id;
+
+        public ProcessIoTPoc(int _id, ConcurrentLinkedQueue<lora_poc_v1> _queue, Boolean _status) {
+            id = _id;
+            queue = _queue;
+            status = _status;
+        }
+        public void run() {
+            this.status = true;
+            log.info("Starting iot_poc process thread "+id);
+            lora_poc_v1 w;
+            while ( (w = queue.poll()) != null || threadEnable ) {
+                if ( w != null) {
+                   if (!hotspotCache.addIoTPoC(w)) {
+                        log.debug("Th(" + id + ") iotpoc not processed " + w.getBeaconReport().getReceivedTimestamp());
+                   }
+                } else {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException x) {x.printStackTrace();}
+                }
+            }
+            log.info("Closing iot_poc process thread "+id);
+        }
+    }
+
+
     @Scheduled(fixedDelay = 60_000, initialDelay = 17_000)
     protected void AwsValidWitnessSync() {
         if ( ! readyToSync || !serviceEnable ) return;
+        if ( ! etlConfig.isIotpocLoadEnable() ) return;
         log.info("Running AwsValidWitnessService Sync");
 
         synchronized (this) {
@@ -568,13 +606,13 @@ public class AwsService {
 
         // Create queues for parallelism
         @SuppressWarnings({"unchecked", "rawtypes"})
-        ConcurrentLinkedQueue<lora_witness_ingest_report_v1> queues[] =  new ConcurrentLinkedQueue[etlConfig.getWitnessLoadParallelWorkers()];
-        Boolean threadRunning[] = new Boolean[etlConfig.getWitnessLoadParallelWorkers()];
-        Thread threads[] = new Thread[etlConfig.getWitnessLoadParallelWorkers()];
-        for ( int q = 0 ; q < etlConfig.getWitnessLoadParallelWorkers() ; q++) {
-            queues[q] = new ConcurrentLinkedQueue<lora_witness_ingest_report_v1>();
+        ConcurrentLinkedQueue<lora_poc_v1> queues[] =  new ConcurrentLinkedQueue[etlConfig.getIotpocLoadParallelWorkers()];
+        Boolean threadRunning[] = new Boolean[etlConfig.getIotpocLoadParallelWorkers()];
+        Thread threads[] = new Thread[etlConfig.getIotpocLoadParallelWorkers()];
+        for ( int q = 0 ; q < etlConfig.getIotpocLoadParallelWorkers() ; q++) {
+            queues[q] = new ConcurrentLinkedQueue<lora_poc_v1>();
             threadRunning[q] = Boolean.FALSE;
-            Runnable r = new ProcessWitness(q,queues[q],threadRunning[q]);
+            Runnable r = new ProcessIoTPoc(q,queues[q],threadRunning[q]);
             threads[q] = new Thread(r);
             threads[q].start();
         }
@@ -607,12 +645,13 @@ public class AwsService {
                     int fileType = getFileType(fileName);
                     long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
                     if ( fileType != 3 ) continue;
-                    if ( fileDate/1000 < etlConfig.getWitnessHistoryStartDate() ) {
+                    if ( fileDate/1000 < etlConfig.getIotpocHistoryStartDate() ) {
                         iotPocFile.setStringValue(object.getKey());
                         paramRepository.save(iotPocFile);
                         continue;
                     }
 
+                    /* --  no need to sync with beacon read as the verified poc are including Beacon & Poc all at once
                     try {
                         long fileTimestamp = Long.parseLong(object.getKey().split("\\.")[1]);
                         long beaconTimestamp = Long.parseLong(beaconFile.getStringValue().split("\\.")[1]);
@@ -627,6 +666,8 @@ public class AwsService {
                         // better skip it
                         continue;
                     }
+                    */
+
                     //log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - Long.parseLong(object.getKey().split("\\.")[1]) )/(Now.ONE_FULL_DAY)+") days");
 
                     final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
@@ -648,20 +689,18 @@ public class AwsService {
                                     byte[] r = bufferedInputStream.readNBytes((int) len);
                                     totalWitness++;
 
-                                    /*
-                                    lora_witness_ingest_report_v1 w = lora_witness_ingest_report_v1.parseFrom(r);
+
+                                    lora_poc_v1 w = lora_poc_v1.parseFrom(r);
                                     // Add in queues - find it with a random element in the pub key
                                     // to make sure a single hotspot goes to the same queues to not
                                     // have collisions
-                                    int q = w.getReport().getPubKey().byteAt(4);
-                                    q &= (etlConfig.getWitnessLoadParallelWorkers()-1);
+                                    int q = w.getBeaconReport().getReport().getPubKey().byteAt(4);
+                                    q &= (etlConfig.getIotpocLoadParallelWorkers()-1);
                                     try {
                                         // when a queue is full just wait, it should be balanced
-                                        while (queues[q].size() >= etlConfig.getWitnessLoadParallelQueueSize()) Thread.sleep(2);
+                                        while (queues[q].size() >= etlConfig.getIotpocLoadParallelQueueSize()) Thread.sleep(2);
                                     } catch ( InterruptedException x ) {x.printStackTrace();};
                                     queues[q].add(w);
-                                    */
-
 
                                     /*
                                     if (!hotspotCache.addWitness(w)) {
@@ -677,7 +716,7 @@ public class AwsService {
                                 if ((Now.NowUtcMs() - lastLog) > 30_000) {
                                     String distance_s = object.getKey().split("\\.")[1];
                                     long distance = Now.NowUtcMs() - Long.parseLong(distance_s);
-                                    log.info("IoTPoc Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tWitness: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                    log.info("IoTPoc Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tPoc: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
                                     lastLog = Now.NowUtcMs();
                                 }
                                 // print process state on exit request
@@ -705,7 +744,7 @@ public class AwsService {
                         prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
                         try {
                             String time_s = object.getKey().split("\\.")[1];
-                            prometeusService.changeFileWitnessTimestamp(Long.parseLong(time_s));
+                            prometeusService.changeFileIoTPocTimestamp(Long.parseLong(time_s));
                         } catch (Exception x) {
                             // don't care that is monitoring
                             log.error("Can't parse file timestamp for "+object.getKey());

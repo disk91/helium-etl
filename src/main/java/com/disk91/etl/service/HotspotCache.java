@@ -11,12 +11,12 @@ import com.disk91.etl.data.repository.BeaconsRepository;
 import com.disk91.etl.data.repository.HotspotsRepository;
 import com.disk91.etl.data.repository.ParamRepository;
 import com.disk91.etl.data.repository.WitnessesRepository;
+import com.helium.grpc.*;
 import com.mongodb.WriteConcern;
 import com.mongodb.bulk.BulkWriteResult;
-import fr.ingeniousthings.tools.HeliumHelper;
-import fr.ingeniousthings.tools.HexaConverters;
-import fr.ingeniousthings.tools.Now;
-import fr.ingeniousthings.tools.ObjectCache;
+import com.uber.h3core.H3Core;
+import com.uber.h3core.util.LatLng;
+import fr.ingeniousthings.tools.*;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
@@ -26,10 +26,9 @@ import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import com.helium.grpc.lora_beacon_ingest_report_v1;
-import com.helium.grpc.lora_witness_ingest_report_v1;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,8 +55,13 @@ public class HotspotCache {
     protected Param witnessTopLine = null;
     protected long witnessTopTs = 0;
 
+    protected Param iotpocTopLine = null;
+    protected long iotpocTopTs = 0;
+
     @Autowired
     protected HotspotCacheAsync hotspotCacheAsync;
+
+    protected  H3Core h3;
 
     @PostConstruct
     private void initHotspotCacheService() {
@@ -102,7 +106,21 @@ public class HotspotCache {
             witnessTopLine.setLongValue(0);
             paramRepository.save(witnessTopLine);
         }
+        if ( iotpocTopLine == null ) {
+            iotpocTopLine = new Param();
+            iotpocTopLine.setParamName("iotpoc_top_line");
+            iotpocTopLine.setLongValue(0);
+            paramRepository.save(iotpocTopLine);
+        }
         this.serviceEnable = true;
+
+        try {
+            h3 = H3Core.newInstance();
+        } catch (IOException x) {
+            log.error("## Impossible de initialize h3 library");
+            h3 = null;
+        }
+
     }
 
     @Scheduled(fixedRateString = "${logging.cache.fixedrate}", initialDelay = 66_000)
@@ -135,6 +153,16 @@ public class HotspotCache {
         return (this.serviceEnable == false && this.runningJobs == 0);
     }
 
+    public void flushTopLines() {
+        // remove 10m to the max as the data are not always growing
+        beaconTopLine.setLongValue(this.beaconTopTs-600_000);
+        witnessTopLine.setLongValue(this.witnessTopTs-600_000);
+        iotpocTopLine.setLongValue(this.iotpocTopTs-600_000);
+
+        paramRepository.save(beaconTopLine);
+        paramRepository.save(witnessTopLine);
+        paramRepository.save(iotpocTopLine);
+    }
 
     @Autowired
     protected HotspotsRepository hotspotsRepository;
@@ -147,13 +175,31 @@ public class HotspotCache {
                 // create it
                 hs = new Hotspot();
                 hs.setHotspotId(hotspotId);
+                hs.setAnimalName(Animal.getAnimalName(hotspotId,'-'));
+                hs.setPosition(new com.disk91.etl.data.object.sub.LatLng());
+                hs.setPosHistory(new ArrayList<>());
                 hs.setWitnesses(new ArrayList<>());
                 hs.setBeaconHistory(new ArrayList<>());
                 hs.setWitnessesHistory(new ArrayList<>());
+                hs.setBeaconned(new ArrayList<>());
                 hs.setLastBeacon(0);
                 hs.setLastWitness(0);
                 hs.setVersion(1);
                 hs = hotspotsRepository.save(hs);   // to get the Id provided, will be simple to manage later
+            } else {
+                // previous versions
+                if ( hs.getBeaconned() == null ) {
+                    hs.setBeaconned(new ArrayList<>());
+                }
+                if ( hs.getAnimalName() == null || hs.getAnimalName().length() < 2) {
+                    hs.setAnimalName(Animal.getAnimalName(hotspotId,'-'));
+                }
+                if ( hs.getPosition() == null ) {
+                    hs.setPosition(new com.disk91.etl.data.object.sub.LatLng());
+                }
+                if ( hs.getPosHistory() == null ) {
+                    hs.setPosHistory(new ArrayList<>());
+                }
             }
             if ( cache && hs != null ) {
                 heliumHotspotCache.put(hs,hotspotId,false);
@@ -233,7 +279,7 @@ public class HotspotCache {
         boolean fullUpdate = ((Now.NowUtcMs() - b.getReceivedTimestamp()) < etlConfig.getHotspotUpdatePreventUntilDays()*Now.ONE_FULL_DAY);
 
         String hsId = HeliumHelper.pubAddressToName(b.getReport().getPubKey());
-        if ( fullUpdate ) {
+        if (! etlConfig.isIotpocLoadEnable() && fullUpdate ) {
             Hotspot h = this.getHotspot(hsId, true);
             h.setLastBeacon(b.getReceivedTimestamp());  // oracle reception time
             long hRef = Now.ThisHourUtc(b.getReceivedTimestamp());
@@ -272,30 +318,32 @@ public class HotspotCache {
             this.updateHotspot(h);
         }
 
-        // add a line in global storage
-        Beacon be = new Beacon();
-        be.setHotspotId(hsId);
-        be.setVersion(1);
-        be.setChannel(b.getReport().getChannel());
-        be.setDatarate(b.getReport().getDatarate().getNumber());
-        be.setFrequency(b.getReport().getFrequency());
-        be.setTimestamp(b.getReport().getTimestamp()); // Nano Seconds
-        be.setTmst(b.getReport().getTmst());
-        be.setTx_power(b.getReport().getTxPower());
-        be.setData(HexaConverters.byteToHexString(b.getReport().getData().toByteArray()));
-        // Async bulk write
-        delayedBeaconSave(be);
-        //beaconsRepository.save(be);
+        if ( etlConfig.isBeaconLoadEnable() ) {
+
+            // add a line in global storage
+            Beacon be = new Beacon();
+            be.setHotspotId(hsId);
+            be.setVersion(1);
+            be.setChannel(b.getReport().getChannel());
+            be.setDatarate(b.getReport().getDatarate().getNumber());
+            be.setFrequency(b.getReport().getFrequency());
+            be.setTimestamp(b.getReport().getTimestamp()); // Nano Seconds
+            be.setTmst(b.getReport().getTmst());
+            be.setTx_power(b.getReport().getTxPower());
+            be.setData(HexaConverters.byteToHexString(b.getReport().getData().toByteArray()));
+            // Async bulk write
+            delayedBeaconSave(be);
+            //beaconsRepository.save(be);
+            beaconROCache.addBeacon(be);
+        }
 
         // Add in cache for witness search
-        beaconROCache.addBeacon(be);
         if ( b.getReceivedTimestamp() > this.beaconTopTs ) {
             this.beaconTopTs = b.getReceivedTimestamp();
         }
 
         prometeusService.addBeaconProcessed();
         prometeusService.addBeaconProcessedTime(Now.NowUtcMs()-start);
-
         return true;
     }
 
@@ -310,7 +358,7 @@ public class HotspotCache {
         long start = Now.NowUtcMs();
 
         // beacon age > limit
-        boolean fullUpdate = ((Now.NowUtcMs() - w.getReceivedTimestamp()) < etlConfig.getHotspotUpdatePreventUntilDays()*Now.ONE_FULL_DAY);
+        boolean fullUpdate = ((Now.NowUtcMs() - w.getReceivedTimestamp()) < etlConfig.getHotspotUpdatePreventUntilDays() * Now.ONE_FULL_DAY);
 
         String hsId = HeliumHelper.pubAddressToName(w.getReport().getPubKey());
         String dataId = HexaConverters.byteToHexString(w.getReport().getData().toByteArray());
@@ -327,9 +375,9 @@ public class HotspotCache {
             b = null;
         }
 
-        // Update Hs information
-        if ( fullUpdate ) {
+        if (! etlConfig.isIotpocLoadEnable() && fullUpdate ) {
 
+            // Update Hs information
             Hotspot h = this.getHotspot(hsId, true);
             h.setLastWitness(w.getReceivedTimestamp());
             long hRef = Now.ThisHourUtc(w.getReceivedTimestamp());
@@ -345,8 +393,8 @@ public class HotspotCache {
                         // found it... update it
                         _w.addWitness(
                                 w.getReport().getTimestamp(),
-                                w.getReport().getSignal(),
-                                w.getReport().getSnr()
+                                w.getReport().getSignal()/10.0,
+                                w.getReport().getSnr()/10.0
                         );
                         found = true;
                         break;
@@ -358,8 +406,8 @@ public class HotspotCache {
                     _w.init(b.getHotspotId());
                     _w.addWitness(
                             w.getReport().getTimestamp(),
-                            w.getReport().getSignal(),
-                            w.getReport().getSnr()
+                            w.getReport().getSignal()/10.0,
+                            w.getReport().getSnr()/10.0
                     );
                     h.getWitnesses().add(_w);
                 }
@@ -398,47 +446,41 @@ public class HotspotCache {
                 // mark as updated
                 this.updateHotspot(h);
             }
+
         }
 
         // add a line in global storage
-        com.disk91.etl.data.object.Witness wi = new com.disk91.etl.data.object.Witness();
-        wi.setHotspotId(hsId);
-        if ( b != null ) {
-            wi.setBeaconId(b.getId());
-            wi.setValid(true);
-        } else {
-            wi.setBeaconId("Unknown");
-            wi.setValid(false);
+        if ( etlConfig.isWitnessLoadEnable() ) {
+
+            com.disk91.etl.data.object.Witness wi = new com.disk91.etl.data.object.Witness();
+            wi.setHotspotId(hsId);
+            if (b != null) {
+                wi.setBeaconId(b.getId());
+                wi.setValid(true);
+            } else {
+                wi.setBeaconId("Unknown");
+                wi.setValid(false);
+            }
+            wi.setVersion(1);
+            wi.setData(dataId);
+            wi.setSignal(w.getReport().getSignal());
+            wi.setSnr(w.getReport().getSnr());
+            wi.setDatarate(w.getReport().getDatarate().getNumber());
+            wi.setFrequency(w.getReport().getFrequency());
+            wi.setTimestamp(w.getReport().getTimestamp());
+            wi.setTmst(w.getReport().getTmst());
+            // bulk inserting
+            delayedWitnessSave(wi);
+            //witnessesRepository.save(wi);
+            if ( wi.isValid() ) prometeusService.addValidWitnessProcessed();
         }
-        wi.setVersion(1);
-        wi.setData(dataId);
-        wi.setSignal(w.getReport().getSignal());
-        wi.setSnr(w.getReport().getSnr());
-        wi.setDatarate(w.getReport().getDatarate().getNumber());
-        wi.setFrequency(w.getReport().getFrequency());
-        wi.setTimestamp(w.getReport().getTimestamp());
-        wi.setTmst(w.getReport().getTmst());
-        // bulk inserting
-        delayedWitnessSave(wi);
-        //witnessesRepository.save(wi);
         if ( w.getReceivedTimestamp() > this.witnessTopTs ) {
             this.witnessTopTs = w.getReceivedTimestamp();
         }
 
-        if ( wi.isValid() ) prometeusService.addValidWitnessProcessed();
         prometeusService.addWitnessProcessed();
         prometeusService.addWitnessProcessedTime(Now.NowUtcMs()-start);
         return true;
-    }
-
-
-    public void flushTopLines() {
-        // remove 10m to the max as the data are not always growing
-        beaconTopLine.setLongValue(this.beaconTopTs-600_000);
-        witnessTopLine.setLongValue(this.witnessTopTs-600_000);
-
-        paramRepository.save(beaconTopLine);
-        paramRepository.save(witnessTopLine);
     }
 
 
@@ -487,5 +529,269 @@ public class HotspotCache {
         return bulkWriteResult.getInsertedCount();
 
     }
+
+    // ======================================================
+    // Manage IoT PoC
+    // ======================================================
+
+    public boolean addIoTPoC(lora_poc_v1 p) {
+
+        // do not proceed twice (try at least)
+        if ( p.getBeaconReport().getReceivedTimestamp() < iotpocTopLine.getLongValue() ) return false;
+        long start = Now.NowUtcMs();
+
+        // contains POC and Witness information
+        lora_valid_beacon_report_v1 beacon = p.getBeaconReport();
+
+
+        // Update the beaconner
+        String hsBeaconerId = HeliumHelper.pubAddressToName(beacon.getReport().getPubKey());
+        Hotspot beaconner = this.getHotspot(hsBeaconerId, true);
+
+        beaconner.setLastBeacon(beacon.getReceivedTimestamp());
+        //log.info("Location : "+beacon.getLocation());
+        //log.info("hex_scale : "+beacon.getHexScale());
+        //log.info("reward_unit : "+beacon.getRewardUnit());
+        if ( h3!=null ) {
+            LatLng pos = h3.cellToLatLng(Long.parseLong(beacon.getLocation()));
+            if ( pos != null && Gps.isAValidCoordinate(pos.lat, pos.lng) && Gps.distance(beaconner.getPosition().getLat(),pos.lat,beaconner.getPosition().getLng(),pos.lng,0,0) > 300 ) {
+                com.disk91.etl.data.object.sub.LatLng _p = beaconner.getPosition();
+                _p.setLastDatePosition(beacon.getReceivedTimestamp());
+                beaconner.getPosHistory().add(_p.clone());
+                _p.setLat(pos.lat);
+                _p.setLng(pos.lng);
+                _p.setAlt(0.0);
+                _p.setGain(3.0);
+                log.info("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
+            }
+        }
+
+        long hRef = Now.ThisHourUtc(beacon.getReceivedTimestamp());
+        long oldest = Now.NowUtcMs();
+        boolean updated = false;
+        for (BeaconHistory bh : beaconner.getBeaconHistory()) {
+            if (bh.getTimeRef() == hRef) {
+                // update
+                bh.setCountBeacon(bh.getCountBeacon() + 1);
+                updated = true;
+                break;
+            }
+            if (oldest > bh.getTimeRef()) oldest = bh.getTimeRef();
+        }
+        if (!updated) {
+            // need to create a new one
+            BeaconHistory bh = new BeaconHistory();
+            bh.setTimeRef(hRef);
+            bh.setCountBeacon(1);
+
+            // need to clean an older one ?
+            if (beaconner.getBeaconHistory().size() > etlConfig.getHotspotBeaconHistoryEntries()) {
+                ArrayList<BeaconHistory> nl = new ArrayList<>();
+                nl.add(bh);
+                for (BeaconHistory _bh : beaconner.getBeaconHistory()) {
+                    if (_bh.getTimeRef() != oldest) {
+                        nl.add(_bh);
+                    }
+                }
+                beaconner.setBeaconHistory(nl);
+            }
+            beaconner.getBeaconHistory().add(bh);
+        }
+
+        // Add the Raw beacon if not inserted by the previous process
+        Beacon be = null;
+        String beaconData = HexaConverters.byteToHexString(beacon.getReport().getData().toByteArray());
+        if ( ! etlConfig.isBeaconLoadEnable() ) {
+            be = new Beacon();
+            be.setHotspotId(hsBeaconerId);
+            be.setVersion(1);
+            be.setChannel(beacon.getReport().getChannel());
+            be.setDatarate(beacon.getReport().getDatarate().getNumber());
+            be.setFrequency(beacon.getReport().getFrequency());
+            be.setTimestamp(beacon.getReport().getTimestamp()); // Nano Seconds
+            be.setTmst(beacon.getReport().getTmst());
+            be.setTx_power(beacon.getReport().getTxPower());
+            be.setData(beaconData);
+            // Async bulk write
+            delayedBeaconSave(be);
+            //beaconsRepository.save(be);
+            beaconROCache.addBeacon(be);
+        } else {
+            // search for existing beacon
+            be = beaconROCache.getBeacon(beaconData, beacon.getReport().getTimestamp());
+            // control the beacon
+            if (be == null
+                    || (beacon.getReport().getTimestamp() - be.getTimestamp()) < 0
+                    || (beacon.getReport().getTimestamp() - be.getTimestamp()) >= beaconROCache.ACCEPTED_TIME_DISTANCE
+            ) {
+                be = null;
+            }
+        }
+
+        // Update the Witness information
+        for ( lora_verified_witness_report_v1 v : p.getSelectedWitnessesList() ) {
+            String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
+            Hotspot witnessed = this.getHotspot(witnesserId, true);
+
+            // Add Witnessed to beaconner
+            boolean found = false;
+            for (Witness _w : beaconner.getBeaconned()) {
+                if (_w.getHs().compareTo(witnessed.getHotspotId()) == 0) {
+                    // found it... update it
+                    _w.addWitness(
+                            v.getReport().getTimestamp(),
+                            v.getReport().getSignal()/10.0,
+                            v.getReport().getSnr()/10.0
+                    );
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                // create one
+                Witness _w = new Witness();
+                _w.init(witnessed.getHotspotId());
+                _w.addWitness(
+                        v.getReport().getTimestamp(),
+                        v.getReport().getSignal()/10.0,
+                        v.getReport().getSnr()/10.0
+                );
+                beaconner.getBeaconned().add(_w);
+            }
+
+            // Add beaconner to witnessed
+            found = false;
+            for (Witness _w : witnessed.getWitnesses()) {
+                if (_w.getHs().compareTo(beaconner.getHotspotId()) == 0) {
+                    // found it... update it
+                    _w.addWitness(
+                            v.getReport().getTimestamp(),
+                            v.getReport().getSignal()/10.0,
+                            v.getReport().getSnr()/10.0
+                    );
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                // create one
+                Witness _w = new Witness();
+                _w.init(beaconner.getHotspotId());
+                _w.addWitness(
+                        v.getReport().getTimestamp(),
+                        v.getReport().getSignal()/10.0,
+                        v.getReport().getSnr()/10.0
+                );
+                witnessed.getWitnesses().add(_w);
+            }
+
+            // no need to update with witness w/o corresponding beacon
+            oldest = Now.NowUtcMs();
+            updated = false;
+            for (WitnessHistory wh : witnessed.getWitnessesHistory()) {
+                if (wh.getTimeRef() == hRef) {
+                    // update
+                    wh.setCountWitnesses(wh.getCountWitnesses() + 1);
+                    updated = true;
+                    break;
+                }
+                if (oldest > wh.getTimeRef()) oldest = wh.getTimeRef();
+            }
+            if (!updated) {
+                // need to create a new one
+                WitnessHistory wh = new WitnessHistory();
+                wh.setTimeRef(hRef);
+                wh.setCountWitnesses(1);
+
+                // need to clean an older one ?
+                if (witnessed.getWitnessesHistory().size() > etlConfig.getHotspotWitnessHistoryEntries()) {
+                    ArrayList<WitnessHistory> nl = new ArrayList<>();
+                    nl.add(wh);
+                    for (WitnessHistory _wh : witnessed.getWitnessesHistory()) {
+                        if (_wh.getTimeRef() != oldest) {
+                            nl.add(_wh);
+                        }
+                    }
+                    witnessed.setWitnessesHistory(nl);
+                }
+                witnessed.getWitnessesHistory().add(wh);
+            }
+            // mark as updated
+            this.updateHotspot(witnessed);
+
+            if ( ! etlConfig.isWitnessLoadEnable() ) {
+                com.disk91.etl.data.object.Witness wi = new com.disk91.etl.data.object.Witness();
+                wi.setHotspotId(witnesserId);
+                if ( be != null ) {
+                    wi.setBeaconId(be.getId());
+                } else {
+                    wi.setBeaconId("Unknown");
+                    wi.setValid(false);
+                }
+                wi.setValid(true);
+                wi.setVersion(1);
+                wi.setData(beaconData);
+                wi.setSignal(v.getReport().getSignal());
+                wi.setSnr(v.getReport().getSnr());
+                wi.setDatarate(v.getReport().getDatarate().getNumber());
+                wi.setFrequency(v.getReport().getFrequency());
+                wi.setTimestamp(v.getReport().getTimestamp());
+                wi.setTmst(v.getReport().getTmst());
+                // bulk inserting
+                delayedWitnessSave(wi);
+                //witnessesRepository.save(wi);
+                if ( v.getReceivedTimestamp() > this.witnessTopTs ) {
+                    this.witnessTopTs = v.getReceivedTimestamp();
+                }
+                if ( wi.isValid() ) prometeusService.addValidWitnessProcessed();
+            }
+
+        }
+        this.updateHotspot(beaconner);
+
+        // Update the invalid witnesses
+        if ( ! etlConfig.isWitnessLoadEnable() ) {
+            for (lora_verified_witness_report_v1 v : p.getUnselectedWitnessesList()) {
+                String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
+                Hotspot witnessed = this.getHotspot(witnesserId, true);
+
+                com.disk91.etl.data.object.Witness wi = new com.disk91.etl.data.object.Witness();
+                wi.setHotspotId(witnesserId);
+                if ( be != null ) {
+                    wi.setBeaconId(be.getId());
+                } else {
+                    wi.setBeaconId("Unknown");
+                }
+                wi.setValid(false);
+                wi.setVersion(1);
+                wi.setData(beaconData);
+                wi.setSignal(v.getReport().getSignal());
+                wi.setSnr(v.getReport().getSnr());
+                wi.setDatarate(v.getReport().getDatarate().getNumber());
+                wi.setFrequency(v.getReport().getFrequency());
+                wi.setTimestamp(v.getReport().getTimestamp());
+                wi.setTmst(v.getReport().getTmst());
+                // bulk inserting
+                delayedWitnessSave(wi);
+                //witnessesRepository.save(wi);
+                if ( v.getReceivedTimestamp() > this.witnessTopTs ) {
+                    this.witnessTopTs = v.getReceivedTimestamp();
+                }
+                if ( wi.isValid() ) prometeusService.addValidWitnessProcessed();
+            }
+        }
+
+        if ( beacon.getReceivedTimestamp() > this.iotpocTopTs ) {
+            this.iotpocTopTs = beacon.getReceivedTimestamp();
+        }
+
+        prometeusService.addIoTPocProcessed();
+        prometeusService.addIoTPocProcessedTime(Now.NowUtcMs()-start);
+        return true;
+    }
+
+
+
+
 
 }
