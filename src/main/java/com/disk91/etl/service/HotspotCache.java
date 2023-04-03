@@ -489,6 +489,8 @@ public class HotspotCache {
             delayedBeaconSave(be);
             //beaconsRepository.save(be);
             beaconROCache.addBeacon(be);
+            prometeusService.addBeaconProcessed();
+            prometeusService.addBeaconProcessedTime(Now.NowUtcMs()-start);
         } else {
             // search for existing beacon
             be = beaconROCache.getBeacon(beaconData, beacon.getReport().getTimestamp());
@@ -503,6 +505,7 @@ public class HotspotCache {
 
         // Update the Witness information
         for ( lora_verified_witness_report_v1 v : p.getSelectedWitnessesList() ) {
+            long wstart = Now.NowUtcMs();
             String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
             Hotspot witnessed = this.getHotspot(witnesserId, true);
             beaconner.addBeaconed(
@@ -548,6 +551,8 @@ public class HotspotCache {
                     this.witnessTopTs = v.getReceivedTimestamp();
                 }
                 if ( wi.isValid() ) prometeusService.addValidWitnessProcessed();
+                prometeusService.addWitnessProcessed();
+                prometeusService.addWitnessProcessedTime(Now.NowUtcMs()-wstart);
             }
 
         }
