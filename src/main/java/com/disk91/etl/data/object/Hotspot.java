@@ -5,6 +5,7 @@ import com.disk91.etl.data.object.sub.LatLng;
 import com.disk91.etl.data.object.sub.Witness;
 import com.disk91.etl.data.object.sub.WitnessHistory;
 import fr.ingeniousthings.tools.ClonnableObject;
+import fr.ingeniousthings.tools.Now;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
@@ -48,6 +49,129 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     // Quantitative history
     private List<BeaconHistory> beaconHistory;
+
+    // ---------------------------------------------------------
+    // Synchronous update
+
+    synchronized public void updatePosition(long timestamp, double lat, double lng, double alt, double gain) {
+        LatLng _p = this.getPosition();
+        _p.setLastDatePosition(timestamp);
+        this.getPosHistory().add(_p.clone());
+        _p.setLat(lat);
+        _p.setLng(lng);
+        _p.setAlt(0.0);
+        _p.setGain(3.0);
+    }
+
+    synchronized public void updateLastBeacon(long tm) {
+        this.setLastBeacon(tm);
+    }
+
+    synchronized public void addBeacon(long tm, int maxHistEntries) {
+        long hRef = Now.ThisHourUtc(tm);
+        long oldest = Now.NowUtcMs();
+        boolean updated = false;
+        this.setLastBeacon(tm);
+        for (BeaconHistory bh : this.getBeaconHistory()) {
+            if (bh.getTimeRef() == hRef) {
+                // update
+                bh.setCountBeacon(bh.getCountBeacon() + 1);
+                updated = true;
+                break;
+            }
+            if (oldest > bh.getTimeRef()) oldest = bh.getTimeRef();
+        }
+        if (!updated) {
+            // need to create a new one
+            BeaconHistory bh = new BeaconHistory();
+            bh.setTimeRef(hRef);
+            bh.setCountBeacon(1);
+
+            // need to clean an older one ?
+            if (this.getBeaconHistory().size() > maxHistEntries) {
+                ArrayList<BeaconHistory> nl = new ArrayList<>();
+                nl.add(bh);
+                for (BeaconHistory _bh : this.getBeaconHistory()) {
+                    if (_bh.getTimeRef() != oldest) {
+                        nl.add(_bh);
+                    }
+                }
+                this.setBeaconHistory(nl);
+            }
+            this.getBeaconHistory().add(bh);
+        }
+    }
+
+    synchronized public void addBeaconed(String hsId, long tm, double signal, double snr) {
+        boolean found = false;
+        for (Witness _w : this.getBeaconned()) {
+            if (_w.getHs().compareTo(hsId) == 0) {
+                // found it... update it
+                _w.addWitness( tm, signal, snr );
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            // create one
+            Witness _w = new Witness();
+            _w.init(hsId);
+            _w.addWitness( tm, signal, snr );
+            this.getBeaconned().add(_w);
+        }
+    }
+
+    synchronized public void addWitness(String hsId, long tm, double signal, double snr, int maxHistEntries){
+        this.setLastWitness(tm);
+        boolean found = false;
+        for (Witness _w : this.getWitnesses()) {
+            if (_w.getHs().compareTo(hsId) == 0) {
+                // found it... update it
+                _w.addWitness(tm,signal,snr);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            // create one
+            Witness _w = new Witness();
+            _w.init(hsId);
+            _w.addWitness(tm,signal,snr);
+            this.getWitnesses().add(_w);
+        }
+
+        long hRef = Now.ThisHourUtc(tm);
+        long oldest = Now.NowUtcMs();
+        boolean updated = false;
+        for (WitnessHistory wh : this.getWitnessesHistory()) {
+            if (wh.getTimeRef() == hRef) {
+                // update
+                wh.setCountWitnesses(wh.getCountWitnesses() + 1);
+                updated = true;
+                break;
+            }
+            if (oldest > wh.getTimeRef()) oldest = wh.getTimeRef();
+        }
+        if (!updated) {
+            // need to create a new one
+            WitnessHistory wh = new WitnessHistory();
+            wh.setTimeRef(hRef);
+            wh.setCountWitnesses(1);
+
+            // need to clean an older one ?
+            if (this.getWitnessesHistory().size() > maxHistEntries ) {
+                ArrayList<WitnessHistory> nl = new ArrayList<>();
+                nl.add(wh);
+                for (WitnessHistory _wh : this.getWitnessesHistory()) {
+                    if (_wh.getTimeRef() != oldest) {
+                        nl.add(_wh);
+                    }
+                }
+                this.setWitnessesHistory(nl);
+            }
+            this.getWitnessesHistory().add(wh);
+        }
+    }
 
     // ---
 

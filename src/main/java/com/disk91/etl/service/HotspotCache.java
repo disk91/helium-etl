@@ -281,39 +281,8 @@ public class HotspotCache {
         String hsId = HeliumHelper.pubAddressToName(b.getReport().getPubKey());
         if (! etlConfig.isIotpocLoadEnable() && fullUpdate ) {
             Hotspot h = this.getHotspot(hsId, true);
-            h.setLastBeacon(b.getReceivedTimestamp());  // oracle reception time
-            long hRef = Now.ThisHourUtc(b.getReceivedTimestamp());
+            h.addBeacon(b.getReceivedTimestamp(),etlConfig.getHotspotBeaconHistoryEntries());
 
-            long oldest = Now.NowUtcMs();
-            boolean updated = false;
-            for (BeaconHistory bh : h.getBeaconHistory()) {
-                if (bh.getTimeRef() == hRef) {
-                    // update
-                    bh.setCountBeacon(bh.getCountBeacon() + 1);
-                    updated = true;
-                    break;
-                }
-                if (oldest > bh.getTimeRef()) oldest = bh.getTimeRef();
-            }
-            if (!updated) {
-                // need to create a new one
-                BeaconHistory bh = new BeaconHistory();
-                bh.setTimeRef(hRef);
-                bh.setCountBeacon(1);
-
-                // need to clean an older one ?
-                if (h.getBeaconHistory().size() > etlConfig.getHotspotBeaconHistoryEntries()) {
-                    ArrayList<BeaconHistory> nl = new ArrayList<>();
-                    nl.add(bh);
-                    for (BeaconHistory _bh : h.getBeaconHistory()) {
-                        if (_bh.getTimeRef() != oldest) {
-                            nl.add(_bh);
-                        }
-                    }
-                    h.setBeaconHistory(nl);
-                }
-                h.getBeaconHistory().add(bh);
-            }
             // mark as updated
             this.updateHotspot(h);
         }
@@ -376,73 +345,18 @@ public class HotspotCache {
         }
 
         if (! etlConfig.isIotpocLoadEnable() && fullUpdate ) {
-
             // Update Hs information
             Hotspot h = this.getHotspot(hsId, true);
-            h.setLastWitness(w.getReceivedTimestamp());
-            long hRef = Now.ThisHourUtc(w.getReceivedTimestamp());
 
             // Search the related beacon
             if (b != null) {
-
-                // sounds good
-                // find the hotspot in the witnesser
-                boolean found = false;
-                for (Witness _w : h.getWitnesses()) {
-                    if (_w.getHs().compareTo(b.getHotspotId()) == 0) {
-                        // found it... update it
-                        _w.addWitness(
-                                w.getReport().getTimestamp(),
-                                w.getReport().getSignal()/10.0,
-                                w.getReport().getSnr()/10.0
-                        );
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    // create one
-                    Witness _w = new Witness();
-                    _w.init(b.getHotspotId());
-                    _w.addWitness(
-                            w.getReport().getTimestamp(),
-                            w.getReport().getSignal()/10.0,
-                            w.getReport().getSnr()/10.0
-                    );
-                    h.getWitnesses().add(_w);
-                }
-
-                // no need to update with witness w/o corresponding beacon
-                long oldest = Now.NowUtcMs();
-                boolean updated = false;
-                for (WitnessHistory wh : h.getWitnessesHistory()) {
-                    if (wh.getTimeRef() == hRef) {
-                        // update
-                        wh.setCountWitnesses(wh.getCountWitnesses() + 1);
-                        updated = true;
-                        break;
-                    }
-                    if (oldest > wh.getTimeRef()) oldest = wh.getTimeRef();
-                }
-                if (!updated) {
-                    // need to create a new one
-                    WitnessHistory wh = new WitnessHistory();
-                    wh.setTimeRef(hRef);
-                    wh.setCountWitnesses(1);
-
-                    // need to clean an older one ?
-                    if (h.getWitnessesHistory().size() > etlConfig.getHotspotWitnessHistoryEntries()) {
-                        ArrayList<WitnessHistory> nl = new ArrayList<>();
-                        nl.add(wh);
-                        for (WitnessHistory _wh : h.getWitnessesHistory()) {
-                            if (_wh.getTimeRef() != oldest) {
-                                nl.add(_wh);
-                            }
-                        }
-                        h.setWitnessesHistory(nl);
-                    }
-                    h.getWitnessesHistory().add(wh);
-                }
+                h.addWitness(
+                        b.getHotspotId(),
+                        w.getReport().getTimestamp(),
+                        w.getReport().getSignal()/10.0,
+                        w.getReport().getSnr()/10.0,
+                        etlConfig.getHotspotWitnessHistoryEntries()
+                );
                 // mark as updated
                 this.updateHotspot(h);
             }
@@ -548,55 +462,14 @@ public class HotspotCache {
         String hsBeaconerId = HeliumHelper.pubAddressToName(beacon.getReport().getPubKey());
         Hotspot beaconner = this.getHotspot(hsBeaconerId, true);
 
-        beaconner.setLastBeacon(beacon.getReceivedTimestamp());
-        //log.info("Location : "+beacon.getLocation());
-        //log.info("hex_scale : "+beacon.getHexScale());
-        //log.info("reward_unit : "+beacon.getRewardUnit());
         if ( h3!=null ) {
             LatLng pos = h3.cellToLatLng(Long.parseLong(beacon.getLocation()));
             if ( pos != null && Gps.isAValidCoordinate(pos.lat, pos.lng) && Gps.distance(beaconner.getPosition().getLat(),pos.lat,beaconner.getPosition().getLng(),pos.lng,0,0) > 300 ) {
-                com.disk91.etl.data.object.sub.LatLng _p = beaconner.getPosition();
-                _p.setLastDatePosition(beacon.getReceivedTimestamp());
-                beaconner.getPosHistory().add(_p.clone());
-                _p.setLat(pos.lat);
-                _p.setLng(pos.lng);
-                _p.setAlt(0.0);
-                _p.setGain(3.0);
+                beaconner.updatePosition(beacon.getReceivedTimestamp(),pos.lat, pos.lng, 0.0, 3.0);
                 log.debug("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
             }
         }
-
-        long hRef = Now.ThisHourUtc(beacon.getReceivedTimestamp());
-        long oldest = Now.NowUtcMs();
-        boolean updated = false;
-        for (BeaconHistory bh : beaconner.getBeaconHistory()) {
-            if (bh.getTimeRef() == hRef) {
-                // update
-                bh.setCountBeacon(bh.getCountBeacon() + 1);
-                updated = true;
-                break;
-            }
-            if (oldest > bh.getTimeRef()) oldest = bh.getTimeRef();
-        }
-        if (!updated) {
-            // need to create a new one
-            BeaconHistory bh = new BeaconHistory();
-            bh.setTimeRef(hRef);
-            bh.setCountBeacon(1);
-
-            // need to clean an older one ?
-            if (beaconner.getBeaconHistory().size() > etlConfig.getHotspotBeaconHistoryEntries()) {
-                ArrayList<BeaconHistory> nl = new ArrayList<>();
-                nl.add(bh);
-                for (BeaconHistory _bh : beaconner.getBeaconHistory()) {
-                    if (_bh.getTimeRef() != oldest) {
-                        nl.add(_bh);
-                    }
-                }
-                beaconner.setBeaconHistory(nl);
-            }
-            beaconner.getBeaconHistory().add(bh);
-        }
+        beaconner.addBeacon(beacon.getReceivedTimestamp(),etlConfig.getHotspotBeaconHistoryEntries());
 
         // Add the Raw beacon if not inserted by the previous process
         Beacon be = null;
@@ -632,90 +505,21 @@ public class HotspotCache {
         for ( lora_verified_witness_report_v1 v : p.getSelectedWitnessesList() ) {
             String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
             Hotspot witnessed = this.getHotspot(witnesserId, true);
-
-            // Add Witnessed to beaconner
-            boolean found = false;
-            for (Witness _w : beaconner.getBeaconned()) {
-                if (_w.getHs().compareTo(witnessed.getHotspotId()) == 0) {
-                    // found it... update it
-                    _w.addWitness(
-                            v.getReport().getTimestamp(),
-                            v.getReport().getSignal()/10.0,
-                            v.getReport().getSnr()/10.0
-                    );
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                // create one
-                Witness _w = new Witness();
-                _w.init(witnessed.getHotspotId());
-                _w.addWitness(
-                        v.getReport().getTimestamp(),
-                        v.getReport().getSignal()/10.0,
-                        v.getReport().getSnr()/10.0
-                );
-                beaconner.getBeaconned().add(_w);
-            }
+            beaconner.addBeaconed(
+                    witnesserId,
+                    v.getReport().getTimestamp(),
+                    v.getReport().getSignal()/10.0,
+                    v.getReport().getSnr()/10.0
+            );
 
             // Add beaconner to witnessed
-            found = false;
-            for (Witness _w : witnessed.getWitnesses()) {
-                if (_w.getHs().compareTo(beaconner.getHotspotId()) == 0) {
-                    // found it... update it
-                    _w.addWitness(
-                            v.getReport().getTimestamp(),
-                            v.getReport().getSignal()/10.0,
-                            v.getReport().getSnr()/10.0
-                    );
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                // create one
-                Witness _w = new Witness();
-                _w.init(beaconner.getHotspotId());
-                _w.addWitness(
-                        v.getReport().getTimestamp(),
-                        v.getReport().getSignal()/10.0,
-                        v.getReport().getSnr()/10.0
-                );
-                witnessed.getWitnesses().add(_w);
-            }
-
-            // no need to update with witness w/o corresponding beacon
-            oldest = Now.NowUtcMs();
-            updated = false;
-            for (WitnessHistory wh : witnessed.getWitnessesHistory()) {
-                if (wh.getTimeRef() == hRef) {
-                    // update
-                    wh.setCountWitnesses(wh.getCountWitnesses() + 1);
-                    updated = true;
-                    break;
-                }
-                if (oldest > wh.getTimeRef()) oldest = wh.getTimeRef();
-            }
-            if (!updated) {
-                // need to create a new one
-                WitnessHistory wh = new WitnessHistory();
-                wh.setTimeRef(hRef);
-                wh.setCountWitnesses(1);
-
-                // need to clean an older one ?
-                if (witnessed.getWitnessesHistory().size() > etlConfig.getHotspotWitnessHistoryEntries()) {
-                    ArrayList<WitnessHistory> nl = new ArrayList<>();
-                    nl.add(wh);
-                    for (WitnessHistory _wh : witnessed.getWitnessesHistory()) {
-                        if (_wh.getTimeRef() != oldest) {
-                            nl.add(_wh);
-                        }
-                    }
-                    witnessed.setWitnessesHistory(nl);
-                }
-                witnessed.getWitnessesHistory().add(wh);
-            }
+            witnessed.addWitness(
+                    hsBeaconerId,
+                    v.getReport().getTimestamp(),
+                    v.getReport().getSignal()/10.0,
+                    v.getReport().getSnr()/10.0,
+                    etlConfig.getHotspotWitnessHistoryEntries()
+            );
             // mark as updated
             this.updateHotspot(witnessed);
 
