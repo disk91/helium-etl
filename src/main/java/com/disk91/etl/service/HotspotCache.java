@@ -562,7 +562,7 @@ public class HotspotCache {
                 _p.setLng(pos.lng);
                 _p.setAlt(0.0);
                 _p.setGain(3.0);
-                log.info("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
+                log.debug("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
             }
         }
 
