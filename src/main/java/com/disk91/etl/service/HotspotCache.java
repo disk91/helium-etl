@@ -562,7 +562,7 @@ public class HotspotCache {
         if ( ! etlConfig.isWitnessLoadEnable() ) {
             for (lora_verified_witness_report_v1 v : p.getUnselectedWitnessesList()) {
                 String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
-                Hotspot witnessed = this.getHotspot(witnesserId, true);
+                //Hotspot witnessed = this.getHotspot(witnesserId, true);
 
                 com.disk91.etl.data.object.Witness wi = new com.disk91.etl.data.object.Witness();
                 wi.setHotspotId(witnesserId);

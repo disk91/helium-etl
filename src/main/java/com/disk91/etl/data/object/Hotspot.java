@@ -122,7 +122,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     }
 
     synchronized public void addWitness(String hsId, long tm, double signal, double snr, int maxHistEntries){
-        this.setLastWitness(tm);
+        this.setLastWitness(tm/1_000_000);
         boolean found = false;
         for (Witness _w : this.getWitnesses()) {
             if (_w.getHs().compareTo(hsId) == 0) {
@@ -140,7 +140,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             this.getWitnesses().add(_w);
         }
 
-        long hRef = Now.ThisHourUtc(tm);
+        long hRef = Now.ThisHourUtc(tm/1_000_000);
         long oldest = Now.NowUtcMs();
         boolean updated = false;
         for (WitnessHistory wh : this.getWitnessesHistory()) {
