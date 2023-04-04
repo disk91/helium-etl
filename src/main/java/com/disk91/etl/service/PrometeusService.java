@@ -157,7 +157,7 @@ public class PrometeusService {
     private long lastFileRewardTimestamp = 0;
     private long lastFileRewardDistance = 0;
     synchronized public void changeFileRewardTimestamp(long ms) {
-        this.lastFileRewardDistance= Now.NowUtcMs()-ms;
+        this.lastFileRewardDistance=Now.NowUtcMs()-ms;
         this.lastFileRewardTimestamp=ms;
     }
     protected Supplier<Number> getLastFileRewardTimestamp() {
