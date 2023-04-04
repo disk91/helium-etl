@@ -73,6 +73,9 @@ public class EtlApplication implements CommandLineRunner, ExitCodeGenerator {
 				Document witnesses = adminDB.runCommand(
 						new Document("shardCollection", "helium-etl.etl_witnesses")
 								.append("key", new Document("hotspotId", 1).append("_id", 1)));
+				Document rewards = adminDB.runCommand(
+						new Document("shardCollection", "helium-etl.etl_rewards")
+								.append("key", new Document("hotspotId", 1).append("_id", 1)));
 				p.setLongValue(1);
 				paramRepository.save(p);
 				System.out.println(">> V1 - DONE");
@@ -81,7 +84,23 @@ public class EtlApplication implements CommandLineRunner, ExitCodeGenerator {
 				exit();
 			}
 		}
+		if ( p.getLongValue() == 1 ) {
+			try {
+				System.out.println(">> Creating reward sharding");
 
+				MongoDatabase adminDB = mongoTemplate.getMongoDatabaseFactory()
+						.getMongoDatabase("admin");
+				Document rewards = adminDB.runCommand(
+						new Document("shardCollection", "helium-etl.etl_rewards")
+								.append("key", new Document("hotspotId", 1).append("_id", 1)));
+				p.setLongValue(2);
+				paramRepository.save(p);
+				System.out.println(">> V2 - DONE");
+			} catch (Exception x) {
+				System.out.println(">> Failed "+x.getMessage());
+				exit();
+			}
+		}
 		if (EtlApplication.requestingExitForStartupFailure) exit();
 	}
 

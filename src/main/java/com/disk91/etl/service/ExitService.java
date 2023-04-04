@@ -1,6 +1,7 @@
 package com.disk91.etl.service;
 
 import com.disk91.etl.EtlApplication;
+import com.disk91.etl.EtlConfig;
 import fr.ingeniousthings.tools.Now;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,9 @@ public class ExitService implements Lifecycle {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private boolean exiting = false;
+
+    @Autowired
+    protected EtlConfig etlConfig;
 
     @Autowired
     protected HotspotCache hotspotCache;
@@ -62,7 +66,7 @@ public class ExitService implements Lifecycle {
                 log.error("Exiting ... Waiting for "+services+" services to stop for "+(Now.NowUtcMs()-s)/60_000+"m");
                 d+=10_000;
             }
-            if ( (Now.NowUtcMs() - s) > 600_000 ) {
+            if ( (Now.NowUtcMs() - s) > etlConfig.getExitTimeOutMinutes()*60_000 ) {
                 log.error("Services not stopping, force stop");
                 break;
             }

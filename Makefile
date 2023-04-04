@@ -41,7 +41,7 @@ start:
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring up -d
 
 stop-etl: .FORCE
-	$(DOCKER_CMD) stop -t 900 etl
+	$(DOCKER_CMD) stop -t 1800 etl
 
 stop: stop-etl
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring stop

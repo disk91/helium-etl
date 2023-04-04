@@ -13,6 +13,7 @@ import com.disk91.etl.EtlApplication;
 import com.disk91.etl.EtlConfig;
 import com.disk91.etl.data.object.Param;
 import com.disk91.etl.data.repository.ParamRepository;
+import com.helium.grpc.gateway_reward_share;
 import com.helium.grpc.lora_poc_v1;
 import fr.ingeniousthings.tools.*;
 import org.slf4j.Logger;
@@ -39,6 +40,9 @@ public class AwsService {
 
     static final String IOTPOC_FIRST_OBJECT = "foundation-iot-verified-rewards/iot_poc.1674766530034.gz";
 
+    static final String REWARD_FIRST_OBJECT = "foundation-iot-verified-rewards/gateway_reward_share.1674766530034.gz";
+
+
     @Autowired
     protected EtlConfig etlConfig;
 
@@ -54,6 +58,8 @@ public class AwsService {
     Param beaconFile = null;
     Param witnessFile = null;
     Param iotPocFile = null;
+
+    Param rewardPocFile = null;
 
 
     @PostConstruct
@@ -87,6 +93,12 @@ public class AwsService {
             iotPocFile.setStringValue(IOTPOC_FIRST_OBJECT);
         }
 
+        rewardPocFile = paramRepository.findOneParamByParamName("aws_last_reward_sync");
+        if ( rewardPocFile == null ) {
+            rewardPocFile = new Param();
+            rewardPocFile.setParamName("aws_last_reward_sync");
+            rewardPocFile.setStringValue(REWARD_FIRST_OBJECT);
+        }
 
         this.awsCredentials = new BasicAWSCredentials(
                 etlConfig.getAwsAccessKey(),
@@ -143,6 +155,8 @@ public class AwsService {
             return 2;
         } else if ( fileName.startsWith("iot_poc") ) {
             return 3;
+        } else if ( fileName.startsWith("gateway_reward") ) {
+            return 4;
         } else {
             log.warn("Unknown type of file discovered "+fileName);
         }
@@ -313,7 +327,7 @@ public class AwsService {
     }
 
 
-    protected boolean threadEnable = true;
+    protected boolean witThreadEnable = true;
     public class ProcessWitness implements Runnable {
 
         ConcurrentLinkedQueue<lora_witness_ingest_report_v1> queue;
@@ -329,7 +343,7 @@ public class AwsService {
             this.status = true;
             log.info("Starting witness process thread "+id);
             lora_witness_ingest_report_v1 w;
-            while ( (w = queue.poll()) != null || threadEnable ) {
+            while ( (w = queue.poll()) != null || witThreadEnable ) {
                 if ( w != null) {
                     if (!hotspotCache.addWitness(w)) {
                         log.debug("Th(" + id + ") witness not processed " + w.getReceivedTimestamp());
@@ -356,7 +370,7 @@ public class AwsService {
         }
         long start = Now.NowUtcMs();
         long lastLog = start;
-        this.threadEnable = true;
+        this.witThreadEnable = true;
 
 
         // Create queues for parallelism
@@ -538,7 +552,7 @@ public class AwsService {
             log.error("Witness Batch Failure "+x.getMessage());
         } finally {
             // wait the parallel Thread to stop max 5 minutes
-            this.threadEnable = false;
+            this.witThreadEnable = false;
             boolean terminated = false;
             long waitStart = Now.NowUtcMs();
             while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
@@ -558,6 +572,11 @@ public class AwsService {
         }
     }
 
+    // ---------------------------------------
+    // IoT Poc
+    // ---------------------------------------
+
+    protected boolean pocThreadEnable = true;
 
     public class ProcessIoTPoc implements Runnable {
 
@@ -574,7 +593,7 @@ public class AwsService {
             this.status = true;
             log.info("Starting iot_poc process thread "+id);
             lora_poc_v1 w;
-            while ( (w = queue.poll()) != null || threadEnable ) {
+            while ( (w = queue.poll()) != null || pocThreadEnable ) {
                 if ( w != null) {
                    if (!hotspotCache.addIoTPoC(w)) {
                         log.debug("Th(" + id + ") iotpoc not processed " + w.getBeaconReport().getReceivedTimestamp());
@@ -601,7 +620,7 @@ public class AwsService {
         }
         long start = Now.NowUtcMs();
         long lastLog = start;
-        this.threadEnable = true;
+        this.pocThreadEnable = true;
 
 
         // Create queues for parallelism
@@ -786,7 +805,7 @@ public class AwsService {
             log.error("IoTPoc Batch Failure "+x.getMessage());
         } finally {
             // wait the parallel Thread to stop max 5 minutes
-            this.threadEnable = false;
+            this.pocThreadEnable = false;
             boolean terminated = false;
             long waitStart = Now.NowUtcMs();
             while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
@@ -803,6 +822,237 @@ public class AwsService {
                 runningJobs--;
             }
             log.info("IoTPoc - exit completed");
+        }
+    }
+
+
+
+    // ---------------------------------------
+    // Hotspots Rewards
+    // ---------------------------------------
+
+    protected boolean rewardThreadEnable = true;
+
+    public class ProcessRewards implements Runnable {
+
+        ConcurrentLinkedQueue<gateway_reward_share> queue;
+        Boolean status;
+        int id;
+
+        public ProcessRewards(int _id, ConcurrentLinkedQueue<gateway_reward_share> _queue, Boolean _status) {
+            id = _id;
+            queue = _queue;
+            status = _status;
+        }
+        public void run() {
+            this.status = true;
+            log.info("Starting Reward process thread "+id);
+            gateway_reward_share w;
+            while ( (w = queue.poll()) != null || rewardThreadEnable ) {
+                if ( w != null) {
+                    if (!hotspotCache.addReward(w)) {
+                        log.debug("Th(" + id + ") reward not processed " + w.getStartPeriod());
+                    }
+                } else {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException x) {x.printStackTrace();}
+                }
+            }
+            log.info("Closing rewards process thread "+id);
+        }
+    }
+
+
+    @Scheduled(fixedDelay = 60_000, initialDelay = 13_000)
+    protected void AwsRewardSync() {
+        if ( ! readyToSync || !serviceEnable ) return;
+        if ( ! etlConfig.isRewardLoadEnable() ) return;
+        log.info("Running AwsValidWitnessService Sync");
+
+        synchronized (this) {
+            this.runningJobs++;
+        }
+        long start = Now.NowUtcMs();
+        long lastLog = start;
+        this.rewardThreadEnable = true;
+
+
+        // Create queues for parallelism
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        ConcurrentLinkedQueue<gateway_reward_share> queues[] =  new ConcurrentLinkedQueue[etlConfig.getIotpocLoadParallelWorkers()];
+        Boolean threadRunning[] = new Boolean[etlConfig.getIotpocLoadParallelWorkers()];
+        Thread threads[] = new Thread[etlConfig.getIotpocLoadParallelWorkers()];
+        for ( int q = 0 ; q < etlConfig.getIotpocLoadParallelWorkers() ; q++) {
+            queues[q] = new ConcurrentLinkedQueue<gateway_reward_share>();
+            threadRunning[q] = Boolean.FALSE;
+            Runnable r = new ProcessRewards(q,queues[q],threadRunning[q]);
+            threads[q] = new Thread(r);
+            threads[q].start();
+        }
+
+        try {
+            final ListObjectsV2Request lor = new ListObjectsV2Request();
+            lor.setBucketName(etlConfig.getAwsBucketName());
+            lor.setPrefix("foundation-iot-verified-rewards");
+            lor.setStartAfter(rewardPocFile.getStringValue());
+            lor.setRequesterPays(true);
+            ListObjectsV2Result list;
+            long totalObject = 0;
+            long totalSize = 0;
+            long totalWitness = 0;
+            do {
+                list = this.s3Client.listObjectsV2(lor);
+                List<S3ObjectSummary> objects = list.getObjectSummaries();
+                for (S3ObjectSummary object : objects) {
+                    long cSize = object.getSize();
+                    long rSize = 0;
+                    totalObject++;
+                    totalSize+=object.getSize();
+                    if ( object.getSize() == 0 ) continue;
+                    long fileStart = Now.NowUtcMs();
+
+                    // Identify the type of objects
+                    //  iot_poc => valid poc
+                    if ( ! object.getKey().contains(".gz") ) continue; // not a file
+                    String fileName = object.getKey().split("/")[1];
+                    int fileType = getFileType(fileName);
+                    long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
+                    if ( fileType != 4 ) continue;
+                    if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
+                        rewardPocFile.setStringValue(object.getKey());
+                        paramRepository.save(rewardPocFile);
+                        continue;
+                    }
+
+                    log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - Long.parseLong(object.getKey().split("\\.")[1]) )/(Now.ONE_FULL_DAY)+") days");
+
+                    final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
+                    or.setRequesterPays(true);
+                    S3Object fileObject = this.s3Client.getObject(or);
+
+                    try {
+                        // File is GZiped Version of a stream of protobuf messages
+                        // each protobuf messages is encapsulated with a header
+                        // int4 containing the length of the protobuf message following.
+                        GZIPInputStream stream = new GZIPInputStream(fileObject.getObjectContent());
+                        BufferedInputStream bufferedInputStream = new BufferedInputStream(stream);
+                        while ( bufferedInputStream.available() > 0 ) {
+                            try {
+                                byte[] sz = bufferedInputStream.readNBytes(4);
+                                long len = Stuff.getLongValueFromBytes(sz);
+                                rSize += len+4;
+                                if (len > 0) {
+                                    byte[] r = bufferedInputStream.readNBytes((int) len);
+                                    totalWitness++;
+
+
+                                    gateway_reward_share w = gateway_reward_share.parseFrom(r);
+                                    // Add in queues - find it with a random element in the pub key
+                                    // to make sure a single hotspot goes to the same queues to not
+                                    // have collisions
+                                    int q = w.getHotspotKey().byteAt(4);
+                                    q &= (etlConfig.getRewardLoadParallelWorkers()-1);
+                                    try {
+                                        // when a queue is full just wait, it should be balanced
+                                        while (queues[q].size() >= etlConfig.getRewardLoadParallelWorkers()) Thread.sleep(2);
+                                    } catch ( InterruptedException x ) {x.printStackTrace();};
+                                    queues[q].add(w);
+
+                                } else {
+                                    log.warn("Reward - Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
+                                }
+
+                                // print progress log on regular basis
+                                if ((Now.NowUtcMs() - lastLog) > 30_000) {
+                                    String distance_s = object.getKey().split("\\.")[1];
+                                    long distance = Now.NowUtcMs() - Long.parseLong(distance_s);
+                                    log.info("Rewards Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tReward: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                    lastLog = Now.NowUtcMs();
+                                }
+                                // print process state on exit request
+                                if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
+                                    log.info("Rewards - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
+                                    lastLog = Now.NowUtcMs();
+                                }
+
+                            } catch ( IOException x ) {
+                                // in case of IOException Better skip the file
+                                prometeusService.addAwsFailure();
+                                log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
+                                if ( serviceEnable == false ) return;
+                                else break;
+                            } catch ( Exception x ) {
+                                log.error(x.getMessage());
+                                if ( serviceEnable == false ) return;
+                                x.printStackTrace();
+                            }
+
+                        } // end of current file
+                        bufferedInputStream.close();
+                        stream.close();
+                        prometeusService.addFileProcessed();
+                        prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
+                        try {
+                            String time_s = object.getKey().split("\\.")[1];
+                            prometeusService.changeFileRewardTimestamp(Long.parseLong(time_s));
+                        } catch (Exception x) {
+                            // don't care that is monitoring
+                            log.error("Can't parse file timestamp for "+object.getKey());
+                        }
+
+                    } catch (IOException x) {
+                        prometeusService.addAwsFailure();
+                        log.error("Failed to gunzip for Key "+object.getKey()+" "+x.getMessage());
+                    } catch (Exception x) {
+                        prometeusService.addAwsFailure();
+                        log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
+                    }
+
+                    if ( fileType == 3 ) {
+                        rewardPocFile.setStringValue(object.getKey());
+                        paramRepository.save(rewardPocFile);
+                    }
+                    if ( serviceEnable == false ) {
+                        // we had a request to quit and at this point we can make it
+                        // clean
+                        log.info("Reward - exit ready");
+                        return;
+                    }
+                }
+                lor.setContinuationToken(list.getNextContinuationToken());
+
+            } while (list.isTruncated());
+        } catch (AmazonServiceException x) {
+            prometeusService.addAwsFailure();
+            log.error(x.getMessage());
+            x.printStackTrace();
+        } catch (AmazonClientException x) {
+            prometeusService.addAwsFailure();
+            log.error(x.getMessage());
+            x.printStackTrace();
+        } catch (Exception x) {
+            prometeusService.addAwsFailure();
+            log.error("Reward Batch Failure "+x.getMessage());
+        } finally {
+            // wait the parallel Thread to stop max 5 minutes
+            this.rewardThreadEnable = false;
+            boolean terminated = false;
+            long waitStart = Now.NowUtcMs();
+            while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
+                terminated = true;
+                for (int t = 0; t < etlConfig.getRewardLoadParallelWorkers(); t++) {
+                    if (threads[t].getState() != Thread.State.TERMINATED) terminated = false;
+                }
+                try { Thread.sleep(500); } catch (InterruptedException x ) {};
+            }
+            if ( !terminated ) {
+                log.error("Cancelling Thread before ending enqueing");
+            }
+            synchronized (this) {
+                runningJobs--;
+            }
+            log.info("Rewards - exit completed");
         }
     }
 

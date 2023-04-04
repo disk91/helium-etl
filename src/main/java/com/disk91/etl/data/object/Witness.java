@@ -36,7 +36,8 @@ public class Witness {
 
     private int version;        // if document evolves
 
-    private String beaconId; // link to beacon
+    private String beaconId;    // Beaconner Id
+    private long beaconTime;    // beaconTime Stamp
 
     private String hotspotId;
 
@@ -151,5 +152,13 @@ public class Witness {
 
     public void setValid(boolean valid) {
         this.valid = valid;
+    }
+
+    public long getBeaconTime() {
+        return beaconTime;
+    }
+
+    public void setBeaconTime(long beaconTime) {
+        this.beaconTime = beaconTime;
     }
 }

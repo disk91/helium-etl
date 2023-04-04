@@ -57,6 +57,22 @@ public class PrometeusService {
         return ()->iotpocProcessingTime;
     }
 
+    private long rewardProccessed = 0;
+    synchronized public void addRewardProcessed() {
+        this.rewardProccessed++;
+    }
+    protected Supplier<Number> getRewardProcesses() {
+        return ()->rewardProccessed;
+    }
+
+    private long rewardProcessingTime = 0;
+    synchronized public void addRewardProcessedTime(long ms) {
+        this.rewardProcessingTime+=ms;
+    }
+    protected Supplier<Number> getRewardProcesseTimes() {
+        return ()->rewardProcessingTime;
+    }
+
 
     private long witnessProccessed = 0;
     synchronized public void addWitnessProcessed() {
@@ -138,6 +154,19 @@ public class PrometeusService {
         return ()->lastFileIoTPocDistance;
     }
 
+    private long lastFileRewardTimestamp = 0;
+    private long lastFileRewardDistance = 0;
+    synchronized public void changeFileRewardTimestamp(long ms) {
+        this.lastFileRewardDistance= Now.NowUtcMs()-ms;
+        this.lastFileRewardTimestamp=ms;
+    }
+    protected Supplier<Number> getLastFileRewardTimestamp() {
+        return ()->lastFileRewardTimestamp;
+    }
+    protected Supplier<Number> getLastFileRewardDistance() {
+        return ()->lastFileRewardDistance;
+    }
+
 
     private long pendingHotspotModifications = 0;
     synchronized public void changeHsModification(long modif) {
@@ -170,6 +199,14 @@ public class PrometeusService {
 
         Gauge.builder("etl.iotpoc.processed.time", getIoTPocProcesseTimes())
                 .description("Processing time for iot poc")
+                .register(registry);
+
+        Gauge.builder("etl.reward.processed", getRewardProcesses())
+                .description("Counter number of reward processed")
+                .register(registry);
+
+        Gauge.builder("etl.reward.processed.time", getRewardProcesseTimes())
+                .description("Processing time for reward")
                 .register(registry);
 
         Gauge.builder("etl.witness.processed", getWitnessProcesses())
@@ -213,6 +250,14 @@ public class PrometeusService {
                 .register(registry);
 
         Gauge.builder("etl.file.iotpoc.distance", getLastFileIoTPocDistance())
+                .description("Distance from now for the last processed file")
+                .register(registry);
+
+        Gauge.builder("etl.file.reward.time", getLastFileRewardTimestamp())
+                .description("Timestamp for the last processed file")
+                .register(registry);
+
+        Gauge.builder("etl.file.reward.distance", getLastFileRewardDistance())
                 .description("Distance from now for the last processed file")
                 .register(registry);
 

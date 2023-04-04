@@ -75,6 +75,9 @@ public class EtlConfig {
     @Value("${iotpoc.history.startdate}")
     private long iotpocHistoryStartDate;
 
+    @Value("${reward.history.startdate}")
+    private long rewardHistoryStartDate;
+
     @Value("${beacon.load.enable}")
     private boolean beaconLoadEnable;
 
@@ -90,6 +93,38 @@ public class EtlConfig {
     @Value("${iotpoc.load.parallel.queue.size}")
     private int iotpocLoadParallelQueueSize;
 
+    @Value("${reward.load.enable}")
+    private boolean rewardLoadEnable;
+
+    @Value("${reward.load.parallel.workers}")
+    private int rewardLoadParallelWorkers;
+
+    @Value("${reward.load.parallel.queue.size}")
+    private int rewardLoadParallelQueueSize;
+
+    @Value("${exit.timeout.minutes}")
+    private int exitTimeOutMinutes;
+
+
+    public int getExitTimeOutMinutes() {
+        return exitTimeOutMinutes;
+    }
+
+    public long getRewardHistoryStartDate() {
+        return rewardHistoryStartDate;
+    }
+
+    public boolean isRewardLoadEnable() {
+        return rewardLoadEnable;
+    }
+
+    public int getRewardLoadParallelWorkers() {
+        return rewardLoadParallelWorkers;
+    }
+
+    public int getRewardLoadParallelQueueSize() {
+        return rewardLoadParallelQueueSize;
+    }
 
     public boolean isBeaconLoadEnable() {
         return beaconLoadEnable;

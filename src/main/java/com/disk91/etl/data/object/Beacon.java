@@ -38,14 +38,11 @@ public class Beacon implements ClonnableObject<Beacon> {
 
     @Id
     private String id;
-
     private int version;
-
     private String hotspotId;
 
     // Hex string of the data to find link beacon & witnesses
     private String data;
-
     private long frequency;
     private int channel;
     private int datarate;

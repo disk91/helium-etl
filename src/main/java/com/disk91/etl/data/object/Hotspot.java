@@ -38,6 +38,13 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     private long lastBeacon;
     private long lastWitness;
 
+    private long lastReward;
+
+    private long sumRewardBeacon;
+    private long sumRewardWitness;
+
+    private long offsetReward;
+
     // List of hotspots receiving this hotspot
     private List<Witness> beaconned;
 
@@ -52,6 +59,12 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     // ---------------------------------------------------------
     // Synchronous update
+
+    synchronized public void updateReward(long tm, long beacon, long witness) {
+        this.lastReward = tm;
+        this.sumRewardBeacon += beacon;
+        this.sumRewardWitness += witness;
+    }
 
     synchronized public void updatePosition(long timestamp, double lat, double lng, double alt, double gain) {
         LatLng _p = this.getPosition();
@@ -69,17 +82,20 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     synchronized public void addBeacon(long tm, int maxHistEntries) {
         long hRef = Now.ThisHourUtc(tm);
+        boolean newHist =  ( (tm - this.getLastBeacon() ) > Now.ONE_HOUR ); // can't exist in history
         long oldest = Now.NowUtcMs();
         boolean updated = false;
         this.setLastBeacon(tm);
-        for (BeaconHistory bh : this.getBeaconHistory()) {
-            if (bh.getTimeRef() == hRef) {
-                // update
-                bh.setCountBeacon(bh.getCountBeacon() + 1);
-                updated = true;
-                break;
+        if ( ! newHist ) {
+            for (BeaconHistory bh : this.getBeaconHistory()) {
+                if (bh.getTimeRef() == hRef) {
+                    // update
+                    bh.setCountBeacon(bh.getCountBeacon() + 1);
+                    updated = true;
+                    break;
+                }
+                if (oldest > bh.getTimeRef()) oldest = bh.getTimeRef();
             }
-            if (oldest > bh.getTimeRef()) oldest = bh.getTimeRef();
         }
         if (!updated) {
             // need to create a new one
@@ -105,7 +121,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     synchronized public void addBeaconed(String hsId, long tm, double signal, double snr) {
         boolean found = false;
         for (Witness _w : this.getBeaconned()) {
-            if (_w.getHs().compareTo(hsId) == 0) {
+            if (_w.getHs().equals(hsId)) {
                 // found it... update it
                 _w.addWitness( tm, signal, snr );
                 found = true;
@@ -122,10 +138,12 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     }
 
     synchronized public void addWitness(String hsId, long tm, double signal, double snr, int maxHistEntries){
-        this.setLastWitness(tm/1_000_000);
+        long tmMs = tm / 1_000_000; // from nano to ms
+        boolean newHist =  ( (tmMs - this.getLastWitness() ) > Now.ONE_HOUR ); // can't exist in history
+        this.setLastWitness(tmMs);
         boolean found = false;
         for (Witness _w : this.getWitnesses()) {
-            if (_w.getHs().compareTo(hsId) == 0) {
+            if (_w.getHs().equals(hsId) ) {
                 // found it... update it
                 _w.addWitness(tm,signal,snr);
                 found = true;
@@ -140,17 +158,19 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             this.getWitnesses().add(_w);
         }
 
-        long hRef = Now.ThisHourUtc(tm/1_000_000);
+        long hRef = Now.ThisHourUtc(tmMs);
         long oldest = Now.NowUtcMs();
         boolean updated = false;
-        for (WitnessHistory wh : this.getWitnessesHistory()) {
-            if (wh.getTimeRef() == hRef) {
-                // update
-                wh.setCountWitnesses(wh.getCountWitnesses() + 1);
-                updated = true;
-                break;
+        if ( ! newHist ) {
+            for (WitnessHistory wh : this.getWitnessesHistory()) {
+                if (wh.getTimeRef() == hRef) {
+                    // update
+                    wh.setCountWitnesses(wh.getCountWitnesses() + 1);
+                    updated = true;
+                    break;
+                }
+                if (oldest > wh.getTimeRef()) oldest = wh.getTimeRef();
             }
-            if (oldest > wh.getTimeRef()) oldest = wh.getTimeRef();
         }
         if (!updated) {
             // need to create a new one
@@ -185,6 +205,10 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         c.setLastWitness(lastWitness);
         c.setAnimalName(animalName);
         c.setPosition(position.clone());
+        c.setLastReward(lastReward);
+        c.setSumRewardBeacon(sumRewardBeacon);
+        c.setSumRewardWitness(sumRewardWitness);
+        c.setOffsetReward(offsetReward);
 
         List<LatLng> ph = new ArrayList<>();
         for (LatLng p : posHistory) {
@@ -314,5 +338,37 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setPosHistory(List<LatLng> posHistory) {
         this.posHistory = posHistory;
+    }
+
+    public long getLastReward() {
+        return lastReward;
+    }
+
+    public void setLastReward(long lastReward) {
+        this.lastReward = lastReward;
+    }
+
+    public long getSumRewardBeacon() {
+        return sumRewardBeacon;
+    }
+
+    public void setSumRewardBeacon(long sumRewardBeacon) {
+        this.sumRewardBeacon = sumRewardBeacon;
+    }
+
+    public long getSumRewardWitness() {
+        return sumRewardWitness;
+    }
+
+    public void setSumRewardWitness(long sumRewardWitness) {
+        this.sumRewardWitness = sumRewardWitness;
+    }
+
+    public long getOffsetReward() {
+        return offsetReward;
+    }
+
+    public void setOffsetReward(long offsetReward) {
+        this.offsetReward = offsetReward;
     }
 }
