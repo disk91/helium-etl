@@ -135,6 +135,7 @@ public class HotspotCache {
         log.info("Flush Beacon & Witness pending");
         bulkInsertWitness();
         bulkInsertBeacons();
+        bulkInsertRewards();
 
         while (hotspotCacheAsync.isRunning() ) {
            try { Thread.sleep(100); } catch ( InterruptedException x) {};
@@ -616,7 +617,8 @@ public class HotspotCache {
             _r.setWitnessAmount(r.getWitnessAmount());
             _r.setBeaconAmount(r.getBeaconAmount());
             _r.setVersion(1);
-            rewardRepository.save(_r);
+            delayedRewardSave(_r);
+            //rewardRepository.save(_r);
 
             // stats
             prometeusService.addRewardProcessed();
@@ -626,5 +628,27 @@ public class HotspotCache {
         }
         return false;
     }
+
+    protected ArrayList<Reward> _rewardsDelayedInsert = new ArrayList<>();
+    public synchronized void delayedRewardSave(Reward b) {
+        _rewardsDelayedInsert.add(b);
+        if ( _rewardsDelayedInsert.size() > 10_000 ) {
+            bulkInsertRewards();
+            _rewardsDelayedInsert.clear();
+        }
+    }
+
+    public int bulkInsertRewards() {
+
+        mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+        BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Reward.class);
+        for ( Reward b : _rewardsDelayedInsert ) {
+            bulkInsert.insert(b);
+        }
+        BulkWriteResult bulkWriteResult = bulkInsert.execute();
+        return bulkWriteResult.getInsertedCount();
+
+    }
+
 
 }
