@@ -995,6 +995,7 @@ public class AwsService {
                         prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
                         try {
                             String time_s = object.getKey().split("\\.")[1];
+                            log.info("file : "+object.getKey()+" -- "+time_s);
                             prometeusService.changeFileRewardTimestamp(Long.parseLong(time_s));
                         } catch (Exception x) {
                             // don't care that is monitoring
