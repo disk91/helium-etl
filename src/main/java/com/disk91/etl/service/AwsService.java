@@ -610,10 +610,10 @@ public class AwsService {
 
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 17_000)
-    protected void AwsValidWitnessSync() {
+    protected void AwsIoTPocSync() {
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isIotpocLoadEnable() ) return;
-        log.info("Running AwsValidWitnessService Sync");
+        log.info("Running AwsIoTPoc Sync");
 
         synchronized (this) {
             this.runningJobs++;
@@ -810,7 +810,7 @@ public class AwsService {
             long waitStart = Now.NowUtcMs();
             while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
                 terminated = true;
-                for (int t = 0; t < etlConfig.getWitnessLoadParallelWorkers(); t++) {
+                for (int t = 0; t < etlConfig.getIotpocLoadParallelWorkers(); t++) {
                     if (threads[t].getState() != Thread.State.TERMINATED) terminated = false;
                 }
                 try { Thread.sleep(500); } catch (InterruptedException x ) {};
@@ -880,10 +880,10 @@ public class AwsService {
 
         // Create queues for parallelism
         @SuppressWarnings({"unchecked", "rawtypes"})
-        ConcurrentLinkedQueue<gateway_reward_share> queues[] =  new ConcurrentLinkedQueue[etlConfig.getIotpocLoadParallelWorkers()];
-        Boolean threadRunning[] = new Boolean[etlConfig.getIotpocLoadParallelWorkers()];
-        Thread threads[] = new Thread[etlConfig.getIotpocLoadParallelWorkers()];
-        for ( int q = 0 ; q < etlConfig.getIotpocLoadParallelWorkers() ; q++) {
+        ConcurrentLinkedQueue<gateway_reward_share> queues[] =  new ConcurrentLinkedQueue[etlConfig.getRewardLoadParallelWorkers()];
+        Boolean threadRunning[] = new Boolean[etlConfig.getRewardLoadParallelWorkers()];
+        Thread threads[] = new Thread[etlConfig.getRewardLoadParallelWorkers()];
+        for ( int q = 0 ; q < etlConfig.getRewardLoadParallelWorkers() ; q++) {
             queues[q] = new ConcurrentLinkedQueue<gateway_reward_share>();
             threadRunning[q] = Boolean.FALSE;
             Runnable r = new ProcessRewards(q,queues[q],threadRunning[q]);
