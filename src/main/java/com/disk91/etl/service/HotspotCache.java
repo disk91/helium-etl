@@ -53,6 +53,8 @@ public class HotspotCache {
     protected Param iotpocTopLine = null;
     protected long iotpocTopTs = 0;
 
+    protected volatile Boolean inAsyncWrite = new Boolean(false);
+
     @Autowired
     protected HotspotCacheAsync hotspotCacheAsync;
 
@@ -133,6 +135,8 @@ public class HotspotCache {
     public void stopService() {
         // flush pending write
         log.info("Flush Beacon & Witness pending");
+        long s = Now.NowUtcMs();
+        while ( inAsyncWrite == true  && (Now.NowUtcMs() - s) < 60_000 );
         bulkInsertWitness();
         bulkInsertBeacons();
         bulkInsertRewards();
@@ -403,20 +407,31 @@ public class HotspotCache {
     public synchronized void delayedBeaconSave(Beacon b) {
         _beaconDelayedInsert.add(b);
         if ( _beaconDelayedInsert.size() > 500 ) {
-            bulkInsertBeacons();
-            _beaconDelayedInsert.clear();
+            if ( bulkInsertBeacons() > 0 ) {
+                _beaconDelayedInsert.clear();
+            }
         }
     }
 
     public int bulkInsertBeacons() {
 
-        mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-        BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Beacon.class);
-        for ( Beacon b : _beaconDelayedInsert ) {
-            bulkInsert.insert(b);
+        synchronized (inAsyncWrite) {
+            if ( inAsyncWrite == true ) return 0;
+            inAsyncWrite = true;
         }
-        BulkWriteResult bulkWriteResult = bulkInsert.execute();
-        return bulkWriteResult.getInsertedCount();
+        try {
+            mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Beacon.class);
+            for ( Beacon b : _beaconDelayedInsert ) {
+                bulkInsert.insert(b);
+            }
+            BulkWriteResult bulkWriteResult = bulkInsert.execute();
+            return bulkWriteResult.getInsertedCount();
+        } finally {
+            synchronized (inAsyncWrite) {
+                inAsyncWrite = false;
+            }
+        }
 
     }
 
@@ -424,21 +439,32 @@ public class HotspotCache {
     protected ArrayList<com.disk91.etl.data.object.Witness> _witnessDelayedInsert = new ArrayList<>();
     public synchronized void delayedWitnessSave(com.disk91.etl.data.object.Witness b) {
         _witnessDelayedInsert.add(b);
-        if ( _witnessDelayedInsert.size() > 10_000 ) {
-            bulkInsertWitness();
-            _witnessDelayedInsert.clear();
+        if ( _witnessDelayedInsert.size() > 8_000 ) {
+            if ( bulkInsertWitness() > 0 ) {
+                _witnessDelayedInsert.clear();
+            }
         }
     }
 
     public int bulkInsertWitness() {
 
-        mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-        BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
-        for ( com.disk91.etl.data.object.Witness b : _witnessDelayedInsert ) {
-            bulkInsert.insert(b);
+        synchronized (inAsyncWrite) {
+            if ( inAsyncWrite == true ) return 0;
+            inAsyncWrite = true;
         }
-        BulkWriteResult bulkWriteResult = bulkInsert.execute();
-        return bulkWriteResult.getInsertedCount();
+        try {
+            mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
+            for ( com.disk91.etl.data.object.Witness b : _witnessDelayedInsert ) {
+                bulkInsert.insert(b);
+            }
+            BulkWriteResult bulkWriteResult = bulkInsert.execute();
+            return bulkWriteResult.getInsertedCount();
+        } finally {
+            synchronized (inAsyncWrite) {
+                inAsyncWrite = false;
+            }
+        }
 
     }
 
@@ -632,21 +658,32 @@ public class HotspotCache {
     protected ArrayList<Reward> _rewardsDelayedInsert = new ArrayList<>();
     public synchronized void delayedRewardSave(Reward b) {
         _rewardsDelayedInsert.add(b);
-        if ( _rewardsDelayedInsert.size() > 10_000 ) {
-            bulkInsertRewards();
-            _rewardsDelayedInsert.clear();
+        if ( _rewardsDelayedInsert.size() > 8_000 ) {
+            if ( bulkInsertRewards() > 0 ) {
+                _rewardsDelayedInsert.clear();
+            }
         }
     }
 
     public int bulkInsertRewards() {
 
-        mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-        BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Reward.class);
-        for ( Reward b : _rewardsDelayedInsert ) {
-            bulkInsert.insert(b);
+        synchronized (inAsyncWrite) {
+            if ( inAsyncWrite == true ) return 0;
+            inAsyncWrite = true;
         }
-        BulkWriteResult bulkWriteResult = bulkInsert.execute();
-        return bulkWriteResult.getInsertedCount();
+        try {
+            mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Reward.class);
+            for (Reward b : _rewardsDelayedInsert) {
+                bulkInsert.insert(b);
+            }
+            BulkWriteResult bulkWriteResult = bulkInsert.execute();
+            return bulkWriteResult.getInsertedCount();
+        } finally {
+            synchronized (inAsyncWrite) {
+                inAsyncWrite = false;
+            }
+        }
 
     }
 
