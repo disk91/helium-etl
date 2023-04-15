@@ -171,7 +171,7 @@ public class AwsService {
     @Scheduled(fixedDelay = 180_000, initialDelay = 10_000)
     protected void AwsBeaconSync() {
         if ( ! readyToSync || !serviceEnable ) return;
-        if ( !etlConfig.isBeaconLoadEnable() ) return;
+        if ( ! etlConfig.isBeaconLoadEnable() ) return;
 
         synchronized (this) {
             this.runningJobs++;

@@ -207,15 +207,22 @@ services:
       - monitoring
     networks:
       - monitoring_net
+      - public_net
     ports:
-      - 9090:9090
-
+      - 127.0.0.1:9090:9090
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   node_exporter:
     image: prom/node-exporter:latest
     container_name: etl-node-exp
     command:
-      - '--path.rootfs=/host'
+      - '--web.listen-address=127.0.0.1:9100'
+      - '--web.listen-address=172.17.0.1:9100'
+      - '--web.listen-address=172.99.1.254:9100'
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
       - "--collector.filesystem"
       - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
       - "--collector.netstat"
@@ -228,21 +235,22 @@ services:
       - "--collector.interrupts"
       - "--collector.tcpstat"
     pid: host
+    network_mode: host
     restart: unless-stopped
     volumes:
-      - '/:/host:ro,rslave'
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
     profiles:
       - monitoring
-    networks:
-      - monitoring_net
-    ports:
-      - 9100:9100
 
   mongo_exporter:
     image: percona/mongodb_exporter:2.36
     container_name: etl-mongo-exporter
     restart: unless-stopped
     command:
+      - "--web.listen-address=0.0.0.0:9216"
       - "--discovering-mode"
       - "--collector.diagnosticdata"
       - "--collector.replicasetstatus"
@@ -252,7 +260,7 @@ services:
       - "--collector.collstats"
       - "--compatible-mode"
     ports:
-      - 8094:9216
+      - 9216:9216
     environment:
       - MONGODB_URI=mongodb://mongo-shard01a:27017
     profiles:
@@ -312,3 +320,10 @@ networks:
     internal: true
   monitoring_net:
     internal: true
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.99.0.0/16
+          ip_range: 172.99.1.0/24
+          gateway: 172.99.1.254
