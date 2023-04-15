@@ -1,5 +1,3 @@
-version: "3"
-
 services:
 
   etl:
@@ -18,14 +16,15 @@ services:
     deploy:
       resources:
         limits:
-          memory: 7000m
+          memory: 12000m
     ports:
       - 127.0.0.1:8091:8091
     profiles:
       - etl
-    links:
-      - mongo-router01
-      - mongo-router02
+    networks:
+      - public_net
+      - mongo_net
+      - monitoring_net
 
   ## Router - get the traffic request
   mongo-router01:
@@ -39,7 +38,7 @@ services:
       retries: 3
       start_period: 30s
     ports:
-      - 127.0.0.1:27120:27017
+      - 27120:27017
     restart: always
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
@@ -51,6 +50,11 @@ services:
       - mongo-configsvr01
       - mongo-configsvr02
       - mongo-configsvr03
+      - mongo-shard01a
+      - mongo-shard02a
+      - mongo-shard03a
+    networks:
+      - mongo_net
 
   mongo-router02:
     image: mongo:6.0.1
@@ -63,20 +67,23 @@ services:
       retries: 3
       start_period: 30s
     ports:
-      - 127.0.0.1:27121:27017
+      - 27121:27017
     restart: always
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/router-02:/data/db
       - /etl/configuration/mongo/router-02:/data/configdb
-    links:
-      - mongo-router01
+    networks:
+      - mongo_net
     profiles:
       - mongo
     depends_on:
       - mongo-configsvr01
       - mongo-configsvr02
       - mongo-configsvr03
+      - mongo-shard01a
+      - mongo-shard02a
+      - mongo-shard03a
 
   ## Config Servers - know the cluster configuration
   mongo-configsvr01:
@@ -88,10 +95,8 @@ services:
       - /etl/mongo/config-01:/data/db
       - /etl/configuration/mongo/config-01:/data/configdb
     restart: always
-    links:
-      - mongo-shard01a
-      - mongo-shard02a
-      - mongo-shard03a
+    networks:
+      - mongo_net
     profiles:
       - mongo
 
@@ -104,8 +109,8 @@ services:
       - /etl/mongo/config-02:/data/db
       - /etl/configuration/mongo/config-02:/data/configdb
     restart: always
-    links:
-      - mongo-configsvr01
+    networks:
+      - mongo_net
     profiles:
       - mongo
 
@@ -118,8 +123,8 @@ services:
       - /etl/mongo/config-03:/data/db
       - /etl/configuration/mongo/config-03:/data/configdb
     restart: always
-    links:
-      - mongo-configsvr02
+    networks:
+      - mongo_net
     profiles:
       - mongo
 
@@ -131,7 +136,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1600m
+          memory: 3000m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-01a:/data/db
@@ -139,6 +144,9 @@ services:
     restart: always
     profiles:
       - mongo
+    networks:
+      - mongo_net
+
 
   mongo-shard02a:
     image: mongo:6.0.1
@@ -147,7 +155,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1600m
+          memory: 3000m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-02a:/data/db
@@ -155,6 +163,8 @@ services:
     restart: always
     profiles:
       - mongo
+    networks:
+      - mongo_net
 
   mongo-shard03a:
     image: mongo:6.0.1
@@ -163,7 +173,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1600m
+          memory: 3000m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-03a:/data/db
@@ -171,17 +181,23 @@ services:
     restart: always
     profiles:
       - mongo
+    networks:
+      - mongo_net
 
   prometheus:
     image: prom/prometheus
     container_name: etl-prometheus
-    network_mode: host
     restart: unless-stopped
     volumes:
       - /etl/configuration/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - /etl/prometheus:/prometheus
     profiles:
       - monitoring
+    networks:
+      - monitoring_net
+    ports:
+      - 9090:9090
+
 
   node_exporter:
     image: prom/node-exporter:latest
@@ -206,6 +222,8 @@ services:
       - '/:/host:ro,rslave'
     profiles:
       - monitoring
+    networks:
+      - monitoring_net
 
   mongo_exporter:
     image: percona/mongodb_exporter:2.36
@@ -226,6 +244,9 @@ services:
       - MONGODB_URI=mongodb://mongo-shard01a:27017
     profiles:
       - monitoring
+    networks:
+      - monitoring_net
+      - mongo_net
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -242,14 +263,14 @@ services:
     command:
       - '-port=8093'
     restart: unless-stopped
-    network_mode: host
     profiles:
       - monitoring
+    networks:
+      - monitoring_net
 
   grafana:
     image: grafana/grafana-oss
     container_name: etl-grafana
-    network_mode: host
     restart: unless-stopped
     volumes:
       - /etl/grafana:/var/lib/grafana
@@ -263,3 +284,16 @@ services:
       - prometheus
     profiles:
       - monitoring
+    networks:
+      - monitoring_net
+      - public_net
+    ports:
+      - 127.0.0.1:8092:8092
+
+
+networks:
+  - public_net
+  - mongo_net
+    - internal: true
+  - monitoring_net
+    - internal: true
