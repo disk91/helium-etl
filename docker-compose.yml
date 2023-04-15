@@ -215,7 +215,6 @@ services:
       - "--collector.ethtool"
       - "--collector.interrupts"
       - "--collector.tcpstat"
-    network_mode: host
     pid: host
     restart: unless-stopped
     volumes:
@@ -224,6 +223,8 @@ services:
       - monitoring
     networks:
       - monitoring_net
+    ports:
+      - 9100:9100
 
   mongo_exporter:
     image: percona/mongodb_exporter:2.36
@@ -267,6 +268,8 @@ services:
       - monitoring
     networks:
       - monitoring_net
+    ports:
+      - 8093:8093
 
   grafana:
     image: grafana/grafana-oss
@@ -292,8 +295,8 @@ services:
 
 
 networks:
-  - public_net
-  - mongo_net
-    - internal: true
-  - monitoring_net
-    - internal: true
+  public_net:
+  mongo_net:
+    internal: true
+  monitoring_net:
+    internal: true
