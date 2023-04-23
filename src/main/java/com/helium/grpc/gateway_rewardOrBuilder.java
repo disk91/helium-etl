@@ -3,8 +3,8 @@
 
 package com.helium.grpc;
 
-public interface gateway_reward_shareOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:helium.poc_lora.gateway_reward_share)
+public interface gateway_rewardOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:helium.poc_lora.gateway_reward)
     com.google.protobuf.MessageOrBuilder {
 
   /**
@@ -19,7 +19,7 @@ public interface gateway_reward_shareOrBuilder extends
 
   /**
    * <pre>
-   *&#47; Amount credited to the hotspot for beaconing
+   *&#47; Amount in iot bones credited to the hotspot for beaconing
    * </pre>
    *
    * <code>uint64 beacon_amount = 2;</code>
@@ -29,7 +29,7 @@ public interface gateway_reward_shareOrBuilder extends
 
   /**
    * <pre>
-   *&#47; Amount credited to the hotspot for witnessing
+   *&#47; Amount in iot bones credited to the hotspot for witnessing
    * </pre>
    *
    * <code>uint64 witness_amount = 3;</code>
@@ -39,21 +39,11 @@ public interface gateway_reward_shareOrBuilder extends
 
   /**
    * <pre>
-   *&#47; Unix timestamp in seconds of the start of the reward period
+   *&#47; Amount in iot bones credited to the hotspot for data transfer
    * </pre>
    *
-   * <code>uint64 start_period = 4;</code>
-   * @return The startPeriod.
+   * <code>uint64 dc_transfer_amount = 4;</code>
+   * @return The dcTransferAmount.
    */
-  long getStartPeriod();
-
-  /**
-   * <pre>
-   *&#47; Unix timestamp in seconds of the end of the reward period
-   * </pre>
-   *
-   * <code>uint64 end_period = 5;</code>
-   * @return The endPeriod.
-   */
-  long getEndPeriod();
+  long getDcTransferAmount();
 }

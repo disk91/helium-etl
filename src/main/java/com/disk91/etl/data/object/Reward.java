@@ -41,6 +41,8 @@ public class Reward implements ClonnableObject<Reward> {
     private long beaconAmount;
     private long witnessAmount;
 
+    private long dcTransferAmount;
+
 
     public Reward clone() {
         Reward c = new Reward();
@@ -51,6 +53,7 @@ public class Reward implements ClonnableObject<Reward> {
         c.setEndPeriod(endPeriod);
         c.setBeaconAmount(beaconAmount);
         c.setWitnessAmount(witnessAmount);
+        c.setDcTransferAmount(dcTransferAmount);
         return c;
     }
 
@@ -113,5 +116,13 @@ public class Reward implements ClonnableObject<Reward> {
 
     public void setWitnessAmount(long witnessAmount) {
         this.witnessAmount = witnessAmount;
+    }
+
+    public long getDcTransferAmount() {
+        return dcTransferAmount;
+    }
+
+    public void setDcTransferAmount(long dcTransferAmount) {
+        this.dcTransferAmount = dcTransferAmount;
     }
 }

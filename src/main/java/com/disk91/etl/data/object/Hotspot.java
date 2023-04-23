@@ -43,6 +43,8 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     private long sumRewardBeacon;
     private long sumRewardWitness;
 
+    private long sumRewardDc;
+
     private long offsetReward;
 
     // List of hotspots receiving this hotspot
@@ -60,10 +62,11 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     // ---------------------------------------------------------
     // Synchronous update
 
-    synchronized public void updateReward(long tm, long beacon, long witness) {
+    synchronized public void updateReward(long tm, long beacon, long witness, long dcs) {
         this.lastReward = tm;
         this.sumRewardBeacon += beacon;
         this.sumRewardWitness += witness;
+        this.sumRewardDc += dcs;
     }
 
     synchronized public void updatePosition(long timestamp, double lat, double lng, double alt, double gain) {
@@ -208,6 +211,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         c.setLastReward(lastReward);
         c.setSumRewardBeacon(sumRewardBeacon);
         c.setSumRewardWitness(sumRewardWitness);
+        c.setSumRewardDc(sumRewardDc);
         c.setOffsetReward(offsetReward);
 
         List<LatLng> ph = new ArrayList<>();
@@ -370,5 +374,13 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setOffsetReward(long offsetReward) {
         this.offsetReward = offsetReward;
+    }
+
+    public long getSumRewardDc() {
+        return sumRewardDc;
+    }
+
+    public void setSumRewardDc(long sumRewardDc) {
+        this.sumRewardDc = sumRewardDc;
     }
 }

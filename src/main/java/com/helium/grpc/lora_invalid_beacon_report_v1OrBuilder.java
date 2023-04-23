@@ -26,7 +26,7 @@ public interface lora_invalid_beacon_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_reason reason = 2;</code>
    * @return The reason.
    */
-  com.helium.grpc.invalid_reason getReason();
+  invalid_reason getReason();
 
   /**
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 3;</code>
@@ -37,9 +37,9 @@ public interface lora_invalid_beacon_report_v1OrBuilder extends
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 3;</code>
    * @return The report.
    */
-  com.helium.grpc.lora_beacon_report_req_v1 getReport();
+  lora_beacon_report_req_v1 getReport();
   /**
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 3;</code>
    */
-  com.helium.grpc.lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
+  lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
 }

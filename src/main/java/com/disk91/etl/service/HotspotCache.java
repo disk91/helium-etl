@@ -626,13 +626,13 @@ public class HotspotCache {
     @Autowired
     protected RewardRepository rewardRepository;
 
-    public boolean addReward(gateway_reward_share r) {
+    public boolean addReward(iot_reward_share r) {
         long start = Now.NowUtcMs();
 
-        String hsId = HeliumHelper.pubAddressToName(r.getHotspotKey());
+        String hsId = HeliumHelper.pubAddressToName(r.getGatewayReward().getHotspotKey());
         Hotspot rewarded = this.getHotspot(hsId, true);
         if( r.getStartPeriod()*1000 > rewarded.getLastReward() ) {
-            rewarded.updateReward(r.getStartPeriod()*1000,r.getBeaconAmount(),r.getWitnessAmount());
+            rewarded.updateReward(r.getStartPeriod()*1000,r.getGatewayReward().getBeaconAmount(),r.getGatewayReward().getWitnessAmount(),r.getGatewayReward().getDcTransferAmount());
             this.updateHotspot(rewarded);
 
             // add the Reward data
@@ -640,8 +640,9 @@ public class HotspotCache {
             _r.setHotspotId(hsId);
             _r.setStartPeriod(r.getStartPeriod()*1000);
             _r.setEndPeriod(r.getEndPeriod()*1000);
-            _r.setWitnessAmount(r.getWitnessAmount());
-            _r.setBeaconAmount(r.getBeaconAmount());
+            _r.setWitnessAmount(r.getGatewayReward().getWitnessAmount());
+            _r.setBeaconAmount(r.getGatewayReward().getBeaconAmount());
+            _r.setDcTransferAmount(r.getGatewayReward().getDcTransferAmount());
             _r.setVersion(1);
             delayedRewardSave(_r);
             //rewardRepository.save(_r);

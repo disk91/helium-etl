@@ -28,24 +28,24 @@ private static final long serialVersionUID = 0L;
     signature_ = com.google.protobuf.ByteString.EMPTY;
   }
 
-  @java.lang.Override
+  @Override
   @SuppressWarnings({"unused"})
-  protected java.lang.Object newInstance(
+  protected Object newInstance(
       UnusedPrivateParameter unused) {
     return new lora_beacon_report_req_v1();
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_beacon_report_req_v1_descriptor;
+    return PocLoRa.internal_static_helium_poc_lora_lora_beacon_report_req_v1_descriptor;
   }
 
-  @java.lang.Override
-  protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+  @Override
+  protected FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_beacon_report_req_v1_fieldAccessorTable
+    return PocLoRa.internal_static_helium_poc_lora_lora_beacon_report_req_v1_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.helium.grpc.lora_beacon_report_req_v1.class, com.helium.grpc.lora_beacon_report_req_v1.Builder.class);
+            lora_beacon_report_req_v1.class, Builder.class);
   }
 
   public static final int PUB_KEY_FIELD_NUMBER = 2;
@@ -54,7 +54,7 @@ private static final long serialVersionUID = 0L;
    * <code>bytes pub_key = 2;</code>
    * @return The pubKey.
    */
-  @java.lang.Override
+  @Override
   public com.google.protobuf.ByteString getPubKey() {
     return pubKey_;
   }
@@ -65,7 +65,7 @@ private static final long serialVersionUID = 0L;
    * <code>bytes local_entropy = 3;</code>
    * @return The localEntropy.
    */
-  @java.lang.Override
+  @Override
   public com.google.protobuf.ByteString getLocalEntropy() {
     return localEntropy_;
   }
@@ -76,7 +76,7 @@ private static final long serialVersionUID = 0L;
    * <code>bytes remote_entropy = 4;</code>
    * @return The remoteEntropy.
    */
-  @java.lang.Override
+  @Override
   public com.google.protobuf.ByteString getRemoteEntropy() {
     return remoteEntropy_;
   }
@@ -87,7 +87,7 @@ private static final long serialVersionUID = 0L;
    * <code>bytes data = 5;</code>
    * @return The data.
    */
-  @java.lang.Override
+  @Override
   public com.google.protobuf.ByteString getData() {
     return data_;
   }
@@ -102,7 +102,7 @@ private static final long serialVersionUID = 0L;
    * <code>uint64 frequency = 6;</code>
    * @return The frequency.
    */
-  @java.lang.Override
+  @Override
   public long getFrequency() {
     return frequency_;
   }
@@ -113,7 +113,7 @@ private static final long serialVersionUID = 0L;
    * <code>int32 channel = 7;</code>
    * @return The channel.
    */
-  @java.lang.Override
+  @Override
   public int getChannel() {
     return channel_;
   }
@@ -124,16 +124,16 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.data_rate datarate = 8;</code>
    * @return The enum numeric value on the wire for datarate.
    */
-  @java.lang.Override public int getDatarateValue() {
+  @Override public int getDatarateValue() {
     return datarate_;
   }
   /**
    * <code>.helium.data_rate datarate = 8;</code>
    * @return The datarate.
    */
-  @java.lang.Override public com.helium.grpc.data_rate getDatarate() {
-    com.helium.grpc.data_rate result = com.helium.grpc.data_rate.forNumber(datarate_);
-    return result == null ? com.helium.grpc.data_rate.UNRECOGNIZED : result;
+  @Override public data_rate getDatarate() {
+    data_rate result = data_rate.forNumber(datarate_);
+    return result == null ? data_rate.UNRECOGNIZED : result;
   }
 
   public static final int TX_POWER_FIELD_NUMBER = 9;
@@ -147,7 +147,7 @@ private static final long serialVersionUID = 0L;
    * <code>int32 tx_power = 9;</code>
    * @return The txPower.
    */
-  @java.lang.Override
+  @Override
   public int getTxPower() {
     return txPower_;
   }
@@ -162,7 +162,7 @@ private static final long serialVersionUID = 0L;
    * <code>uint64 timestamp = 10;</code>
    * @return The timestamp.
    */
-  @java.lang.Override
+  @Override
   public long getTimestamp() {
     return timestamp_;
   }
@@ -173,7 +173,7 @@ private static final long serialVersionUID = 0L;
    * <code>bytes signature = 11;</code>
    * @return The signature.
    */
-  @java.lang.Override
+  @Override
   public com.google.protobuf.ByteString getSignature() {
     return signature_;
   }
@@ -184,13 +184,13 @@ private static final long serialVersionUID = 0L;
    * <code>uint32 tmst = 12;</code>
    * @return The tmst.
    */
-  @java.lang.Override
+  @Override
   public int getTmst() {
     return tmst_;
   }
 
   private byte memoizedIsInitialized = -1;
-  @java.lang.Override
+  @Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -200,7 +200,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (!pubKey_.isEmpty()) {
@@ -221,7 +221,7 @@ private static final long serialVersionUID = 0L;
     if (channel_ != 0) {
       output.writeInt32(7, channel_);
     }
-    if (datarate_ != com.helium.grpc.data_rate.SF12BW125.getNumber()) {
+    if (datarate_ != data_rate.SF12BW125.getNumber()) {
       output.writeEnum(8, datarate_);
     }
     if (txPower_ != 0) {
@@ -239,7 +239,7 @@ private static final long serialVersionUID = 0L;
     getUnknownFields().writeTo(output);
   }
 
-  @java.lang.Override
+  @Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -269,7 +269,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(7, channel_);
     }
-    if (datarate_ != com.helium.grpc.data_rate.SF12BW125.getNumber()) {
+    if (datarate_ != data_rate.SF12BW125.getNumber()) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(8, datarate_);
     }
@@ -294,15 +294,15 @@ private static final long serialVersionUID = 0L;
     return size;
   }
 
-  @java.lang.Override
-  public boolean equals(final java.lang.Object obj) {
+  @Override
+  public boolean equals(final Object obj) {
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.helium.grpc.lora_beacon_report_req_v1)) {
+    if (!(obj instanceof lora_beacon_report_req_v1)) {
       return super.equals(obj);
     }
-    com.helium.grpc.lora_beacon_report_req_v1 other = (com.helium.grpc.lora_beacon_report_req_v1) obj;
+    lora_beacon_report_req_v1 other = (lora_beacon_report_req_v1) obj;
 
     if (!getPubKey()
         .equals(other.getPubKey())) return false;
@@ -329,7 +329,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public int hashCode() {
     if (memoizedHashCode != 0) {
       return memoizedHashCode;
@@ -365,69 +365,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseFrom(
+  public static lora_beacon_report_req_v1 parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseFrom(
+  public static lora_beacon_report_req_v1 parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseFrom(
+  public static lora_beacon_report_req_v1 parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseFrom(
+  public static lora_beacon_report_req_v1 parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseFrom(byte[] data)
+  public static lora_beacon_report_req_v1 parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseFrom(
+  public static lora_beacon_report_req_v1 parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseFrom(java.io.InputStream input)
+  public static lora_beacon_report_req_v1 parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseFrom(
+  public static lora_beacon_report_req_v1 parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseDelimitedFrom(java.io.InputStream input)
+  public static lora_beacon_report_req_v1 parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseDelimitedFrom(
+  public static lora_beacon_report_req_v1 parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseFrom(
+  public static lora_beacon_report_req_v1 parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.lora_beacon_report_req_v1 parseFrom(
+  public static lora_beacon_report_req_v1 parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -435,23 +435,23 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  @java.lang.Override
+  @Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.helium.grpc.lora_beacon_report_req_v1 prototype) {
+  public static Builder newBuilder(lora_beacon_report_req_v1 prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
-  @java.lang.Override
+  @Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
   }
 
-  @java.lang.Override
+  @Override
   protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
@@ -465,18 +465,18 @@ private static final long serialVersionUID = 0L;
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:helium.poc_lora.lora_beacon_report_req_v1)
-      com.helium.grpc.lora_beacon_report_req_v1OrBuilder {
+      lora_beacon_report_req_v1OrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_beacon_report_req_v1_descriptor;
+      return PocLoRa.internal_static_helium_poc_lora_lora_beacon_report_req_v1_descriptor;
     }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+    @Override
+    protected FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_beacon_report_req_v1_fieldAccessorTable
+      return PocLoRa.internal_static_helium_poc_lora_lora_beacon_report_req_v1_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.helium.grpc.lora_beacon_report_req_v1.class, com.helium.grpc.lora_beacon_report_req_v1.Builder.class);
+              lora_beacon_report_req_v1.class, Builder.class);
     }
 
     // Construct using com.helium.grpc.lora_beacon_report_req_v1.newBuilder()
@@ -485,11 +485,11 @@ private static final long serialVersionUID = 0L;
     }
 
     private Builder(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        BuilderParent parent) {
       super(parent);
 
     }
-    @java.lang.Override
+    @Override
     public Builder clear() {
       super.clear();
       bitField0_ = 0;
@@ -507,35 +507,35 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_beacon_report_req_v1_descriptor;
+      return PocLoRa.internal_static_helium_poc_lora_lora_beacon_report_req_v1_descriptor;
     }
 
-    @java.lang.Override
-    public com.helium.grpc.lora_beacon_report_req_v1 getDefaultInstanceForType() {
-      return com.helium.grpc.lora_beacon_report_req_v1.getDefaultInstance();
+    @Override
+    public lora_beacon_report_req_v1 getDefaultInstanceForType() {
+      return lora_beacon_report_req_v1.getDefaultInstance();
     }
 
-    @java.lang.Override
-    public com.helium.grpc.lora_beacon_report_req_v1 build() {
-      com.helium.grpc.lora_beacon_report_req_v1 result = buildPartial();
+    @Override
+    public lora_beacon_report_req_v1 build() {
+      lora_beacon_report_req_v1 result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    @java.lang.Override
-    public com.helium.grpc.lora_beacon_report_req_v1 buildPartial() {
-      com.helium.grpc.lora_beacon_report_req_v1 result = new com.helium.grpc.lora_beacon_report_req_v1(this);
+    @Override
+    public lora_beacon_report_req_v1 buildPartial() {
+      lora_beacon_report_req_v1 result = new lora_beacon_report_req_v1(this);
       if (bitField0_ != 0) { buildPartial0(result); }
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(com.helium.grpc.lora_beacon_report_req_v1 result) {
+    private void buildPartial0(lora_beacon_report_req_v1 result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.pubKey_ = pubKey_;
@@ -572,18 +572,18 @@ private static final long serialVersionUID = 0L;
       }
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.helium.grpc.lora_beacon_report_req_v1) {
-        return mergeFrom((com.helium.grpc.lora_beacon_report_req_v1)other);
+      if (other instanceof lora_beacon_report_req_v1) {
+        return mergeFrom((lora_beacon_report_req_v1)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.helium.grpc.lora_beacon_report_req_v1 other) {
-      if (other == com.helium.grpc.lora_beacon_report_req_v1.getDefaultInstance()) return this;
+    public Builder mergeFrom(lora_beacon_report_req_v1 other) {
+      if (other == lora_beacon_report_req_v1.getDefaultInstance()) return this;
       if (other.getPubKey() != com.google.protobuf.ByteString.EMPTY) {
         setPubKey(other.getPubKey());
       }
@@ -622,18 +622,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public final boolean isInitialized() {
       return true;
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
+        throw new NullPointerException();
       }
       try {
         boolean done = false;
@@ -720,7 +720,7 @@ private static final long serialVersionUID = 0L;
      * <code>bytes pub_key = 2;</code>
      * @return The pubKey.
      */
-    @java.lang.Override
+    @Override
     public com.google.protobuf.ByteString getPubKey() {
       return pubKey_;
     }
@@ -752,7 +752,7 @@ private static final long serialVersionUID = 0L;
      * <code>bytes local_entropy = 3;</code>
      * @return The localEntropy.
      */
-    @java.lang.Override
+    @Override
     public com.google.protobuf.ByteString getLocalEntropy() {
       return localEntropy_;
     }
@@ -784,7 +784,7 @@ private static final long serialVersionUID = 0L;
      * <code>bytes remote_entropy = 4;</code>
      * @return The remoteEntropy.
      */
-    @java.lang.Override
+    @Override
     public com.google.protobuf.ByteString getRemoteEntropy() {
       return remoteEntropy_;
     }
@@ -816,7 +816,7 @@ private static final long serialVersionUID = 0L;
      * <code>bytes data = 5;</code>
      * @return The data.
      */
-    @java.lang.Override
+    @Override
     public com.google.protobuf.ByteString getData() {
       return data_;
     }
@@ -852,7 +852,7 @@ private static final long serialVersionUID = 0L;
      * <code>uint64 frequency = 6;</code>
      * @return The frequency.
      */
-    @java.lang.Override
+    @Override
     public long getFrequency() {
       return frequency_;
     }
@@ -892,7 +892,7 @@ private static final long serialVersionUID = 0L;
      * <code>int32 channel = 7;</code>
      * @return The channel.
      */
-    @java.lang.Override
+    @Override
     public int getChannel() {
       return channel_;
     }
@@ -924,7 +924,7 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.data_rate datarate = 8;</code>
      * @return The enum numeric value on the wire for datarate.
      */
-    @java.lang.Override public int getDatarateValue() {
+    @Override public int getDatarateValue() {
       return datarate_;
     }
     /**
@@ -942,17 +942,17 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.data_rate datarate = 8;</code>
      * @return The datarate.
      */
-    @java.lang.Override
-    public com.helium.grpc.data_rate getDatarate() {
-      com.helium.grpc.data_rate result = com.helium.grpc.data_rate.forNumber(datarate_);
-      return result == null ? com.helium.grpc.data_rate.UNRECOGNIZED : result;
+    @Override
+    public data_rate getDatarate() {
+      data_rate result = data_rate.forNumber(datarate_);
+      return result == null ? data_rate.UNRECOGNIZED : result;
     }
     /**
      * <code>.helium.data_rate datarate = 8;</code>
      * @param value The datarate to set.
      * @return This builder for chaining.
      */
-    public Builder setDatarate(com.helium.grpc.data_rate value) {
+    public Builder setDatarate(data_rate value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -982,7 +982,7 @@ private static final long serialVersionUID = 0L;
      * <code>int32 tx_power = 9;</code>
      * @return The txPower.
      */
-    @java.lang.Override
+    @Override
     public int getTxPower() {
       return txPower_;
     }
@@ -1028,7 +1028,7 @@ private static final long serialVersionUID = 0L;
      * <code>uint64 timestamp = 10;</code>
      * @return The timestamp.
      */
-    @java.lang.Override
+    @Override
     public long getTimestamp() {
       return timestamp_;
     }
@@ -1068,7 +1068,7 @@ private static final long serialVersionUID = 0L;
      * <code>bytes signature = 11;</code>
      * @return The signature.
      */
-    @java.lang.Override
+    @Override
     public com.google.protobuf.ByteString getSignature() {
       return signature_;
     }
@@ -1100,7 +1100,7 @@ private static final long serialVersionUID = 0L;
      * <code>uint32 tmst = 12;</code>
      * @return The tmst.
      */
-    @java.lang.Override
+    @Override
     public int getTmst() {
       return tmst_;
     }
@@ -1126,13 +1126,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
-    @java.lang.Override
+    @Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
-    @java.lang.Override
+    @Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1143,18 +1143,18 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:helium.poc_lora.lora_beacon_report_req_v1)
-  private static final com.helium.grpc.lora_beacon_report_req_v1 DEFAULT_INSTANCE;
+  private static final lora_beacon_report_req_v1 DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.helium.grpc.lora_beacon_report_req_v1();
+    DEFAULT_INSTANCE = new lora_beacon_report_req_v1();
   }
 
-  public static com.helium.grpc.lora_beacon_report_req_v1 getDefaultInstance() {
+  public static lora_beacon_report_req_v1 getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
   private static final com.google.protobuf.Parser<lora_beacon_report_req_v1>
       PARSER = new com.google.protobuf.AbstractParser<lora_beacon_report_req_v1>() {
-    @java.lang.Override
+    @Override
     public lora_beacon_report_req_v1 parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1178,13 +1178,13 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
-  @java.lang.Override
+  @Override
   public com.google.protobuf.Parser<lora_beacon_report_req_v1> getParserForType() {
     return PARSER;
   }
 
-  @java.lang.Override
-  public com.helium.grpc.lora_beacon_report_req_v1 getDefaultInstanceForType() {
+  @Override
+  public lora_beacon_report_req_v1 getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

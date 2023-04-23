@@ -24,24 +24,24 @@ private static final long serialVersionUID = 0L;
     participantSide_ = 0;
   }
 
-  @java.lang.Override
+  @Override
   @SuppressWarnings({"unused"})
-  protected java.lang.Object newInstance(
+  protected Object newInstance(
       UnusedPrivateParameter unused) {
     return new lora_invalid_witness_report_v1();
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_invalid_witness_report_v1_descriptor;
+    return PocLoRa.internal_static_helium_poc_lora_lora_invalid_witness_report_v1_descriptor;
   }
 
-  @java.lang.Override
-  protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+  @Override
+  protected FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_invalid_witness_report_v1_fieldAccessorTable
+    return PocLoRa.internal_static_helium_poc_lora_lora_invalid_witness_report_v1_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.helium.grpc.lora_invalid_witness_report_v1.class, com.helium.grpc.lora_invalid_witness_report_v1.Builder.class);
+            lora_invalid_witness_report_v1.class, Builder.class);
   }
 
   public static final int RECEIVED_TIMESTAMP_FIELD_NUMBER = 1;
@@ -54,7 +54,7 @@ private static final long serialVersionUID = 0L;
    * <code>uint64 received_timestamp = 1;</code>
    * @return The receivedTimestamp.
    */
-  @java.lang.Override
+  @Override
   public long getReceivedTimestamp() {
     return receivedTimestamp_;
   }
@@ -65,25 +65,25 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.poc_lora.invalid_reason reason = 2;</code>
    * @return The enum numeric value on the wire for reason.
    */
-  @java.lang.Override public int getReasonValue() {
+  @Override public int getReasonValue() {
     return reason_;
   }
   /**
    * <code>.helium.poc_lora.invalid_reason reason = 2;</code>
    * @return The reason.
    */
-  @java.lang.Override public com.helium.grpc.invalid_reason getReason() {
-    com.helium.grpc.invalid_reason result = com.helium.grpc.invalid_reason.forNumber(reason_);
-    return result == null ? com.helium.grpc.invalid_reason.UNRECOGNIZED : result;
+  @Override public invalid_reason getReason() {
+    invalid_reason result = invalid_reason.forNumber(reason_);
+    return result == null ? invalid_reason.UNRECOGNIZED : result;
   }
 
   public static final int REPORT_FIELD_NUMBER = 3;
-  private com.helium.grpc.lora_witness_report_req_v1 report_;
+  private lora_witness_report_req_v1 report_;
   /**
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
    * @return Whether the report field is set.
    */
-  @java.lang.Override
+  @Override
   public boolean hasReport() {
     return report_ != null;
   }
@@ -91,16 +91,16 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
    * @return The report.
    */
-  @java.lang.Override
-  public com.helium.grpc.lora_witness_report_req_v1 getReport() {
-    return report_ == null ? com.helium.grpc.lora_witness_report_req_v1.getDefaultInstance() : report_;
+  @Override
+  public lora_witness_report_req_v1 getReport() {
+    return report_ == null ? lora_witness_report_req_v1.getDefaultInstance() : report_;
   }
   /**
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
    */
-  @java.lang.Override
-  public com.helium.grpc.lora_witness_report_req_v1OrBuilder getReportOrBuilder() {
-    return report_ == null ? com.helium.grpc.lora_witness_report_req_v1.getDefaultInstance() : report_;
+  @Override
+  public lora_witness_report_req_v1OrBuilder getReportOrBuilder() {
+    return report_ == null ? lora_witness_report_req_v1.getDefaultInstance() : report_;
   }
 
   public static final int PARTICIPANT_SIDE_FIELD_NUMBER = 4;
@@ -114,7 +114,7 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.poc_lora.invalid_participant_side participant_side = 4;</code>
    * @return The enum numeric value on the wire for participantSide.
    */
-  @java.lang.Override public int getParticipantSideValue() {
+  @Override public int getParticipantSideValue() {
     return participantSide_;
   }
   /**
@@ -126,13 +126,13 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.poc_lora.invalid_participant_side participant_side = 4;</code>
    * @return The participantSide.
    */
-  @java.lang.Override public com.helium.grpc.invalid_participant_side getParticipantSide() {
-    com.helium.grpc.invalid_participant_side result = com.helium.grpc.invalid_participant_side.forNumber(participantSide_);
-    return result == null ? com.helium.grpc.invalid_participant_side.UNRECOGNIZED : result;
+  @Override public invalid_participant_side getParticipantSide() {
+    invalid_participant_side result = invalid_participant_side.forNumber(participantSide_);
+    return result == null ? invalid_participant_side.UNRECOGNIZED : result;
   }
 
   private byte memoizedIsInitialized = -1;
-  @java.lang.Override
+  @Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -142,25 +142,25 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (receivedTimestamp_ != 0L) {
       output.writeUInt64(1, receivedTimestamp_);
     }
-    if (reason_ != com.helium.grpc.invalid_reason.reason_none.getNumber()) {
+    if (reason_ != invalid_reason.reason_none.getNumber()) {
       output.writeEnum(2, reason_);
     }
     if (report_ != null) {
       output.writeMessage(3, getReport());
     }
-    if (participantSide_ != com.helium.grpc.invalid_participant_side.side_none.getNumber()) {
+    if (participantSide_ != invalid_participant_side.side_none.getNumber()) {
       output.writeEnum(4, participantSide_);
     }
     getUnknownFields().writeTo(output);
   }
 
-  @java.lang.Override
+  @Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -170,7 +170,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeUInt64Size(1, receivedTimestamp_);
     }
-    if (reason_ != com.helium.grpc.invalid_reason.reason_none.getNumber()) {
+    if (reason_ != invalid_reason.reason_none.getNumber()) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(2, reason_);
     }
@@ -178,7 +178,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getReport());
     }
-    if (participantSide_ != com.helium.grpc.invalid_participant_side.side_none.getNumber()) {
+    if (participantSide_ != invalid_participant_side.side_none.getNumber()) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(4, participantSide_);
     }
@@ -187,15 +187,15 @@ private static final long serialVersionUID = 0L;
     return size;
   }
 
-  @java.lang.Override
-  public boolean equals(final java.lang.Object obj) {
+  @Override
+  public boolean equals(final Object obj) {
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.helium.grpc.lora_invalid_witness_report_v1)) {
+    if (!(obj instanceof lora_invalid_witness_report_v1)) {
       return super.equals(obj);
     }
-    com.helium.grpc.lora_invalid_witness_report_v1 other = (com.helium.grpc.lora_invalid_witness_report_v1) obj;
+    lora_invalid_witness_report_v1 other = (lora_invalid_witness_report_v1) obj;
 
     if (getReceivedTimestamp()
         != other.getReceivedTimestamp()) return false;
@@ -210,7 +210,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public int hashCode() {
     if (memoizedHashCode != 0) {
       return memoizedHashCode;
@@ -233,69 +233,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseFrom(
+  public static lora_invalid_witness_report_v1 parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseFrom(
+  public static lora_invalid_witness_report_v1 parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseFrom(
+  public static lora_invalid_witness_report_v1 parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseFrom(
+  public static lora_invalid_witness_report_v1 parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseFrom(byte[] data)
+  public static lora_invalid_witness_report_v1 parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseFrom(
+  public static lora_invalid_witness_report_v1 parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseFrom(java.io.InputStream input)
+  public static lora_invalid_witness_report_v1 parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseFrom(
+  public static lora_invalid_witness_report_v1 parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseDelimitedFrom(java.io.InputStream input)
+  public static lora_invalid_witness_report_v1 parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseDelimitedFrom(
+  public static lora_invalid_witness_report_v1 parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseFrom(
+  public static lora_invalid_witness_report_v1 parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.lora_invalid_witness_report_v1 parseFrom(
+  public static lora_invalid_witness_report_v1 parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -303,23 +303,23 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  @java.lang.Override
+  @Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.helium.grpc.lora_invalid_witness_report_v1 prototype) {
+  public static Builder newBuilder(lora_invalid_witness_report_v1 prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
-  @java.lang.Override
+  @Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
   }
 
-  @java.lang.Override
+  @Override
   protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
@@ -333,18 +333,18 @@ private static final long serialVersionUID = 0L;
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:helium.poc_lora.lora_invalid_witness_report_v1)
-      com.helium.grpc.lora_invalid_witness_report_v1OrBuilder {
+      lora_invalid_witness_report_v1OrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_invalid_witness_report_v1_descriptor;
+      return PocLoRa.internal_static_helium_poc_lora_lora_invalid_witness_report_v1_descriptor;
     }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+    @Override
+    protected FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_invalid_witness_report_v1_fieldAccessorTable
+      return PocLoRa.internal_static_helium_poc_lora_lora_invalid_witness_report_v1_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.helium.grpc.lora_invalid_witness_report_v1.class, com.helium.grpc.lora_invalid_witness_report_v1.Builder.class);
+              lora_invalid_witness_report_v1.class, Builder.class);
     }
 
     // Construct using com.helium.grpc.lora_invalid_witness_report_v1.newBuilder()
@@ -353,11 +353,11 @@ private static final long serialVersionUID = 0L;
     }
 
     private Builder(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        BuilderParent parent) {
       super(parent);
 
     }
-    @java.lang.Override
+    @Override
     public Builder clear() {
       super.clear();
       bitField0_ = 0;
@@ -372,35 +372,35 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_invalid_witness_report_v1_descriptor;
+      return PocLoRa.internal_static_helium_poc_lora_lora_invalid_witness_report_v1_descriptor;
     }
 
-    @java.lang.Override
-    public com.helium.grpc.lora_invalid_witness_report_v1 getDefaultInstanceForType() {
-      return com.helium.grpc.lora_invalid_witness_report_v1.getDefaultInstance();
+    @Override
+    public lora_invalid_witness_report_v1 getDefaultInstanceForType() {
+      return lora_invalid_witness_report_v1.getDefaultInstance();
     }
 
-    @java.lang.Override
-    public com.helium.grpc.lora_invalid_witness_report_v1 build() {
-      com.helium.grpc.lora_invalid_witness_report_v1 result = buildPartial();
+    @Override
+    public lora_invalid_witness_report_v1 build() {
+      lora_invalid_witness_report_v1 result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    @java.lang.Override
-    public com.helium.grpc.lora_invalid_witness_report_v1 buildPartial() {
-      com.helium.grpc.lora_invalid_witness_report_v1 result = new com.helium.grpc.lora_invalid_witness_report_v1(this);
+    @Override
+    public lora_invalid_witness_report_v1 buildPartial() {
+      lora_invalid_witness_report_v1 result = new lora_invalid_witness_report_v1(this);
       if (bitField0_ != 0) { buildPartial0(result); }
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(com.helium.grpc.lora_invalid_witness_report_v1 result) {
+    private void buildPartial0(lora_invalid_witness_report_v1 result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.receivedTimestamp_ = receivedTimestamp_;
@@ -418,18 +418,18 @@ private static final long serialVersionUID = 0L;
       }
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.helium.grpc.lora_invalid_witness_report_v1) {
-        return mergeFrom((com.helium.grpc.lora_invalid_witness_report_v1)other);
+      if (other instanceof lora_invalid_witness_report_v1) {
+        return mergeFrom((lora_invalid_witness_report_v1)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.helium.grpc.lora_invalid_witness_report_v1 other) {
-      if (other == com.helium.grpc.lora_invalid_witness_report_v1.getDefaultInstance()) return this;
+    public Builder mergeFrom(lora_invalid_witness_report_v1 other) {
+      if (other == lora_invalid_witness_report_v1.getDefaultInstance()) return this;
       if (other.getReceivedTimestamp() != 0L) {
         setReceivedTimestamp(other.getReceivedTimestamp());
       }
@@ -447,18 +447,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public final boolean isInitialized() {
       return true;
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
+        throw new NullPointerException();
       }
       try {
         boolean done = false;
@@ -516,7 +516,7 @@ private static final long serialVersionUID = 0L;
      * <code>uint64 received_timestamp = 1;</code>
      * @return The receivedTimestamp.
      */
-    @java.lang.Override
+    @Override
     public long getReceivedTimestamp() {
       return receivedTimestamp_;
     }
@@ -556,7 +556,7 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.invalid_reason reason = 2;</code>
      * @return The enum numeric value on the wire for reason.
      */
-    @java.lang.Override public int getReasonValue() {
+    @Override public int getReasonValue() {
       return reason_;
     }
     /**
@@ -574,17 +574,17 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.invalid_reason reason = 2;</code>
      * @return The reason.
      */
-    @java.lang.Override
-    public com.helium.grpc.invalid_reason getReason() {
-      com.helium.grpc.invalid_reason result = com.helium.grpc.invalid_reason.forNumber(reason_);
-      return result == null ? com.helium.grpc.invalid_reason.UNRECOGNIZED : result;
+    @Override
+    public invalid_reason getReason() {
+      invalid_reason result = invalid_reason.forNumber(reason_);
+      return result == null ? invalid_reason.UNRECOGNIZED : result;
     }
     /**
      * <code>.helium.poc_lora.invalid_reason reason = 2;</code>
      * @param value The reason to set.
      * @return This builder for chaining.
      */
-    public Builder setReason(com.helium.grpc.invalid_reason value) {
+    public Builder setReason(invalid_reason value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -604,9 +604,9 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private com.helium.grpc.lora_witness_report_req_v1 report_;
+    private lora_witness_report_req_v1 report_;
     private com.google.protobuf.SingleFieldBuilderV3<
-        com.helium.grpc.lora_witness_report_req_v1, com.helium.grpc.lora_witness_report_req_v1.Builder, com.helium.grpc.lora_witness_report_req_v1OrBuilder> reportBuilder_;
+        lora_witness_report_req_v1, lora_witness_report_req_v1.Builder, lora_witness_report_req_v1OrBuilder> reportBuilder_;
     /**
      * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
      * @return Whether the report field is set.
@@ -618,9 +618,9 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
      * @return The report.
      */
-    public com.helium.grpc.lora_witness_report_req_v1 getReport() {
+    public lora_witness_report_req_v1 getReport() {
       if (reportBuilder_ == null) {
-        return report_ == null ? com.helium.grpc.lora_witness_report_req_v1.getDefaultInstance() : report_;
+        return report_ == null ? lora_witness_report_req_v1.getDefaultInstance() : report_;
       } else {
         return reportBuilder_.getMessage();
       }
@@ -628,7 +628,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
      */
-    public Builder setReport(com.helium.grpc.lora_witness_report_req_v1 value) {
+    public Builder setReport(lora_witness_report_req_v1 value) {
       if (reportBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -645,7 +645,7 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
      */
     public Builder setReport(
-        com.helium.grpc.lora_witness_report_req_v1.Builder builderForValue) {
+        lora_witness_report_req_v1.Builder builderForValue) {
       if (reportBuilder_ == null) {
         report_ = builderForValue.build();
       } else {
@@ -658,11 +658,11 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
      */
-    public Builder mergeReport(com.helium.grpc.lora_witness_report_req_v1 value) {
+    public Builder mergeReport(lora_witness_report_req_v1 value) {
       if (reportBuilder_ == null) {
         if (((bitField0_ & 0x00000004) != 0) &&
           report_ != null &&
-          report_ != com.helium.grpc.lora_witness_report_req_v1.getDefaultInstance()) {
+          report_ != lora_witness_report_req_v1.getDefaultInstance()) {
           getReportBuilder().mergeFrom(value);
         } else {
           report_ = value;
@@ -690,7 +690,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
      */
-    public com.helium.grpc.lora_witness_report_req_v1.Builder getReportBuilder() {
+    public lora_witness_report_req_v1.Builder getReportBuilder() {
       bitField0_ |= 0x00000004;
       onChanged();
       return getReportFieldBuilder().getBuilder();
@@ -698,23 +698,23 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
      */
-    public com.helium.grpc.lora_witness_report_req_v1OrBuilder getReportOrBuilder() {
+    public lora_witness_report_req_v1OrBuilder getReportOrBuilder() {
       if (reportBuilder_ != null) {
         return reportBuilder_.getMessageOrBuilder();
       } else {
         return report_ == null ?
-            com.helium.grpc.lora_witness_report_req_v1.getDefaultInstance() : report_;
+            lora_witness_report_req_v1.getDefaultInstance() : report_;
       }
     }
     /**
      * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        com.helium.grpc.lora_witness_report_req_v1, com.helium.grpc.lora_witness_report_req_v1.Builder, com.helium.grpc.lora_witness_report_req_v1OrBuilder> 
+        lora_witness_report_req_v1, lora_witness_report_req_v1.Builder, lora_witness_report_req_v1OrBuilder>
         getReportFieldBuilder() {
       if (reportBuilder_ == null) {
         reportBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            com.helium.grpc.lora_witness_report_req_v1, com.helium.grpc.lora_witness_report_req_v1.Builder, com.helium.grpc.lora_witness_report_req_v1OrBuilder>(
+            lora_witness_report_req_v1, lora_witness_report_req_v1.Builder, lora_witness_report_req_v1OrBuilder>(
                 getReport(),
                 getParentForChildren(),
                 isClean());
@@ -733,7 +733,7 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.invalid_participant_side participant_side = 4;</code>
      * @return The enum numeric value on the wire for participantSide.
      */
-    @java.lang.Override public int getParticipantSideValue() {
+    @Override public int getParticipantSideValue() {
       return participantSide_;
     }
     /**
@@ -761,10 +761,10 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.invalid_participant_side participant_side = 4;</code>
      * @return The participantSide.
      */
-    @java.lang.Override
-    public com.helium.grpc.invalid_participant_side getParticipantSide() {
-      com.helium.grpc.invalid_participant_side result = com.helium.grpc.invalid_participant_side.forNumber(participantSide_);
-      return result == null ? com.helium.grpc.invalid_participant_side.UNRECOGNIZED : result;
+    @Override
+    public invalid_participant_side getParticipantSide() {
+      invalid_participant_side result = invalid_participant_side.forNumber(participantSide_);
+      return result == null ? invalid_participant_side.UNRECOGNIZED : result;
     }
     /**
      * <pre>
@@ -776,7 +776,7 @@ private static final long serialVersionUID = 0L;
      * @param value The participantSide to set.
      * @return This builder for chaining.
      */
-    public Builder setParticipantSide(com.helium.grpc.invalid_participant_side value) {
+    public Builder setParticipantSide(invalid_participant_side value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -800,13 +800,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
-    @java.lang.Override
+    @Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
-    @java.lang.Override
+    @Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -817,18 +817,18 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:helium.poc_lora.lora_invalid_witness_report_v1)
-  private static final com.helium.grpc.lora_invalid_witness_report_v1 DEFAULT_INSTANCE;
+  private static final lora_invalid_witness_report_v1 DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.helium.grpc.lora_invalid_witness_report_v1();
+    DEFAULT_INSTANCE = new lora_invalid_witness_report_v1();
   }
 
-  public static com.helium.grpc.lora_invalid_witness_report_v1 getDefaultInstance() {
+  public static lora_invalid_witness_report_v1 getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
   private static final com.google.protobuf.Parser<lora_invalid_witness_report_v1>
       PARSER = new com.google.protobuf.AbstractParser<lora_invalid_witness_report_v1>() {
-    @java.lang.Override
+    @Override
     public lora_invalid_witness_report_v1 parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -852,13 +852,13 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
-  @java.lang.Override
+  @Override
   public com.google.protobuf.Parser<lora_invalid_witness_report_v1> getParserForType() {
     return PARSER;
   }
 
-  @java.lang.Override
-  public com.helium.grpc.lora_invalid_witness_report_v1 getDefaultInstanceForType() {
+  @Override
+  public lora_invalid_witness_report_v1 getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

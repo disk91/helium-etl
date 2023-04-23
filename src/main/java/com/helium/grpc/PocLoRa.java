@@ -75,10 +75,20 @@ public final class PocLoRa {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_helium_poc_lora_lora_poc_v1_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_helium_poc_lora_gateway_reward_share_descriptor;
+    internal_static_helium_poc_lora_gateway_reward_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_helium_poc_lora_gateway_reward_share_fieldAccessorTable;
+      internal_static_helium_poc_lora_gateway_reward_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_helium_poc_lora_operational_reward_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_helium_poc_lora_operational_reward_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_helium_poc_lora_iot_reward_share_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_helium_poc_lora_iot_reward_share_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -87,7 +97,7 @@ public final class PocLoRa {
   private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
-    java.lang.String[] descriptorData = {
+    String[] descriptorData = {
       "\n\026service/poc_lora.proto\022\017helium.poc_lor" +
       "a\032\017data_rate.proto\"\370\001\n\031lora_beacon_repor" +
       "t_req_v1\022\017\n\007pub_key\030\002 \001(\014\022\025\n\rlocal_entro" +
@@ -143,116 +153,134 @@ public final class PocLoRa {
       "ed_witnesses\030\003 \003(\01320.helium.poc_lora.lor" +
       "a_verified_witness_report_v1\022N\n\024unselect" +
       "ed_witnesses\030\004 \003(\01320.helium.poc_lora.lor" +
-      "a_verified_witness_report_v1\"\204\001\n\024gateway" +
-      "_reward_share\022\023\n\013hotspot_key\030\001 \001(\014\022\025\n\rbe" +
-      "acon_amount\030\002 \001(\004\022\026\n\016witness_amount\030\003 \001(" +
-      "\004\022\024\n\014start_period\030\004 \001(\004\022\022\n\nend_period\030\005 " +
-      "\001(\004*-\n\023verification_status\022\t\n\005valid\020\000\022\013\n" +
-      "\007invalid\020\001*D\n\030invalid_participant_side\022\r" +
-      "\n\tside_none\020\000\022\014\n\010beaconer\020\002\022\013\n\007witness\020\003" +
-      "*\260\003\n\016invalid_reason\022\017\n\013reason_none\020\000\022\021\n\r" +
-      "bad_signature\020\001\022\020\n\014not_asserted\020\002\022\023\n\017ent" +
-      "ropy_expired\020\003\022\017\n\013bad_entropy\020\004\022\026\n\022inval" +
-      "id_capability\020\005\022\022\n\016invalid_pubkey\020\006\022\026\n\022i" +
-      "rregular_interval\020\007\022\025\n\021gateway_not_found" +
-      "\020\010\022\n\n\006denied\020\t\022\022\n\016invalid_packet\020\n\022\014\n\010ba" +
-      "d_rssi\020\013\022\022\n\016invalid_region\020\014\022\031\n\025max_dist" +
-      "ance_exceeded\020\r\022\025\n\021invalid_frequency\020\016\022\020" +
-      "\n\014self_witness\020\017\022\t\n\005stale\020\020\022\034\n\030scaling_f" +
-      "actor_not_found\020\021\022\021\n\runknown_error\020\022\022\026\n\022" +
-      "below_min_distance\020\023\022\r\n\tduplicate\020\0242\353\001\n\010" +
-      "poc_lora\022m\n\022submit_lora_beacon\022*.helium." +
-      "poc_lora.lora_beacon_report_req_v1\032+.hel" +
-      "ium.poc_lora.lora_beacon_report_resp_v1\022" +
-      "p\n\023submit_lora_witness\022+.helium.poc_lora" +
-      ".lora_witness_report_req_v1\032,.helium.poc" +
-      "_lora.lora_witness_report_resp_v1B\034\n\017com" +
-      ".helium.grpcB\007PocLoRaP\001b\006proto3"
+      "a_verified_witness_report_v1\"p\n\016gateway_" +
+      "reward\022\023\n\013hotspot_key\030\001 \001(\014\022\025\n\rbeacon_am" +
+      "ount\030\002 \001(\004\022\026\n\016witness_amount\030\003 \001(\004\022\032\n\022dc" +
+      "_transfer_amount\030\004 \001(\004\"$\n\022operational_re" +
+      "ward\022\016\n\006amount\030\001 \001(\004\"\304\001\n\020iot_reward_shar" +
+      "e\022\024\n\014start_period\030\001 \001(\004\022\022\n\nend_period\030\002 " +
+      "\001(\004\0229\n\016gateway_reward\030\003 \001(\0132\037.helium.poc" +
+      "_lora.gateway_rewardH\000\022A\n\022operational_re" +
+      "ward\030\004 \001(\0132#.helium.poc_lora.operational" +
+      "_rewardH\000B\010\n\006reward*-\n\023verification_stat" +
+      "us\022\t\n\005valid\020\000\022\013\n\007invalid\020\001*D\n\030invalid_pa" +
+      "rticipant_side\022\r\n\tside_none\020\000\022\014\n\010beacone" +
+      "r\020\002\022\013\n\007witness\020\003*\260\003\n\016invalid_reason\022\017\n\013r" +
+      "eason_none\020\000\022\021\n\rbad_signature\020\001\022\020\n\014not_a" +
+      "sserted\020\002\022\023\n\017entropy_expired\020\003\022\017\n\013bad_en" +
+      "tropy\020\004\022\026\n\022invalid_capability\020\005\022\022\n\016inval" +
+      "id_pubkey\020\006\022\026\n\022irregular_interval\020\007\022\025\n\021g" +
+      "ateway_not_found\020\010\022\n\n\006denied\020\t\022\022\n\016invali" +
+      "d_packet\020\n\022\014\n\010bad_rssi\020\013\022\022\n\016invalid_regi" +
+      "on\020\014\022\031\n\025max_distance_exceeded\020\r\022\025\n\021inval" +
+      "id_frequency\020\016\022\020\n\014self_witness\020\017\022\t\n\005stal" +
+      "e\020\020\022\034\n\030scaling_factor_not_found\020\021\022\021\n\runk" +
+      "nown_error\020\022\022\026\n\022below_min_distance\020\023\022\r\n\t" +
+      "duplicate\020\0242\353\001\n\010poc_lora\022m\n\022submit_lora_" +
+      "beacon\022*.helium.poc_lora.lora_beacon_rep" +
+      "ort_req_v1\032+.helium.poc_lora.lora_beacon" +
+      "_report_resp_v1\022p\n\023submit_lora_witness\022+" +
+      ".helium.poc_lora.lora_witness_report_req" +
+      "_v1\032,.helium.poc_lora.lora_witness_repor" +
+      "t_resp_v1B\034\n\017com.helium.grpcB\007PocLoRaP\001b" +
+      "\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          com.helium.grpc.PocLoRa.getDescriptor(),
+          PocLoRa.getDescriptor(),
         });
     internal_static_helium_poc_lora_lora_beacon_report_req_v1_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_helium_poc_lora_lora_beacon_report_req_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_beacon_report_req_v1_descriptor,
-        new java.lang.String[] { "PubKey", "LocalEntropy", "RemoteEntropy", "Data", "Frequency", "Channel", "Datarate", "TxPower", "Timestamp", "Signature", "Tmst", });
+        new String[] { "PubKey", "LocalEntropy", "RemoteEntropy", "Data", "Frequency", "Channel", "Datarate", "TxPower", "Timestamp", "Signature", "Tmst", });
     internal_static_helium_poc_lora_lora_beacon_report_resp_v1_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_helium_poc_lora_lora_beacon_report_resp_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_beacon_report_resp_v1_descriptor,
-        new java.lang.String[] { "Id", });
+        new String[] { "Id", });
     internal_static_helium_poc_lora_lora_witness_report_req_v1_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_helium_poc_lora_lora_witness_report_req_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_witness_report_req_v1_descriptor,
-        new java.lang.String[] { "PubKey", "Data", "Timestamp", "Tmst", "Signal", "Snr", "Frequency", "Datarate", "Signature", });
+        new String[] { "PubKey", "Data", "Timestamp", "Tmst", "Signal", "Snr", "Frequency", "Datarate", "Signature", });
     internal_static_helium_poc_lora_lora_witness_report_resp_v1_descriptor =
       getDescriptor().getMessageTypes().get(3);
     internal_static_helium_poc_lora_lora_witness_report_resp_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_witness_report_resp_v1_descriptor,
-        new java.lang.String[] { "Id", });
+        new String[] { "Id", });
     internal_static_helium_poc_lora_lora_beacon_ingest_report_v1_descriptor =
       getDescriptor().getMessageTypes().get(4);
     internal_static_helium_poc_lora_lora_beacon_ingest_report_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_beacon_ingest_report_v1_descriptor,
-        new java.lang.String[] { "ReceivedTimestamp", "Report", });
+        new String[] { "ReceivedTimestamp", "Report", });
     internal_static_helium_poc_lora_lora_witness_ingest_report_v1_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_helium_poc_lora_lora_witness_ingest_report_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_witness_ingest_report_v1_descriptor,
-        new java.lang.String[] { "ReceivedTimestamp", "Report", });
+        new String[] { "ReceivedTimestamp", "Report", });
     internal_static_helium_poc_lora_lora_valid_beacon_report_v1_descriptor =
       getDescriptor().getMessageTypes().get(6);
     internal_static_helium_poc_lora_lora_valid_beacon_report_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_valid_beacon_report_v1_descriptor,
-        new java.lang.String[] { "ReceivedTimestamp", "Location", "HexScale", "Report", "RewardUnit", });
+        new String[] { "ReceivedTimestamp", "Location", "HexScale", "Report", "RewardUnit", });
     internal_static_helium_poc_lora_lora_valid_witness_report_v1_descriptor =
       getDescriptor().getMessageTypes().get(7);
     internal_static_helium_poc_lora_lora_valid_witness_report_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_valid_witness_report_v1_descriptor,
-        new java.lang.String[] { "ReceivedTimestamp", "Location", "HexScale", "Report", "RewardUnit", });
+        new String[] { "ReceivedTimestamp", "Location", "HexScale", "Report", "RewardUnit", });
     internal_static_helium_poc_lora_lora_invalid_beacon_report_v1_descriptor =
       getDescriptor().getMessageTypes().get(8);
     internal_static_helium_poc_lora_lora_invalid_beacon_report_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_invalid_beacon_report_v1_descriptor,
-        new java.lang.String[] { "ReceivedTimestamp", "Reason", "Report", });
+        new String[] { "ReceivedTimestamp", "Reason", "Report", });
     internal_static_helium_poc_lora_lora_invalid_witness_report_v1_descriptor =
       getDescriptor().getMessageTypes().get(9);
     internal_static_helium_poc_lora_lora_invalid_witness_report_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_invalid_witness_report_v1_descriptor,
-        new java.lang.String[] { "ReceivedTimestamp", "Reason", "Report", "ParticipantSide", });
+        new String[] { "ReceivedTimestamp", "Reason", "Report", "ParticipantSide", });
     internal_static_helium_poc_lora_lora_verified_witness_report_v1_descriptor =
       getDescriptor().getMessageTypes().get(10);
     internal_static_helium_poc_lora_lora_verified_witness_report_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_verified_witness_report_v1_descriptor,
-        new java.lang.String[] { "ReceivedTimestamp", "Status", "Report", "Location", "HexScale", "RewardUnit", "InvalidReason", "ParticipantSide", });
+        new String[] { "ReceivedTimestamp", "Status", "Report", "Location", "HexScale", "RewardUnit", "InvalidReason", "ParticipantSide", });
     internal_static_helium_poc_lora_lora_poc_v1_descriptor =
       getDescriptor().getMessageTypes().get(11);
     internal_static_helium_poc_lora_lora_poc_v1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_helium_poc_lora_lora_poc_v1_descriptor,
-        new java.lang.String[] { "PocId", "BeaconReport", "SelectedWitnesses", "UnselectedWitnesses", });
-    internal_static_helium_poc_lora_gateway_reward_share_descriptor =
+        new String[] { "PocId", "BeaconReport", "SelectedWitnesses", "UnselectedWitnesses", });
+    internal_static_helium_poc_lora_gateway_reward_descriptor =
       getDescriptor().getMessageTypes().get(12);
-    internal_static_helium_poc_lora_gateway_reward_share_fieldAccessorTable = new
+    internal_static_helium_poc_lora_gateway_reward_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_helium_poc_lora_gateway_reward_share_descriptor,
-        new java.lang.String[] { "HotspotKey", "BeaconAmount", "WitnessAmount", "StartPeriod", "EndPeriod", });
-    com.helium.grpc.PocLoRa.getDescriptor();
+        internal_static_helium_poc_lora_gateway_reward_descriptor,
+        new String[] { "HotspotKey", "BeaconAmount", "WitnessAmount", "DcTransferAmount", });
+    internal_static_helium_poc_lora_operational_reward_descriptor =
+      getDescriptor().getMessageTypes().get(13);
+    internal_static_helium_poc_lora_operational_reward_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_helium_poc_lora_operational_reward_descriptor,
+        new String[] { "Amount", });
+    internal_static_helium_poc_lora_iot_reward_share_descriptor =
+      getDescriptor().getMessageTypes().get(14);
+    internal_static_helium_poc_lora_iot_reward_share_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_helium_poc_lora_iot_reward_share_descriptor,
+        new String[] { "StartPeriod", "EndPeriod", "GatewayReward", "OperationalReward", "Reward", });
+    PocLoRa.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

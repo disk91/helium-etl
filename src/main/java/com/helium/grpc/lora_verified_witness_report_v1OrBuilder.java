@@ -26,7 +26,7 @@ public interface lora_verified_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.verification_status status = 2;</code>
    * @return The status.
    */
-  com.helium.grpc.verification_status getStatus();
+  verification_status getStatus();
 
   /**
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
@@ -37,17 +37,17 @@ public interface lora_verified_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
    * @return The report.
    */
-  com.helium.grpc.lora_witness_report_req_v1 getReport();
+  lora_witness_report_req_v1 getReport();
   /**
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
    */
-  com.helium.grpc.lora_witness_report_req_v1OrBuilder getReportOrBuilder();
+  lora_witness_report_req_v1OrBuilder getReportOrBuilder();
 
   /**
    * <code>string location = 4;</code>
    * @return The location.
    */
-  java.lang.String getLocation();
+  String getLocation();
   /**
    * <code>string location = 4;</code>
    * @return The bytes for location.
@@ -81,7 +81,7 @@ public interface lora_verified_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_reason invalid_reason = 7;</code>
    * @return The invalidReason.
    */
-  com.helium.grpc.invalid_reason getInvalidReason();
+  invalid_reason getInvalidReason();
 
   /**
    * <pre>
@@ -102,5 +102,5 @@ public interface lora_verified_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_participant_side participant_side = 8;</code>
    * @return The participantSide.
    */
-  com.helium.grpc.invalid_participant_side getParticipantSide();
+  invalid_participant_side getParticipantSide();
 }

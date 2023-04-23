@@ -13,7 +13,7 @@ import com.disk91.etl.EtlApplication;
 import com.disk91.etl.EtlConfig;
 import com.disk91.etl.data.object.Param;
 import com.disk91.etl.data.repository.ParamRepository;
-import com.helium.grpc.gateway_reward_share;
+import com.helium.grpc.iot_reward_share;
 import com.helium.grpc.lora_poc_v1;
 import fr.ingeniousthings.tools.*;
 import org.slf4j.Logger;
@@ -40,8 +40,8 @@ public class AwsService {
 
     static final String IOTPOC_FIRST_OBJECT = "foundation-iot-verified-rewards/iot_poc.1674766530034.gz";
 
-    static final String REWARD_FIRST_OBJECT = "foundation-iot-verified-rewards/gateway_reward_share.1674766530034.gz";
-
+    // static final String REWARD_FIRST_OBJECT = "foundation-iot-verified-rewards/gateway_reward_share.1674766530034.gz";
+    static final String REWARD_FIRST_OBJECT = "foundation-iot-verified-rewards/iot_reward_share.1674766530034.gz";
 
     @Autowired
     protected EtlConfig etlConfig;
@@ -97,6 +97,9 @@ public class AwsService {
         if ( rewardPocFile == null ) {
             rewardPocFile = new Param();
             rewardPocFile.setParamName("aws_last_reward_sync");
+            rewardPocFile.setStringValue(REWARD_FIRST_OBJECT);
+        } else if ( rewardPocFile.getStringValue().contains("gateway_reward_share") ) {
+            // update with the new name after file format changed
             rewardPocFile.setStringValue(REWARD_FIRST_OBJECT);
         }
 
@@ -155,8 +158,10 @@ public class AwsService {
             return 2;
         } else if ( fileName.startsWith("iot_poc") ) {
             return 3;
-        } else if ( fileName.startsWith("gateway_reward") ) {
+        } else if ( fileName.startsWith("iot_reward") ) {
             return 4;
+        } else if ( fileName.startsWith("gateway_reward") ) {
+            log.info("Found gateway_reward file "+fileName);
         } else {
             log.warn("Unknown type of file discovered "+fileName);
         }
@@ -836,11 +841,11 @@ public class AwsService {
 
     public class ProcessRewards implements Runnable {
 
-        ConcurrentLinkedQueue<gateway_reward_share> queue;
+        ConcurrentLinkedQueue<iot_reward_share> queue;
         Boolean status;
         int id;
 
-        public ProcessRewards(int _id, ConcurrentLinkedQueue<gateway_reward_share> _queue, Boolean _status) {
+        public ProcessRewards(int _id, ConcurrentLinkedQueue<iot_reward_share> _queue, Boolean _status) {
             id = _id;
             queue = _queue;
             status = _status;
@@ -848,7 +853,7 @@ public class AwsService {
         public void run() {
             this.status = true;
             log.info("Starting Reward process thread "+id);
-            gateway_reward_share w;
+            iot_reward_share w;
             while ( (w = queue.poll()) != null || rewardThreadEnable ) {
                 if ( w != null) {
                     if (!hotspotCache.addReward(w)) {
@@ -881,11 +886,11 @@ public class AwsService {
 
         // Create queues for parallelism
         @SuppressWarnings({"unchecked", "rawtypes"})
-        ConcurrentLinkedQueue<gateway_reward_share> queues[] =  new ConcurrentLinkedQueue[etlConfig.getRewardLoadParallelWorkers()];
+        ConcurrentLinkedQueue<iot_reward_share> queues[] =  new ConcurrentLinkedQueue[etlConfig.getRewardLoadParallelWorkers()];
         Boolean threadRunning[] = new Boolean[etlConfig.getRewardLoadParallelWorkers()];
         Thread threads[] = new Thread[etlConfig.getRewardLoadParallelWorkers()];
         for ( int q = 0 ; q < etlConfig.getRewardLoadParallelWorkers() ; q++) {
-            queues[q] = new ConcurrentLinkedQueue<gateway_reward_share>();
+            queues[q] = new ConcurrentLinkedQueue<iot_reward_share>();
             threadRunning[q] = Boolean.FALSE;
             Runnable r = new ProcessRewards(q,queues[q],threadRunning[q]);
             threads[q] = new Thread(r);
@@ -948,11 +953,11 @@ public class AwsService {
                                     totalWitness++;
 
 
-                                    gateway_reward_share w = gateway_reward_share.parseFrom(r);
+                                    iot_reward_share w = iot_reward_share.parseFrom(r);
                                     // Add in queues - find it with a random element in the pub key
                                     // to make sure a single hotspot goes to the same queues to not
                                     // have collisions
-                                    int q = w.getHotspotKey().byteAt(4);
+                                    int q = w.getGatewayReward().getHotspotKey().byteAt(4);
                                     q &= (etlConfig.getRewardLoadParallelWorkers()-1);
                                     try {
                                         // when a queue is full just wait, it should be balanced
