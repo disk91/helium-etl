@@ -803,6 +803,7 @@ public class AwsService {
         } catch (Exception x) {
             prometeusService.addAwsFailure();
             log.error("IoTPoc Batch Failure "+x.getMessage());
+            x.printStackTrace();
         } finally {
             // wait the parallel Thread to stop max 5 minutes
             this.pocThreadEnable = false;
