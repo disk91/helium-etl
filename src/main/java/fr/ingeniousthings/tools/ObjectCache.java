@@ -171,7 +171,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
      * @param obj
      * @param key
      */
-    public abstract void onCacheRemoval(K key,T obj);
+    public abstract void onCacheRemoval(K key,T obj, boolean batch, boolean last);
 
     // bulk update on a list of updated objects
     // call by commit with bulk option
@@ -310,7 +310,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         CachedObject<K,T> c = this.cache.get(key);
         if  ( c != null ) {
             if ( c.isUpdated() && callAction ) {
-                this.onCacheRemoval(key,c.getObj());
+                this.onCacheRemoval(key,c.getObj(),false,true);
             }
             this.cache.remove(key);
             this.cacheSize--;
@@ -365,8 +365,9 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         // Update action on object before removal
         for ( K key : keysToBeUpdated ) {
             CachedObject<K,T> o = this.cache.get(key);
-            if ( o != null ) onCacheRemoval(key,o.getObj());
+            if ( o != null ) onCacheRemoval(key,o.getObj(),true,false);
         }
+        onCacheRemoval(null,null,true,true);
 
         // clear entries
         for ( K key : keysToBeRemoved ) {
@@ -403,7 +404,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
             progress++;
             boolean expired = (c.expirationTime >  0 && c.expirationTime < Now.NowUtcMs() );
             if ( c.isUpdated() || expired ) {
-                onCacheRemoval(c.getKey(),c.getObj());
+                onCacheRemoval(c.getKey(),c.getObj(),true,false);
                 c.setUpdated(false);
             }
             if ( expired ) toRemove.add(c.getKey());
@@ -414,6 +415,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
             }
 
         }
+        onCacheRemoval(null,null,true,true);
         for ( K key : toRemove ) {
             this.cache.remove(key);
             this.cacheSize--;
@@ -423,9 +425,10 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     public void deleteCache() {
         for (CachedObject<K,T> c : this.cache.values() ) {
             if ( c.isUpdated() ) {
-                onCacheRemoval(c.getKey(),c.getObj());
+                onCacheRemoval(c.getKey(),c.getObj(),true,false);
             }
         }
+        onCacheRemoval(null,null,true,true);
         this.cache.clear();
     }
 
@@ -473,7 +476,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
                 progress++;
                 if (c.isUpdated()) {
                     toUpdate++;
-                    onCacheRemoval(c.getKey(), c.getObj());
+                    onCacheRemoval(c.getKey(), c.getObj(),true,false);
                     c.setUpdated(false);
                     if ((Now.NowUtcMs() - lastLog) > 10_000) {
                         lastLog = Now.NowUtcMs();
@@ -481,6 +484,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
                     }
                 }
             }
+            onCacheRemoval(null,null,true,true);
         }
         return toUpdate;
     }

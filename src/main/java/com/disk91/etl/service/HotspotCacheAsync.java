@@ -86,7 +86,7 @@ public class HotspotCacheAsync {
         }
         if ( _hotspotDelayedInsert.size() > 0 ) {
             mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Beacon.class);
+            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Hotspot.class);
             for ( Hotspot _h : _hotspotDelayedInsert ) {
                 bulkInsert.insert(_h);
             }

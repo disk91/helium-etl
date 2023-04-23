@@ -67,9 +67,24 @@ public class HotspotCache {
                 etlConfig.getCacheHotspotSize(),
                 24*Now.ONE_HOUR
         ) {
+
+            private ArrayList<Hotspot> _toSave = new ArrayList<>();
             @Override
-            public void onCacheRemoval(String key, Hotspot obj) {
-                hotspotsRepository.save(obj);
+            public void onCacheRemoval(String key, Hotspot obj, boolean batch, boolean last) {
+                if ( batch ) {
+                    _toSave.add(obj);
+                    if ( _toSave.size() > 1000 || last ) {
+                        mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+                        BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Hotspot.class);
+                        for ( Hotspot _h : _toSave ) {
+                            bulkInsert.insert(_h);
+                        }
+                        BulkWriteResult bulkWriteResult = bulkInsert.execute();
+                        _toSave.clear();
+                    }
+                } else {
+                    hotspotsRepository.save(obj);
+                }
             }
 
             @Override

@@ -50,7 +50,7 @@ public class BeaconROCache {
                 Now.ONE_HOUR
         ) {
             @Override
-            public void onCacheRemoval(String key, Beacon obj) {}
+            public void onCacheRemoval(String key, Beacon obj, boolean batch, boolean last) {}
             @Override
             public void bulkCacheUpdate(List<Beacon> objects) {}
 
