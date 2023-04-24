@@ -795,7 +795,7 @@ public class AwsService {
                             }
                             // print process state on exit request
                             if (serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
-                                log.info("IoTPoc - exit in progress - " + (Math.floor((100 * rSize) / cSize)) + "%");
+                                log.info("IoTPoc - exit in progress - " + (Math.floor((100 * current) / toProcess.size())) + "%");
                                 lastLog = Now.NowUtcMs();
                             }
                             current++;
@@ -1059,7 +1059,7 @@ public class AwsService {
                             }
                             // print process state on exit request
                             if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
-                                log.info("Rewards - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
+                                log.info("Rewards - exit in progress - "+(Math.floor((100*current)/toProcess.size()))+"%" );
                                 lastLog = Now.NowUtcMs();
                             }
                             current++;
