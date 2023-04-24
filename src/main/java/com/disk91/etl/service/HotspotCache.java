@@ -72,14 +72,9 @@ public class HotspotCache {
             @Override
             public void onCacheRemoval(String key, Hotspot obj, boolean batch, boolean last) {
                 if ( batch ) {
-                    _toSave.add(obj);
+                    if ( obj != null ) _toSave.add(obj);
                     if ( _toSave.size() > 1000 || last ) {
-                        mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-                        BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Hotspot.class);
-                        for ( Hotspot _h : _toSave ) {
-                            bulkInsert.insert(_h);
-                        }
-                        BulkWriteResult bulkWriteResult = bulkInsert.execute();
+                        hotspotsRepository.saveAll(_toSave);
                         _toSave.clear();
                     }
                 } else {
@@ -252,7 +247,7 @@ public class HotspotCache {
             long updated = heliumHotspotCache.commit(true,etlConfig.getCacheHotspotCommit()); // async commit to quit immediately
             // avoid to have a parallel request to start as the async process can take a few mx to start and another pending updateHotspot takes
             // the opportunity to run a concurrent request and consume memory we need
-            long s = Now.NowUtcMs() ; while ( !hotspotCacheAsync.isRunning() && ((Now.NowUtcMs()-s) < 5_000) );
+            long s = Now.NowUtcMs() ; while ( !hotspotCacheAsync.isRunning() && ((Now.NowUtcMs()-s) < 10_000) );
 
             if ( updated < etlConfig.getCacheHotspotCommit() ) {
                 // basically means that this update takes all the pending updates

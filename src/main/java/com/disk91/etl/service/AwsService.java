@@ -162,6 +162,10 @@ public class AwsService {
             return 4;
         } else if ( fileName.startsWith("gateway_reward") ) {
             log.info("Found gateway_reward file "+fileName);
+        } else if ( fileName.startsWith("solana-migration-bad-data") ) {
+            log.info("Found solana_migration bad data file "+fileName);
+        } else if ( fileName.startsWith("reward_manifest") ) {
+            log.info("Found reward manifest file "+fileName);
         } else {
             log.warn("Unknown type of file discovered "+fileName);
         }
@@ -271,7 +275,7 @@ public class AwsService {
                                 if ( serviceEnable == false ) return;
                                 else break;
                             } catch ( Exception x ) {
-                                log.error(x.getMessage());
+                                log.error("AwsBeaconSync - "+x.getMessage());
                                 if ( serviceEnable == false ) return;
                                 x.printStackTrace();
                             }
@@ -503,7 +507,7 @@ public class AwsService {
                                 if ( serviceEnable == false ) return;
                                 else break;
                             } catch ( Exception x ) {
-                                log.error(x.getMessage());
+                                log.error("AwsWitnessSync - "+x.getMessage());
                                 if ( serviceEnable == false ) return;
                                 x.printStackTrace();
                             }
@@ -756,7 +760,7 @@ public class AwsService {
                                 if ( serviceEnable == false ) return;
                                 else break;
                             } catch ( Exception x ) {
-                                log.error(x.getMessage());
+                                log.error("AwsIoTPocSync - "+x.getMessage());
                                 if ( serviceEnable == false ) return;
                                 x.printStackTrace();
                             }
@@ -782,10 +786,9 @@ public class AwsService {
                         log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
                     }
 
-                    if ( fileType == 3 ) {
-                        iotPocFile.setStringValue(object.getKey());
-                        paramRepository.save(iotPocFile);
-                    }
+                    iotPocFile.setStringValue(object.getKey());
+                    paramRepository.save(iotPocFile);
+
                     hotspotCache.flushTopLines();
                     if ( serviceEnable == false ) {
                         // we had a request to quit and at this point we can make it
@@ -799,11 +802,11 @@ public class AwsService {
             } while (list.isTruncated());
         } catch (AmazonServiceException x) {
             prometeusService.addAwsFailure();
-            log.error(x.getMessage());
+            log.error("AwsIoTPocSync - "+x.getMessage());
             x.printStackTrace();
         } catch (AmazonClientException x) {
             prometeusService.addAwsFailure();
-            log.error(x.getMessage());
+            log.error("AwsIoTPocSync - "+x.getMessage());
             x.printStackTrace();
         } catch (Exception x) {
             prometeusService.addAwsFailure();
@@ -931,7 +934,7 @@ public class AwsService {
                         continue;
                     }
 
-                    log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - Long.parseLong(object.getKey().split("\\.")[1]) )/(Now.ONE_FULL_DAY)+") days");
+                    log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - fileDate )/(Now.ONE_FULL_DAY)+") days");
 
                     final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
                     or.setRequesterPays(true);
@@ -957,8 +960,15 @@ public class AwsService {
                                     // Add in queues - find it with a random element in the pub key
                                     // to make sure a single hotspot goes to the same queues to not
                                     // have collisions
-                                    int q = w.getGatewayReward().getHotspotKey().byteAt(4);
-                                    q &= (etlConfig.getRewardLoadParallelWorkers()-1);
+                                    int q = 0;
+                                    if ( w.getGatewayReward().getHotspotKey().size() > 4 ) {
+                                        q = w.getGatewayReward().getHotspotKey().byteAt(4);
+                                        q &= (etlConfig.getRewardLoadParallelWorkers() - 1);
+                                    } else {
+                                        // sounds like operational reward, skip that one
+                                        log.warn("Potential operational reward sz("+r.length+")");
+                                        continue;
+                                    }
                                     try {
                                         // when a queue is full just wait, it should be balanced
                                         while (queues[q].size() >= etlConfig.getRewardLoadParallelWorkers()) Thread.sleep(2);
@@ -971,8 +981,7 @@ public class AwsService {
 
                                 // print progress log on regular basis
                                 if ((Now.NowUtcMs() - lastLog) > 30_000) {
-                                    String distance_s = object.getKey().split("\\.")[1];
-                                    long distance = Now.NowUtcMs() - Long.parseLong(distance_s);
+                                    long distance = Now.NowUtcMs() - fileDate;
                                     log.info("Rewards Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tReward: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
                                     lastLog = Now.NowUtcMs();
                                 }
@@ -989,7 +998,7 @@ public class AwsService {
                                 if ( serviceEnable == false ) return;
                                 else break;
                             } catch ( Exception x ) {
-                                log.error(x.getMessage());
+                                log.error("AwsRewardSync - "+x.getMessage());
                                 if ( serviceEnable == false ) return;
                                 x.printStackTrace();
                             }
@@ -1016,10 +1025,8 @@ public class AwsService {
                         log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
                     }
 
-                    if ( fileType == 3 ) {
-                        rewardPocFile.setStringValue(object.getKey());
-                        paramRepository.save(rewardPocFile);
-                    }
+                    rewardPocFile.setStringValue(object.getKey());
+                    paramRepository.save(rewardPocFile);
                     if ( serviceEnable == false ) {
                         // we had a request to quit and at this point we can make it
                         // clean
@@ -1032,11 +1039,11 @@ public class AwsService {
             } while (list.isTruncated());
         } catch (AmazonServiceException x) {
             prometeusService.addAwsFailure();
-            log.error(x.getMessage());
+            log.error("AwsRewardSync - "+x.getMessage());
             x.printStackTrace();
         } catch (AmazonClientException x) {
             prometeusService.addAwsFailure();
-            log.error(x.getMessage());
+            log.error("AwsRewardSync - "+x.getMessage());
             x.printStackTrace();
         } catch (Exception x) {
             prometeusService.addAwsFailure();

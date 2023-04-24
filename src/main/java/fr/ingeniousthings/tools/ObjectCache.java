@@ -437,7 +437,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     // we clone element and it a lot of memory (use -1 for infinite)
     // return number of element to be updated (can be > max)
     // We take as a priority the old hotspot
-    public long commit(boolean bulk, int max) {
+    public synchronized long commit(boolean bulk, int max) {
         long toUpdate = 0;
         long lastLog=Now.NowUtcMs();
         long progress=0;

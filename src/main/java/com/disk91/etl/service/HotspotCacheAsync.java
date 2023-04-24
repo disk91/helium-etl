@@ -3,6 +3,8 @@ package com.disk91.etl.service;
 import com.disk91.etl.data.object.Beacon;
 import com.disk91.etl.data.object.Hotspot;
 import com.disk91.etl.data.repository.HotspotsRepository;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.WriteConcern;
 import com.mongodb.bulk.BulkWriteResult;
 import fr.ingeniousthings.tools.Now;
@@ -11,6 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -44,9 +49,6 @@ public class HotspotCacheAsync {
         return processed;
     }
 
-    @Autowired
-    MongoTemplate mongoTemplate;
-
     @Async
     public void processAsyncCacheCommit(List<Hotspot> list) {
         synchronized (running) {
@@ -65,34 +67,24 @@ public class HotspotCacheAsync {
         ArrayList<Hotspot> _hotspotDelayedInsert = new ArrayList<>();
         for ( Hotspot h : list ) {
 
-            // Improve write with bulk insert
-            if ( _hotspotDelayedInsert.size() < 1000 ) {
-                _hotspotDelayedInsert.add(h);
-            } else {
-                mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-                BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Beacon.class);
-                for ( Hotspot _h : _hotspotDelayedInsert ) {
-                    bulkInsert.insert(_h);
-                }
-                BulkWriteResult bulkWriteResult = bulkInsert.execute();
+            _hotspotDelayedInsert.add(h);
+            processed++;
+            if ( _hotspotDelayedInsert.size() > 1000 ) {
+                hotspotsRepository.saveAll(_hotspotDelayedInsert);
                 _hotspotDelayedInsert.clear();
             }
-            //hotspotsRepository.save(h);
-            processed++;
+
             if ( (Now.NowUtcMs() - lastProgress) > 30_000) {
                 log.debug("Hotspot Async commit - progress "+getProgress()+"%");
                 lastProgress = Now.NowUtcMs();
             }
+
         }
         if ( _hotspotDelayedInsert.size() > 0 ) {
-            mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Hotspot.class);
-            for ( Hotspot _h : _hotspotDelayedInsert ) {
-                bulkInsert.insert(_h);
-            }
-            BulkWriteResult bulkWriteResult = bulkInsert.execute();
+            hotspotsRepository.saveAll(_hotspotDelayedInsert);
             _hotspotDelayedInsert.clear();
         }
+
         list.clear();
         log.debug("Hotspot Async commit done");
         synchronized (running) {
