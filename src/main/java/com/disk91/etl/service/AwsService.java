@@ -790,7 +790,7 @@ public class AwsService {
                             // print progress log on regular basis
                             if ((Now.NowUtcMs() - lastLog) > 30_000) {
                                 long distance = Now.NowUtcMs() - fileDate;
-                                log.info("IoTPoc Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tPoc: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                log.info("IoTPoc Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days,fpro : "+current+"/"+toProcess.size()+" tObject: " + totalObject + " tPoc: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
                                 lastLog = Now.NowUtcMs();
                             }
                             // print process state on exit request
@@ -1054,7 +1054,7 @@ public class AwsService {
                             // print progress log on regular basis
                             if ((Now.NowUtcMs() - lastLog) > 30_000) {
                                 long distance = Now.NowUtcMs() - fileDate;
-                                log.info("Rewards Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tReward: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                log.info("Rewards Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, fpro : "+current+"/"+toProcess.size()+" tObject: " + totalObject + " tReward: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
                                 lastLog = Now.NowUtcMs();
                             }
                             // print process state on exit request
