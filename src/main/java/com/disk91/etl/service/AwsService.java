@@ -26,6 +26,9 @@ import com.helium.grpc.lora_witness_ingest_report_v1;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.zip.GZIPInputStream;
@@ -630,7 +633,7 @@ public class AwsService {
         long start = Now.NowUtcMs();
         long lastLog = start;
         this.pocThreadEnable = true;
-
+        int retry = 0;
 
         // Create queues for parallelism
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -696,95 +699,115 @@ public class AwsService {
                     }
                     */
 
-                    //log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - Long.parseLong(object.getKey().split("\\.")[1]) )/(Now.ONE_FULL_DAY)+") days");
+                    log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - fileDate )/(Now.ONE_FULL_DAY)+") days");
 
-                    final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
-                    or.setRequesterPays(true);
-                    S3Object fileObject = this.s3Client.getObject(or);
+                    boolean readOk = false;
+                    retry = 0;
+                    ArrayList<lora_poc_v1> toProcess = new ArrayList<>();
+                    while ( ! readOk && retry < 5 ) {
+                        final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
+                        or.setRequesterPays(true);
+                        S3Object fileObject = this.s3Client.getObject(or);
 
-                    try {
-                        // File is GZiped Version of a stream of protobuf messages
-                        // each protobuf messages is encapsulated with a header
-                        // int4 containing the length of the protobuf message following.
-                        GZIPInputStream stream = new GZIPInputStream(fileObject.getObjectContent());
-                        BufferedInputStream bufferedInputStream = new BufferedInputStream(stream);
-                        while ( bufferedInputStream.available() > 0 ) {
-                            try {
-                                byte[] sz = bufferedInputStream.readNBytes(4);
-                                long len = Stuff.getLongValueFromBytes(sz);
-                                rSize += len+4;
-                                if (len > 0) {
-                                    byte[] r = bufferedInputStream.readNBytes((int) len);
-                                    totalWitness++;
-
-
-                                    lora_poc_v1 w = lora_poc_v1.parseFrom(r);
-                                    // Add in queues - find it with a random element in the pub key
-                                    // to make sure a single hotspot goes to the same queues to not
-                                    // have collisions
-                                    int q = w.getBeaconReport().getReport().getPubKey().byteAt(4);
-                                    q &= (etlConfig.getIotpocLoadParallelWorkers()-1);
-                                    try {
-                                        // when a queue is full just wait, it should be balanced
-                                        while (queues[q].size() >= etlConfig.getIotpocLoadParallelQueueSize()) Thread.sleep(2);
-                                    } catch ( InterruptedException x ) {x.printStackTrace();};
-                                    queues[q].add(w);
-
-                                    /*
-                                    if (!hotspotCache.addWitness(w)) {
-                                        log.debug("witness not processed " + w.getReceivedTimestamp());
+                        GZIPInputStream stream = null;
+                        BufferedInputStream bufferedInputStream = null;
+                        try {
+                            // File is GZiped Version of a stream of protobuf messages
+                            // each protobuf messages is encapsulated with a header
+                            // int4 containing the length of the protobuf message following.
+                            stream = new GZIPInputStream(fileObject.getObjectContent());
+                            bufferedInputStream = new BufferedInputStream(stream);
+                            while (bufferedInputStream.available() > 0) {
+                                try {
+                                    byte[] sz = bufferedInputStream.readNBytes(4);
+                                    long len = Stuff.getLongValueFromBytes(sz);
+                                    rSize += len + 4;
+                                    if (len > 0) {
+                                        byte[] r = bufferedInputStream.readNBytes((int) len);
+                                        lora_poc_v1 w = lora_poc_v1.parseFrom(r);
+                                        toProcess.add(w);
+                                    } else {
+                                        log.error("Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
                                     }
-                                    */
-
-                                } else {
-                                    log.error("Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
+                                } catch (IOException x) {
+                                    // in case of IOException Better skip the file
+                                    prometeusService.addAwsFailure();
+                                    log.error("Failed to process file " + object.getKey() + " at entry " + toProcess.size() + "(" + x.getMessage() + ")");
+                                    if (serviceEnable == false) return;
+                                    toProcess.clear();
+                                    retry++;
+                                    break;
+                                } catch (Exception x) {
+                                    log.error("AwsIoTPocSync - " + x.getMessage());
+                                    if (serviceEnable == false) return;
+                                    x.printStackTrace();
+                                    toProcess.clear();
+                                    retry++;
+                                    break;
                                 }
+                            }
+                            readOk = true;
+                        } catch (IOException x) {
+                            prometeusService.addAwsFailure();
+                            log.error("Failed to gunzip for Key " + object.getKey() + " " + x.getMessage());
+                            toProcess.clear();
+                            retry++;
+                        } catch (Exception x) {
+                            prometeusService.addAwsFailure();
+                            log.error("Failed to process file " + object.getKey() + " " + x.getMessage());
+                            toProcess.clear();
+                            retry++;
+                        } finally {
+                            if ( bufferedInputStream != null ) bufferedInputStream.close();
+                            if (stream != null ) stream.close();
+                        }
+                    }
+                    if ( retry == 5 ) {
+                        log.warn("Impossible to process file " + object.getKey()+ " skip it");
+                        continue;
+                    }
 
-                                // print progress log on regular basis
-                                if ((Now.NowUtcMs() - lastLog) > 30_000) {
-                                    String distance_s = object.getKey().split("\\.")[1];
-                                    long distance = Now.NowUtcMs() - Long.parseLong(distance_s);
-                                    log.info("IoTPoc Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tPoc: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
-                                    lastLog = Now.NowUtcMs();
-                                }
-                                // print process state on exit request
-                                if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
-                                    log.info("IoTPoc - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
-                                    lastLog = Now.NowUtcMs();
-                                }
+                    log.info("IotPoc from "+new Date(new Timestamp(fileDate).getTime())+" has "+toProcess.size()+" objects" );
+                    int current = 0;
+                    for (lora_poc_v1 w : toProcess) {
+                        try {
+                            totalWitness++;
 
-                            } catch ( IOException x ) {
-                                // in case of IOException Better skip the file
-                                prometeusService.addAwsFailure();
-                                log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
-                                if ( serviceEnable == false ) return;
-                                else break;
-                            } catch ( Exception x ) {
-                                log.error("AwsIoTPocSync - "+x.getMessage());
-                                if ( serviceEnable == false ) return;
+                            // Add in queues - find it with a random element in the pub key
+                            // to make sure a single hotspot goes to the same queues to not
+                            // have collisions
+                            int q = w.getBeaconReport().getReport().getPubKey().byteAt(4);
+                            q &= (etlConfig.getIotpocLoadParallelWorkers() - 1);
+                            try {
+                                // when a queue is full just wait, it should be balanced
+                                while (queues[q].size() >= etlConfig.getIotpocLoadParallelQueueSize()) Thread.sleep(2);
+                            } catch (InterruptedException x) {
                                 x.printStackTrace();
                             }
+                            ;
+                            queues[q].add(w);
 
-                        } // end of current file
-                        bufferedInputStream.close();
-                        stream.close();
-                        prometeusService.addFileProcessed();
-                        prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
-                        try {
-                            String time_s = object.getKey().split("\\.")[1];
-                            prometeusService.changeFileIoTPocTimestamp(Long.parseLong(time_s));
-                        } catch (Exception x) {
-                            // don't care that is monitoring
-                            log.error("Can't parse file timestamp for "+object.getKey());
+                            // print progress log on regular basis
+                            if ((Now.NowUtcMs() - lastLog) > 30_000) {
+                                long distance = Now.NowUtcMs() - fileDate;
+                                log.info("IoTPoc Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tPoc: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                lastLog = Now.NowUtcMs();
+                            }
+                            // print process state on exit request
+                            if (serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
+                                log.info("IoTPoc - exit in progress - " + (Math.floor((100 * rSize) / cSize)) + "%");
+                                lastLog = Now.NowUtcMs();
+                            }
+                            current++;
+                        } catch ( Exception x ) {
+                            log.error("Failed to process IoTPoc "+object.getKey()+" at "+current+"/"+toProcess.size()+"["+x.getMessage()+"]");
                         }
+                    } // end of current file
+                    toProcess.clear();
 
-                    } catch (IOException x) {
-                        prometeusService.addAwsFailure();
-                        log.error("Failed to gunzip for Key "+object.getKey()+" "+x.getMessage());
-                    } catch (Exception x) {
-                        prometeusService.addAwsFailure();
-                        log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
-                    }
+                    prometeusService.addFileProcessed();
+                    prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
+                    prometeusService.changeFileIoTPocTimestamp(fileDate);
 
                     iotPocFile.setStringValue(object.getKey());
                     paramRepository.save(iotPocFile);
@@ -885,6 +908,7 @@ public class AwsService {
         long start = Now.NowUtcMs();
         long lastLog = start;
         this.rewardThreadEnable = true;
+        int retry = 0;
 
 
         // Create queues for parallelism
@@ -936,97 +960,122 @@ public class AwsService {
 
                     log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - fileDate )/(Now.ONE_FULL_DAY)+") days");
 
-                    final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
-                    or.setRequesterPays(true);
-                    S3Object fileObject = this.s3Client.getObject(or);
+                    boolean readOk = false;
+                    retry = 0;
+                    ArrayList<iot_reward_share> toProcess = new ArrayList<>();
+                    while ( ! readOk && retry < 5 ) {
 
-                    try {
-                        // File is GZiped Version of a stream of protobuf messages
-                        // each protobuf messages is encapsulated with a header
-                        // int4 containing the length of the protobuf message following.
-                        GZIPInputStream stream = new GZIPInputStream(fileObject.getObjectContent());
-                        BufferedInputStream bufferedInputStream = new BufferedInputStream(stream);
-                        while ( bufferedInputStream.available() > 0 ) {
-                            try {
-                                byte[] sz = bufferedInputStream.readNBytes(4);
-                                long len = Stuff.getLongValueFromBytes(sz);
-                                rSize += len+4;
-                                if (len > 0) {
-                                    byte[] r = bufferedInputStream.readNBytes((int) len);
-                                    totalWitness++;
+                        final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
+                        or.setRequesterPays(true);
+                        S3Object fileObject = this.s3Client.getObject(or);
+                        GZIPInputStream stream = null;
+                        BufferedInputStream bufferedInputStream = null;
 
-
-                                    iot_reward_share w = iot_reward_share.parseFrom(r);
-                                    // Add in queues - find it with a random element in the pub key
-                                    // to make sure a single hotspot goes to the same queues to not
-                                    // have collisions
-                                    int q = 0;
-                                    if ( w.getGatewayReward().getHotspotKey().size() > 4 ) {
-                                        q = w.getGatewayReward().getHotspotKey().byteAt(4);
-                                        q &= (etlConfig.getRewardLoadParallelWorkers() - 1);
-                                    } else {
-                                        // sounds like operational reward, skip that one
-                                        log.warn("Potential operational reward sz("+r.length+")");
-                                        continue;
-                                    }
-                                    try {
-                                        // when a queue is full just wait, it should be balanced
-                                        while (queues[q].size() >= etlConfig.getRewardLoadParallelWorkers()) Thread.sleep(2);
-                                    } catch ( InterruptedException x ) {x.printStackTrace();};
-                                    queues[q].add(w);
-
-                                } else {
-                                    log.warn("Reward - Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
-                                }
-
-                                // print progress log on regular basis
-                                if ((Now.NowUtcMs() - lastLog) > 30_000) {
-                                    long distance = Now.NowUtcMs() - fileDate;
-                                    log.info("Rewards Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tReward: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
-                                    lastLog = Now.NowUtcMs();
-                                }
-                                // print process state on exit request
-                                if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
-                                    log.info("Rewards - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
-                                    lastLog = Now.NowUtcMs();
-                                }
-
-                            } catch ( IOException x ) {
-                                // in case of IOException Better skip the file
-                                prometeusService.addAwsFailure();
-                                log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
-                                if ( serviceEnable == false ) return;
-                                else break;
-                            } catch ( Exception x ) {
-                                log.error("AwsRewardSync - "+x.getMessage());
-                                if ( serviceEnable == false ) return;
-                                x.printStackTrace();
-                            }
-
-                        } // end of current file
-                        bufferedInputStream.close();
-                        stream.close();
-                        prometeusService.addFileProcessed();
-                        prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
                         try {
-                            String time_s = object.getKey().split("\\.")[1];
-                            log.info("file : "+object.getKey()+" -- "+time_s);
-                            prometeusService.changeFileRewardTimestamp(Long.parseLong(time_s));
+                            // File is GZiped Version of a stream of protobuf messages
+                            // each protobuf messages is encapsulated with a header
+                            // int4 containing the length of the protobuf message following.
+                            stream = new GZIPInputStream(fileObject.getObjectContent());
+                            bufferedInputStream = new BufferedInputStream(stream);
+                            while (bufferedInputStream.available() > 0) {
+                                try {
+                                    byte[] sz = bufferedInputStream.readNBytes(4);
+                                    long len = Stuff.getLongValueFromBytes(sz);
+                                    rSize += len + 4;
+                                    if (len > 0) {
+                                        byte[] r = bufferedInputStream.readNBytes((int) len);
+                                        iot_reward_share w = iot_reward_share.parseFrom(r);
+                                        toProcess.add(w);
+                                    } else {
+                                        log.warn("Reward - Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
+                                    }
+                                } catch (IOException x) {
+                                    // in case of IOException Better skip the file
+                                    prometeusService.addAwsFailure();
+                                    log.error("Failed to process file " + object.getKey() + " " + x.getMessage());
+                                    if (serviceEnable == false) return;
+                                    toProcess.clear();
+                                    retry++;
+                                    break;
+                                } catch (Exception x) {
+                                    log.error("AwsRewardSync - " + x.getMessage());
+                                    if (serviceEnable == false) return;
+                                    x.printStackTrace();
+                                    toProcess.clear();
+                                    retry++;
+                                    break;
+                                }
+                            }
+                            readOk = true;
+                        } catch (IOException x) {
+                            prometeusService.addAwsFailure();
+                            log.error("Failed to gunzip for Key " + object.getKey() + " " + x.getMessage());
+                            toProcess.clear();
+                            retry++;
                         } catch (Exception x) {
-                            // don't care that is monitoring
-                            log.error("Can't parse file timestamp for "+object.getKey());
+                            prometeusService.addAwsFailure();
+                            log.error("Failed to process file " + object.getKey() + " " + x.getMessage());
+                            toProcess.clear();
+                            retry++;
+                        } finally {
+                            if (bufferedInputStream != null) bufferedInputStream.close();
+                            if (stream != null) stream.close();
                         }
-
-                    } catch (IOException x) {
-                        prometeusService.addAwsFailure();
-                        log.error("Failed to gunzip for Key "+object.getKey()+" "+x.getMessage());
-                    } catch (Exception x) {
-                        prometeusService.addAwsFailure();
-                        log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
                     }
+                    if (retry == 5) {
+                        log.warn("Impossible to process file " + object.getKey() + " skip it");
+                        continue;
+                    }
+
+                    log.info("Reward from "+new Date(new Timestamp(fileDate).getTime())+" has "+toProcess.size()+" objects" );
+                    int current = 0;
+
+                    for ( iot_reward_share w : toProcess ) {
+                        try {
+                            totalWitness++;
+                            // Add in queues - find it with a random element in the pub key
+                            // to make sure a single hotspot goes to the same queues to not
+                            // have collisions
+                            int q = 0;
+                            if ( w.getGatewayReward().getHotspotKey().size() > 4 ) {
+                                q = w.getGatewayReward().getHotspotKey().byteAt(4);
+                                q &= (etlConfig.getRewardLoadParallelWorkers() - 1);
+                            } else {
+                                // sounds like operational reward, skip that one
+                                log.warn("Potential operational reward");
+                                continue;
+                            }
+                            try {
+                                // when a queue is full just wait, it should be balanced
+                                while (queues[q].size() >= etlConfig.getRewardLoadParallelWorkers()) Thread.sleep(2);
+                            } catch ( InterruptedException x ) {x.printStackTrace();};
+                            queues[q].add(w);
+
+                            // print progress log on regular basis
+                            if ((Now.NowUtcMs() - lastLog) > 30_000) {
+                                long distance = Now.NowUtcMs() - fileDate;
+                                log.info("Rewards Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tReward: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                lastLog = Now.NowUtcMs();
+                            }
+                            // print process state on exit request
+                            if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
+                                log.info("Rewards - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
+                                lastLog = Now.NowUtcMs();
+                            }
+                            current++;
+                        } catch ( Exception x ) {
+                            log.error("Failed to process IotReward "+object.getKey()+" at "+current+"/"+toProcess.size()+"["+x.getMessage()+"]");
+                        }
+                    } // end of current file
+                    toProcess.clear();
+
+                    prometeusService.addFileProcessed();
+                    prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
+                    prometeusService.changeFileRewardTimestamp(fileDate);
 
                     rewardPocFile.setStringValue(object.getKey());
                     paramRepository.save(rewardPocFile);
+
                     if ( serviceEnable == false ) {
                         // we had a request to quit and at this point we can make it
                         // clean
