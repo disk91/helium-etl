@@ -35,7 +35,10 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     private List<LatLng> posHistory;
     private int version;
 
+    private long firstSeen = 0;
+
     private long lastBeacon;
+
     private long lastWitness;
 
     private long lastReward;
@@ -64,6 +67,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     synchronized public void updateReward(long tm, long beacon, long witness, long dcs) {
         this.lastReward = tm;
+        if ( this.firstSeen == 0 ) this.firstSeen = tm;
         this.sumRewardBeacon += beacon;
         this.sumRewardWitness += witness;
         this.sumRewardDc += dcs;
@@ -204,6 +208,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         c.setId(id);
         c.setHotspotId(hotspotId);
         c.setVersion(version);
+        c.setFirstSeen(firstSeen);
         c.setLastBeacon(lastBeacon);
         c.setLastWitness(lastWitness);
         c.setAnimalName(animalName);
@@ -382,5 +387,13 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setSumRewardDc(long sumRewardDc) {
         this.sumRewardDc = sumRewardDc;
+    }
+
+    public long getFirstSeen() {
+        return firstSeen;
+    }
+
+    public void setFirstSeen(long firstSeen) {
+        this.firstSeen = firstSeen;
     }
 }
