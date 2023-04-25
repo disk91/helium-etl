@@ -420,7 +420,7 @@ public class HotspotCache {
     protected ArrayList<Beacon> _beaconDelayedInsert = new ArrayList<>();
     public synchronized void delayedBeaconSave(Beacon b) {
         _beaconDelayedInsert.add(b);
-        if ( _beaconDelayedInsert.size() > 500 ) {
+        if ( _beaconDelayedInsert.size() > 2_500 ) {
             if ( bulkInsertBeacons() > 0 ) {
                 _beaconDelayedInsert.clear();
             }
@@ -456,7 +456,7 @@ public class HotspotCache {
     protected ArrayList<com.disk91.etl.data.object.Witness> _witnessDelayedInsert = new ArrayList<>();
     public synchronized void delayedWitnessSave(com.disk91.etl.data.object.Witness b) {
         _witnessDelayedInsert.add(b);
-        if ( _witnessDelayedInsert.size() > 8_000 ) {
+        if ( _witnessDelayedInsert.size() > 10_000 ) {
             if ( bulkInsertWitness() > 0 ) {
                 _witnessDelayedInsert.clear();
             }
@@ -505,11 +505,14 @@ public class HotspotCache {
         String hsBeaconerId = HeliumHelper.pubAddressToName(beacon.getReport().getPubKey());
         Hotspot beaconner = this.getHotspot(hsBeaconerId, true);
 
-        if ( h3!=null ) {
-            LatLng pos = h3.cellToLatLng(Long.parseLong(beacon.getLocation()));
-            if ( pos != null && Gps.isAValidCoordinate(pos.lat, pos.lng) && Gps.distance(beaconner.getPosition().getLat(),pos.lat,beaconner.getPosition().getLng(),pos.lng,0,0) > 300 ) {
-                beaconner.updatePosition(beacon.getReceivedTimestamp(),pos.lat, pos.lng, 0.0, 3.0);
-                log.debug("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
+        if ( (start - beaconner.getPosition().getLastDatePosition()) > 12*Now.ONE_HOUR ) {
+            // no need to verify position on every beacon
+            if (h3 != null) {
+                LatLng pos = h3.cellToLatLng(Long.parseLong(beacon.getLocation()));
+                if (pos != null && Gps.isAValidCoordinate(pos.lat, pos.lng) && Gps.distance(beaconner.getPosition().getLat(), pos.lat, beaconner.getPosition().getLng(), pos.lng, 0, 0) > 300) {
+                    beaconner.updatePosition(beacon.getReceivedTimestamp(), pos.lat, pos.lng, 0.0, 3.0);
+                    log.debug("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
+                }
             }
         }
         beaconner.addBeacon(beacon.getReceivedTimestamp(),etlConfig.getHotspotBeaconHistoryEntries());
@@ -531,7 +534,7 @@ public class HotspotCache {
             // Async bulk write
             delayedBeaconSave(be);
             //beaconsRepository.save(be);
-            beaconROCache.addBeacon(be);
+            //beaconROCache.addBeacon(be); -- never used...
             prometeusService.addBeaconProcessed();
             prometeusService.addBeaconProcessedTime(Now.NowUtcMs()-start);
         }
@@ -599,7 +602,7 @@ public class HotspotCache {
                 if ( v.getReceivedTimestamp() > this.witnessTopTs ) {
                     this.witnessTopTs = v.getReceivedTimestamp();
                 }
-                if ( wi.isValid() ) prometeusService.addValidWitnessProcessed();
+                prometeusService.addValidWitnessProcessed();
                 prometeusService.addWitnessProcessed();
                 prometeusService.addWitnessProcessedTime(Now.NowUtcMs()-wstart);
             }
@@ -631,7 +634,6 @@ public class HotspotCache {
             );
             // mark as updated
             this.updateHotspot(witnessed);
-
         }
         this.updateHotspot(beaconner);
 
