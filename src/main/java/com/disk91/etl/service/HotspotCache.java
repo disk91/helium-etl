@@ -130,7 +130,7 @@ public class HotspotCache {
         long current = Now.NowUtcMs();
         long cnt = 0;
         long max_hs = hotspotsRepository.count();
-        Slice<Hotspot> allHotspot = hotspotsRepository.findAllHotspotsBy(PageRequest.of(0, 1_000));
+        Slice<Hotspot> allHotspot = hotspotsRepository.findAll(PageRequest.of(0, 1_000));
         if ( allHotspot != null && allHotspot.hasContent() ) {
             do {
                 for ( Hotspot h : allHotspot.getContent() ) {

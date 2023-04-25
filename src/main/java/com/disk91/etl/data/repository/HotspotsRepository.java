@@ -11,8 +11,4 @@ public interface HotspotsRepository extends MongoRepository<Hotspot, String> {
 
     public Hotspot findOneHotspotByHotspotId(String hsId);
 
-    public Page<Hotspot> findAllHotspotsBy(
-            Pageable pageable
-    );
-
 }
