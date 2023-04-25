@@ -73,7 +73,7 @@ public class HotspotCache {
             public void onCacheRemoval(String key, Hotspot obj, boolean batch, boolean last) {
                 if ( batch ) {
                     if ( obj != null ) _toSave.add(obj);
-                    if ( _toSave.size() > 1000 || last ) {
+                    if ( _toSave.size() > 5000 || last ) {
                         hotspotsRepository.saveAll(_toSave);
                         _toSave.clear();
                     }
@@ -355,6 +355,7 @@ public class HotspotCache {
             b = null;
         }
 
+        Hotspot beaconner = this.getHotspot(b.getHotspotId(),false);
         if (! etlConfig.isIotpocLoadEnable() && fullUpdate ) {
             // Update Hs information
             Hotspot h = this.getHotspot(hsId, true);
@@ -366,7 +367,9 @@ public class HotspotCache {
                         w.getReport().getTimestamp(),
                         w.getReport().getSignal()/10.0,
                         w.getReport().getSnr()/10.0,
-                        etlConfig.getHotspotWitnessHistoryEntries()
+                        etlConfig.getHotspotWitnessHistoryEntries(),
+                        (beaconner != null)?beaconner.getPosition().getLat():0.0,
+                        (beaconner != null)?beaconner.getPosition().getLng():0.0
                 );
                 // mark as updated
                 this.updateHotspot(h);
@@ -549,7 +552,9 @@ public class HotspotCache {
                     witnesserId,
                     v.getReport().getTimestamp(),
                     v.getReport().getSignal()/10.0,
-                    v.getReport().getSnr()/10.0
+                    v.getReport().getSnr()/10.0,
+                    witnessed.getPosition().getLat(),
+                    witnessed.getPosition().getLng()
             );
 
             // Add beaconner to witnessed
@@ -558,7 +563,9 @@ public class HotspotCache {
                     v.getReport().getTimestamp(),
                     v.getReport().getSignal()/10.0,
                     v.getReport().getSnr()/10.0,
-                    etlConfig.getHotspotWitnessHistoryEntries()
+                    etlConfig.getHotspotWitnessHistoryEntries(),
+                    (beaconner != null)?beaconner.getPosition().getLat():0.0,
+                    (beaconner != null)?beaconner.getPosition().getLng():0.0
             );
             // mark as updated
             this.updateHotspot(witnessed);

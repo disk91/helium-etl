@@ -69,7 +69,7 @@ public class HotspotCacheAsync {
 
             _hotspotDelayedInsert.add(h);
             processed++;
-            if ( _hotspotDelayedInsert.size() > 1000 ) {
+            if ( _hotspotDelayedInsert.size() > 5000 ) {
                 hotspotsRepository.saveAll(_hotspotDelayedInsert);
                 _hotspotDelayedInsert.clear();
             }

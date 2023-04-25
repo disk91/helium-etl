@@ -13,6 +13,9 @@ public class Witness implements ClonnableObject<Witness> {
     private double totSnr;
     private double countWitnesses;
 
+    private double lat = 0.0;
+    private double lng = 0.0;
+
     // --------
 
     public Witness clone() {
@@ -24,6 +27,8 @@ public class Witness implements ClonnableObject<Witness> {
         c.setTotRssi(totRssi);
         c.setTotSnr(totSnr);
         c.setCountWitnesses(countWitnesses);
+        c.setLat(lat);
+        c.setLng(lng);
         return c;
     }
 
@@ -35,12 +40,16 @@ public class Witness implements ClonnableObject<Witness> {
         this.totRssi = 0;
         this.totSnr = 0;
         this.countWitnesses = 0;
+        this.lat = 0.0;
+        this.lng = 0.0;
     }
 
-    public void addWitness(long _lastSeen, double _rssi, double _snr ) {
+    public void addWitness(long _lastSeen, double _rssi, double _snr, double _lat, double _lng ) {
         this.lastSeen = _lastSeen;
         this.lastRssi = _rssi;
         this.lastSnr = _snr;
+        this.lat = _lat;
+        this.lng = _lng;
         this.totRssi += _rssi;
         this.totSnr += _snr;
         this.countWitnesses++;
@@ -102,5 +111,21 @@ public class Witness implements ClonnableObject<Witness> {
 
     public void setCountWitnesses(double countWitnesses) {
         this.countWitnesses = countWitnesses;
+    }
+
+    public double getLat() {
+        return lat;
+    }
+
+    public void setLat(double lat) {
+        this.lat = lat;
+    }
+
+    public double getLng() {
+        return lng;
+    }
+
+    public void setLng(double lng) {
+        this.lng = lng;
     }
 }

@@ -164,11 +164,11 @@ public class AwsService {
         } else if ( fileName.startsWith("iot_reward") ) {
             return 4;
         } else if ( fileName.startsWith("gateway_reward") ) {
-            log.info("Found gateway_reward file "+fileName);
+           // log.info("Found gateway_reward file "+fileName);
         } else if ( fileName.startsWith("solana-migration-bad-data") ) {
-            log.info("Found solana_migration bad data file "+fileName);
+           // log.info("Found solana_migration bad data file "+fileName);
         } else if ( fileName.startsWith("reward_manifest") ) {
-            log.info("Found reward manifest file "+fileName);
+           // log.info("Found reward manifest file "+fileName);
         } else {
             log.warn("Unknown type of file discovered "+fileName);
         }
@@ -896,7 +896,8 @@ public class AwsService {
     }
 
 
-    @Scheduled(fixedDelay = 60_000, initialDelay = 13_000)
+    // Reward are once a day, so no need to search faster than on every 20 minutes
+    @Scheduled(fixedDelay = 1200_000, initialDelay = 13_000)
     protected void AwsRewardSync() {
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isRewardLoadEnable() ) return;
