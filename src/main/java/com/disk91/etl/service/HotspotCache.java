@@ -68,7 +68,7 @@ public class HotspotCache {
         this.heliumHotspotCache = new ObjectCache<String, Hotspot>(
                 "HotspotCache",
                 etlConfig.getCacheHotspotSize(),
-                24*Now.ONE_HOUR
+                72*Now.ONE_HOUR
         ) {
 
             private ArrayList<Hotspot> _toSave = new ArrayList<>();
@@ -129,14 +129,15 @@ public class HotspotCache {
         log.info("Init Hotspot Cache");
         long current = Now.NowUtcMs();
         long cnt = 0;
-        Slice<Hotspot> allHotspot = hotspotsRepository.findAllHotspotsBy(PageRequest.of(0, 5_000));
+        long max_hs = hotspotsRepository.count();
+        Slice<Hotspot> allHotspot = hotspotsRepository.findAllHotspotsBy(PageRequest.of(0, 1_000));
         if ( allHotspot != null && allHotspot.hasContent() ) {
             do {
                 for ( Hotspot h : allHotspot.getContent() ) {
                     this.heliumHotspotCache.put(h,h.getHotspotId());
                     cnt++;
                     if( (Now.NowUtcMs() - current) > 30_000 ) {
-                        log.info("Hostpot Cache init "+cnt+" elements");
+                        log.info("Hostpot Cache init "+cnt+" elements - progress about "+(100*cnt)/max_hs+"%");
                         current = Now.NowUtcMs();
                     }
                 }
