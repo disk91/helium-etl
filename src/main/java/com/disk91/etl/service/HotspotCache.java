@@ -137,6 +137,7 @@ public class HotspotCache {
                     cnt++;
                     if( (Now.NowUtcMs() - current) > 30_000 ) {
                         log.info("Hostpot Cache init "+cnt+" elements");
+                        current = Now.NowUtcMs();
                     }
                 }
                 allHotspot = hotspotsRepository.findAllHotspotsBy(allHotspot.nextPageable());
