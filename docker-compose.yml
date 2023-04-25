@@ -4,7 +4,7 @@ services:
     image: disk91/etl
     container_name: etl
     restart: unless-stopped
-    stop_grace_period: 15m
+    stop_grace_period: 180m
     depends_on:
       mongo-router01:
         condition: service_healthy
