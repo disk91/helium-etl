@@ -209,7 +209,17 @@ public class HotspotCache {
     @Autowired
     protected HotspotsRepository hotspotsRepository;
 
-    synchronized public Hotspot getHotspot(String hotspotId, boolean cache) {
+    // non blocking interface to prevent init problem here all
+    // the request are blocked time to get it from Db
+    public Hotspot getHotspot(String hotspotId, boolean cache) {
+        Hotspot hs = heliumHotspotCache.get(hotspotId);
+        if ( hs == null ) {
+            return getHotspotSync(hotspotId, cache);
+        }
+        return hs;
+    }
+
+    synchronized public Hotspot getHotspotSync(String hotspotId, boolean cache) {
         Hotspot hs = heliumHotspotCache.get(hotspotId);
         if ( hs == null ) {
             hs = hotspotsRepository.findOneHotspotByHotspotId(hotspotId);
@@ -560,7 +570,7 @@ public class HotspotCache {
             long duration = Now.NowUtcMs() - start;
             int hadToSave = _toWriteWitness.size();
             _toWriteWitness.clear();
-            
+
             if ( _witnessDelayedInsert.size() > MIN_BEFORE_BATCH_WITNESS_INSERT ) {
                 log.warn("bulkInsertWitness going slow ! "+_witnessDelayedInsert.size()+" pending");
                 log.warn("bulkInsertWitness saves "+hadToSave+" in "+duration+"ms "+duration/(hadToSave/100.0)+"ms/ 100 units");
