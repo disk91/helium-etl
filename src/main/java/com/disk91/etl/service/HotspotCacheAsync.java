@@ -70,7 +70,8 @@ public class HotspotCacheAsync {
             _hotspotDelayedInsert.add(h);
             processed++;
             if ( _hotspotDelayedInsert.size() > 5000 ) {
-                hotspotsRepository.saveAll(_hotspotDelayedInsert);
+                _hotspotDelayedInsert.parallelStream().forEach(hotspotsRepository::save);
+                //hotspotsRepository.saveAll(_hotspotDelayedInsert);
                 _hotspotDelayedInsert.clear();
             }
 
@@ -81,7 +82,8 @@ public class HotspotCacheAsync {
 
         }
         if ( _hotspotDelayedInsert.size() > 0 ) {
-            hotspotsRepository.saveAll(_hotspotDelayedInsert);
+            _hotspotDelayedInsert.parallelStream().forEach(hotspotsRepository::save);
+            //hotspotsRepository.saveAll(_hotspotDelayedInsert);
             _hotspotDelayedInsert.clear();
         }
 

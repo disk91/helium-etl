@@ -74,7 +74,8 @@ public class HotspotCache {
                 if ( batch ) {
                     if ( obj != null ) _toSave.add(obj);
                     if ( _toSave.size() > 5000 || last ) {
-                        hotspotsRepository.saveAll(_toSave);
+                        _toSave.parallelStream().forEach(hotspotsRepository::save);
+                        //hotspotsRepository.saveAll(_toSave);
                         _toSave.clear();
                     }
                 } else {
