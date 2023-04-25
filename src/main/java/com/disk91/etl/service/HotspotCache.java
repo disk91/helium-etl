@@ -480,7 +480,7 @@ public class HotspotCache {
             long start = Now.NowUtcMs();
             // parallel write performance is between 1ms and 2ms per entry
             //_toWriteWitness.parallelStream().forEach(witnessesRepository::save);
-            // bulk write performance is between
+            // bulk write performance is between 30ms / 100 => 0.3ms per entry
             mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(false));
             BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Beacon.class);
             bulkInsert.insert(_toWriteBeacon);
@@ -488,8 +488,6 @@ public class HotspotCache {
             long duration = Now.NowUtcMs() - start;
             int hadToSave = _toWriteBeacon.size();
             _toWriteBeacon.clear();
-
-            log.warn("bulkInsertBeacons saves "+hadToSave+" in "+duration+"ms "+duration/(hadToSave/100.0)+"ms/ 100 units");
 
             if ( _beaconDelayedInsert.size() > MIN_BEFORE_BATCH_BEACON_INSERT ) {
                 log.warn("bulkInsertBeacons going slow ! "+_beaconDelayedInsert.size()+" pending");
@@ -553,7 +551,8 @@ public class HotspotCache {
             long start = Now.NowUtcMs();
             // parallel write performance is between 1ms and 2ms per entry
             //_toWriteWitness.parallelStream().forEach(witnessesRepository::save);
-            // bulk write performance is between 0.53ms with journal enabled
+            // bulk write performance is around 0.53ms with journal enabled
+            // bulk write performance is arounf 0.40ms with journal disable (no real difference)
             mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(false));
             BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
             bulkInsert.insert(_toWriteWitness);
@@ -561,9 +560,7 @@ public class HotspotCache {
             long duration = Now.NowUtcMs() - start;
             int hadToSave = _toWriteWitness.size();
             _toWriteWitness.clear();
-
-            log.warn("bulkInsertWitness saves "+hadToSave+" in "+duration+"ms "+duration/(hadToSave/100.0)+"ms/ 100 units");
-
+            
             if ( _witnessDelayedInsert.size() > MIN_BEFORE_BATCH_WITNESS_INSERT ) {
                 log.warn("bulkInsertWitness going slow ! "+_witnessDelayedInsert.size()+" pending");
                 log.warn("bulkInsertWitness saves "+hadToSave+" in "+duration+"ms "+duration/(hadToSave/100.0)+"ms/ 100 units");
