@@ -482,13 +482,14 @@ public class HotspotCache {
             int cnt = 0;
             while ( w != null && cnt < toRead ) {
                 _toWriteWitness.add(w);
+                w = _witnessDelayedInsert.poll();
                 cnt++;
             }
 
-            long start = Now.NanoTime();
+            long start = Now.NowUtcMs();
             _toWriteWitness.parallelStream().forEach(witnessesRepository::save);
-            long duration = Now.NanoTime() - start;
-            log.warn("saves "+_toWriteWitness.size()+" in "+duration+"ns "+_toWriteWitness.size()/(double)duration+"ns/unit");
+            long duration = Now.NowUtcMs() - start;
+            log.warn("saves "+_toWriteWitness.size()+" in "+duration+"ms "+(_toWriteWitness.size()/100)/(double)duration+"ms/ 100 unit");
             _toWriteWitness.clear();
 
             /*
