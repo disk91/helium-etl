@@ -126,6 +126,7 @@ public class HotspotCache {
         }
 
         // Preload Hotspots in cache
+        /* --- really too slow ... like reading 1000 / minute
         log.info("Init Hotspot Cache");
         long current = Now.NowUtcMs();
         long cnt = 0;
@@ -144,7 +145,7 @@ public class HotspotCache {
                 allHotspot = hotspotsRepository.findAll(allHotspot.nextPageable());
             } while (allHotspot.hasNext());
         }
-
+        */
         this.serviceEnable = true;
 
         try {
