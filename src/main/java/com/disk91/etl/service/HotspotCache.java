@@ -521,8 +521,10 @@ public class HotspotCache {
         }
         if ( loops < 100) {
             _beaconDelayedInsert.parallelStream().forEach(beaconsRepository::save);
+            log.info("flushInsertBeacon - completed");
             return true;
         }
+        log.error("flushInsertBeacon - failed "+_beaconDelayedInsert.size()+" pending");
         return false;
     }
 
@@ -591,8 +593,10 @@ public class HotspotCache {
         }
         if ( loops < 100) {
             _witnessDelayedInsert.parallelStream().forEach(witnessesRepository::save);
+            log.info("flushInsertWitness - completed");
             return true;
         }
+        log.error("flushInsertWitness - failed "+_witnessDelayedInsert.size()+" pending");
         return false;
     }
 
