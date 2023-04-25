@@ -141,7 +141,7 @@ public class HotspotCache {
                         current = Now.NowUtcMs();
                     }
                 }
-                allHotspot = hotspotsRepository.findAllHotspotsBy(allHotspot.nextPageable());
+                allHotspot = hotspotsRepository.findAll(allHotspot.nextPageable());
             } while (allHotspot.hasNext());
         }
 
