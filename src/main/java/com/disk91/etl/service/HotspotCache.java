@@ -129,7 +129,7 @@ public class HotspotCache {
         log.info("Init Hotspot Cache");
         long current = Now.NowUtcMs();
         long cnt = 0;
-        Slice<Hotspot> allHotspot = hotspotsRepository.findAllHotspots(PageRequest.of(0, 5_000));
+        Slice<Hotspot> allHotspot = hotspotsRepository.findAllHotspotsBy(PageRequest.of(0, 5_000));
         if ( allHotspot != null && allHotspot.hasContent() ) {
             do {
                 for ( Hotspot h : allHotspot.getContent() ) {
@@ -139,7 +139,7 @@ public class HotspotCache {
                         log.info("Hostpot Cache init "+cnt+" elements");
                     }
                 }
-                allHotspot = hotspotsRepository.findAllHotspots(allHotspot.nextPageable());
+                allHotspot = hotspotsRepository.findAllHotspotsBy(allHotspot.nextPageable());
             } while (allHotspot.hasNext());
         }
 
