@@ -369,7 +369,8 @@ public class HotspotCache {
                         w.getReport().getSnr()/10.0,
                         etlConfig.getHotspotWitnessHistoryEntries(),
                         (beaconner != null)?beaconner.getPosition().getLat():0.0,
-                        (beaconner != null)?beaconner.getPosition().getLng():0.0
+                        (beaconner != null)?beaconner.getPosition().getLng():0.0,
+                        true
                 );
                 // mark as updated
                 this.updateHotspot(h);
@@ -433,13 +434,16 @@ public class HotspotCache {
             inAsyncWrite = true;
         }
         try {
-            mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Beacon.class);
-            for ( Beacon b : _beaconDelayedInsert ) {
-                bulkInsert.insert(b);
+            if ( _beaconDelayedInsert.size() > 0 ) {
+                mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+                BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Beacon.class);
+                for (Beacon b : _beaconDelayedInsert) {
+                    bulkInsert.insert(b);
+                }
+                BulkWriteResult bulkWriteResult = bulkInsert.execute();
+                return bulkWriteResult.getInsertedCount();
             }
-            BulkWriteResult bulkWriteResult = bulkInsert.execute();
-            return bulkWriteResult.getInsertedCount();
+            return 0;
         } finally {
             synchronized (inAsyncWrite) {
                 inAsyncWrite = false;
@@ -466,13 +470,16 @@ public class HotspotCache {
             inAsyncWrite = true;
         }
         try {
-            mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
-            for ( com.disk91.etl.data.object.Witness b : _witnessDelayedInsert ) {
-                bulkInsert.insert(b);
+            if ( _witnessDelayedInsert.size() > 0 ) {
+                mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+                BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
+                for (com.disk91.etl.data.object.Witness b : _witnessDelayedInsert) {
+                    bulkInsert.insert(b);
+                }
+                BulkWriteResult bulkWriteResult = bulkInsert.execute();
+                return bulkWriteResult.getInsertedCount();
             }
-            BulkWriteResult bulkWriteResult = bulkInsert.execute();
-            return bulkWriteResult.getInsertedCount();
+            return 0;
         } finally {
             synchronized (inAsyncWrite) {
                 inAsyncWrite = false;
@@ -554,7 +561,8 @@ public class HotspotCache {
                     v.getReport().getSignal()/10.0,
                     v.getReport().getSnr()/10.0,
                     witnessed.getPosition().getLat(),
-                    witnessed.getPosition().getLng()
+                    witnessed.getPosition().getLng(),
+                    true
             );
 
             // Add beaconner to witnessed
@@ -565,7 +573,8 @@ public class HotspotCache {
                     v.getReport().getSnr()/10.0,
                     etlConfig.getHotspotWitnessHistoryEntries(),
                     (beaconner != null)?beaconner.getPosition().getLat():0.0,
-                    (beaconner != null)?beaconner.getPosition().getLng():0.0
+                    (beaconner != null)?beaconner.getPosition().getLng():0.0,
+                    true
             );
             // mark as updated
             this.updateHotspot(witnessed);
@@ -596,10 +605,38 @@ public class HotspotCache {
             }
 
         }
+        for ( lora_verified_witness_report_v1 v : p.getUnselectedWitnessesList() ) {
+            String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
+            Hotspot witnessed = this.getHotspot(witnesserId, true);
+            beaconner.addBeaconed(
+                    witnesserId,
+                    v.getReport().getTimestamp(),
+                    v.getReport().getSignal()/10.0,
+                    v.getReport().getSnr()/10.0,
+                    witnessed.getPosition().getLat(),
+                    witnessed.getPosition().getLng(),
+                    false
+            );
+
+            // Add beaconner to witnessed
+            witnessed.addWitness(
+                    hsBeaconerId,
+                    v.getReport().getTimestamp(),
+                    v.getReport().getSignal()/10.0,
+                    v.getReport().getSnr()/10.0,
+                    etlConfig.getHotspotWitnessHistoryEntries(),
+                    (beaconner != null)?beaconner.getPosition().getLat():0.0,
+                    (beaconner != null)?beaconner.getPosition().getLng():0.0,
+                    false
+            );
+            // mark as updated
+            this.updateHotspot(witnessed);
+
+        }
         this.updateHotspot(beaconner);
 
         // Update the invalid witnesses
-        if ( ! etlConfig.isWitnessLoadEnable() ) {
+        if ( ! etlConfig.isWitnessLoadEnable() && etlConfig.isIotpocLoadUnselected() ) {
             for (lora_verified_witness_report_v1 v : p.getUnselectedWitnessesList()) {
                 String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
                 //Hotspot witnessed = this.getHotspot(witnesserId, true);
@@ -690,13 +727,16 @@ public class HotspotCache {
             inAsyncWrite = true;
         }
         try {
-            mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Reward.class);
-            for (Reward b : _rewardsDelayedInsert) {
-                bulkInsert.insert(b);
+            if ( _rewardsDelayedInsert.size() > 0 ) {
+                mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+                BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Reward.class);
+                for (Reward b : _rewardsDelayedInsert) {
+                    bulkInsert.insert(b);
+                }
+                BulkWriteResult bulkWriteResult = bulkInsert.execute();
+                return bulkWriteResult.getInsertedCount();
             }
-            BulkWriteResult bulkWriteResult = bulkInsert.execute();
-            return bulkWriteResult.getInsertedCount();
+            return 0;
         } finally {
             synchronized (inAsyncWrite) {
                 inAsyncWrite = false;

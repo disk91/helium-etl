@@ -13,6 +13,9 @@ public class Witness implements ClonnableObject<Witness> {
     private double totSnr;
     private double countWitnesses;
 
+    private long totSelected;
+    private long totUnselected;
+
     private double lat = 0.0;
     private double lng = 0.0;
 
@@ -29,6 +32,8 @@ public class Witness implements ClonnableObject<Witness> {
         c.setCountWitnesses(countWitnesses);
         c.setLat(lat);
         c.setLng(lng);
+        c.setTotSelected(totSelected);
+        c.setTotUnselected(totUnselected);
         return c;
     }
 
@@ -42,9 +47,11 @@ public class Witness implements ClonnableObject<Witness> {
         this.countWitnesses = 0;
         this.lat = 0.0;
         this.lng = 0.0;
+        this.totSelected = 0;
+        this.totUnselected = 0;
     }
 
-    public void addWitness(long _lastSeen, double _rssi, double _snr, double _lat, double _lng ) {
+    public void addWitness(long _lastSeen, double _rssi, double _snr, double _lat, double _lng, boolean selected ) {
         this.lastSeen = _lastSeen;
         this.lastRssi = _rssi;
         this.lastSnr = _snr;
@@ -53,6 +60,8 @@ public class Witness implements ClonnableObject<Witness> {
         this.totRssi += _rssi;
         this.totSnr += _snr;
         this.countWitnesses++;
+        if ( selected ) this.totSelected++;
+        else this.totUnselected++;
     }
 
     // ---------
@@ -127,5 +136,21 @@ public class Witness implements ClonnableObject<Witness> {
 
     public void setLng(double lng) {
         this.lng = lng;
+    }
+
+    public long getTotSelected() {
+        return totSelected;
+    }
+
+    public void setTotSelected(long totSelected) {
+        this.totSelected = totSelected;
+    }
+
+    public long getTotUnselected() {
+        return totUnselected;
+    }
+
+    public void setTotUnselected(long totUnselected) {
+        this.totUnselected = totUnselected;
     }
 }

@@ -93,6 +93,9 @@ public class EtlConfig {
     @Value("${iotpoc.load.parallel.queue.size}")
     private int iotpocLoadParallelQueueSize;
 
+    @Value("${iotpoc.load.unselected}")
+    private boolean iotpocLoadUnselected;
+
     @Value("${reward.load.enable}")
     private boolean rewardLoadEnable;
 
@@ -188,5 +191,9 @@ public class EtlConfig {
 
     public int getCacheHotspotCommit() {
         return cacheHotspotCommit;
+    }
+
+    public boolean isIotpocLoadUnselected() {
+        return iotpocLoadUnselected;
     }
 }

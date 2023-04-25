@@ -125,12 +125,12 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         }
     }
 
-    synchronized public void addBeaconed(String hsId, long tm, double signal, double snr, double lat, double lng) {
+    synchronized public void addBeaconed(String hsId, long tm, double signal, double snr, double lat, double lng, boolean selected) {
         boolean found = false;
         for (Witness _w : this.getBeaconned()) {
             if (_w.getHs().equals(hsId)) {
                 // found it... update it
-                _w.addWitness( tm, signal, snr, lat, lng );
+                _w.addWitness( tm, signal, snr, lat, lng, selected );
                 found = true;
                 break;
             }
@@ -139,12 +139,12 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             // create one
             Witness _w = new Witness();
             _w.init(hsId);
-            _w.addWitness( tm, signal, snr, lat, lng );
+            _w.addWitness( tm, signal, snr, lat, lng, selected );
             this.getBeaconned().add(_w);
         }
     }
 
-    synchronized public void addWitness(String hsId, long tm, double signal, double snr, int maxHistEntries, double lat, double lng){
+    synchronized public void addWitness(String hsId, long tm, double signal, double snr, int maxHistEntries, double lat, double lng, boolean selected){
         long tmMs = tm / 1_000_000; // from nano to ms
         boolean newHist =  ( (tmMs - this.getLastWitness() ) > Now.ONE_HOUR ); // can't exist in history
         this.setLastWitness(tmMs);
@@ -152,7 +152,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         for (Witness _w : this.getWitnesses()) {
             if (_w.getHs().equals(hsId) ) {
                 // found it... update it
-                _w.addWitness(tm,signal,snr,lat,lng);
+                _w.addWitness(tm,signal,snr,lat,lng, selected);
                 found = true;
                 break;
             }
@@ -161,7 +161,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             // create one
             Witness _w = new Witness();
             _w.init(hsId);
-            _w.addWitness(tm,signal,snr,lat,lng);
+            _w.addWitness(tm,signal,snr,lat,lng,selected);
             this.getWitnesses().add(_w);
         }
 
