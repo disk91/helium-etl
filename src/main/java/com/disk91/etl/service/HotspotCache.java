@@ -487,23 +487,15 @@ public class HotspotCache {
             }
 
             long start = Now.NowUtcMs();
-            _toWriteWitness.parallelStream().forEach(witnessesRepository::save);
+            //_toWriteWitness.parallelStream().forEach(witnessesRepository::save);
+            mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
+            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
+            bulkInsert.insert(_toWriteWitness);
+            BulkWriteResult bulkWriteResult = bulkInsert.execute();
             long duration = Now.NowUtcMs() - start;
-            log.warn("saves "+_toWriteWitness.size()+" in "+duration+"ms "+(_toWriteWitness.size()/100)/(double)duration+"ms/ 100 unit");
+            log.warn("saves "+_toWriteWitness.size()+" in "+duration+"ms "+duration/(_toWriteWitness.size()/100.0)+"ms/ 100 unit");
             _toWriteWitness.clear();
-
-            /*
-                if ( _witnessDelayedInsert.size() > 0 ) {
-                mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
-                BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
-                for (com.disk91.etl.data.object.Witness b : _witnessDelayedInsert) {
-                    bulkInsert.insert(b);
-                }
-                BulkWriteResult bulkWriteResult = bulkInsert.execute();
-                return bulkWriteResult.getInsertedCount();
-            }
-            */
-
+            
         }
     }
 
