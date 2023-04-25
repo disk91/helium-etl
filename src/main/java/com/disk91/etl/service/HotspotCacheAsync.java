@@ -1,21 +1,11 @@
 package com.disk91.etl.service;
 
-import com.disk91.etl.data.object.Beacon;
 import com.disk91.etl.data.object.Hotspot;
 import com.disk91.etl.data.repository.HotspotsRepository;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.WriteConcern;
-import com.mongodb.bulk.BulkWriteResult;
 import fr.ingeniousthings.tools.Now;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.BulkOperations;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 

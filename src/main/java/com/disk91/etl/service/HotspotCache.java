@@ -26,6 +26,8 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Service
 public class HotspotCache {
@@ -454,24 +456,43 @@ public class HotspotCache {
     }
 
 
-    protected ArrayList<com.disk91.etl.data.object.Witness> _witnessDelayedInsert = new ArrayList<>();
-    public synchronized void delayedWitnessSave(com.disk91.etl.data.object.Witness b) {
-        _witnessDelayedInsert.add(b);
+    protected ConcurrentLinkedQueue<com.disk91.etl.data.object.Witness> _witnessDelayedInsert = new ConcurrentLinkedQueue<>();
+
+    public void delayedWitnessSave(com.disk91.etl.data.object.Witness b) {
         if ( _witnessDelayedInsert.size() > 10_000 ) {
-            if ( bulkInsertWitness() > 0 ) {
-                _witnessDelayedInsert.clear();
-            }
+            // force wait when more than 10_000 pending
+            while (_witnessDelayedInsert.size() > 9_000 ) {
+                try { Thread.sleep(100); } catch (InterruptedException x) {} ;
+            };
         }
+        _witnessDelayedInsert.add(b);
     }
 
-    public int bulkInsertWitness() {
 
-        synchronized (inAsyncWrite) {
-            if ( inAsyncWrite == true ) return 0;
-            inAsyncWrite = true;
-        }
-        try {
-            if ( _witnessDelayedInsert.size() > 0 ) {
+
+    @Scheduled(fixedDelay = 5_000, initialDelay = 5_000)
+    public void bulkInsertWitness() {
+
+        log.warn("### Pending witness "+_witnessDelayedInsert.size());
+        while ( _witnessDelayedInsert.size() > 5_000 ) {
+            // extract the Witnesses to process
+            ArrayList<com.disk91.etl.data.object.Witness> _toWriteWitness = new ArrayList<>();
+            int toRead = _witnessDelayedInsert.size();
+            com.disk91.etl.data.object.Witness w = _witnessDelayedInsert.poll();
+            int cnt = 0;
+            while ( w != null && cnt < toRead ) {
+                _toWriteWitness.add(w);
+                cnt++;
+            }
+
+            long start = Now.NanoTime();
+            _toWriteWitness.parallelStream().forEach(witnessesRepository::save);
+            long duration = Now.NanoTime() - start;
+            log.warn("saves "+_toWriteWitness.size()+" in "+duration+"ns "+_toWriteWitness.size()/(double)duration+"ns/unit");
+            _toWriteWitness.clear();
+
+            /*
+                if ( _witnessDelayedInsert.size() > 0 ) {
                 mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(true));
                 BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
                 for (com.disk91.etl.data.object.Witness b : _witnessDelayedInsert) {
@@ -480,13 +501,9 @@ public class HotspotCache {
                 BulkWriteResult bulkWriteResult = bulkInsert.execute();
                 return bulkWriteResult.getInsertedCount();
             }
-            return 0;
-        } finally {
-            synchronized (inAsyncWrite) {
-                inAsyncWrite = false;
-            }
-        }
+            */
 
+        }
     }
 
     // ======================================================
