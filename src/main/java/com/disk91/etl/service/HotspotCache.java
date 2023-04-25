@@ -17,6 +17,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,7 +28,6 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Service
@@ -55,7 +56,7 @@ public class HotspotCache {
     protected Param iotpocTopLine = null;
     protected long iotpocTopTs = 0;
 
-    protected volatile Boolean inAsyncWrite = new Boolean(false);
+    protected volatile Boolean inAsyncWrite = Boolean.valueOf(false);
 
     @Autowired
     protected HotspotCacheAsync hotspotCacheAsync;
@@ -123,6 +124,25 @@ public class HotspotCache {
             iotpocTopLine.setLongValue(0);
             paramRepository.save(iotpocTopLine);
         }
+
+        // Preload Hotspots in cache
+        log.info("Init Hotspot Cache");
+        long current = Now.NowUtcMs();
+        long cnt = 0;
+        Slice<Hotspot> allHotspot = hotspotsRepository.findAllHotspots(PageRequest.of(0, 5_000));
+        if ( allHotspot != null && allHotspot.hasContent() ) {
+            do {
+                for ( Hotspot h : allHotspot.getContent() ) {
+                    this.heliumHotspotCache.put(h,h.getHotspotId());
+                    cnt++;
+                    if( (Now.NowUtcMs() - current) > 30_000 ) {
+                        log.info("Hostpot Cache init "+cnt+" elements");
+                    }
+                }
+                allHotspot = hotspotsRepository.findAllHotspots(allHotspot.nextPageable());
+            } while (allHotspot.hasNext());
+        }
+
         this.serviceEnable = true;
 
         try {
@@ -166,6 +186,11 @@ public class HotspotCache {
     public boolean hasStopped() {
         return (this.serviceEnable == false && this.runningJobs == 0);
     }
+
+    public boolean isReady() {
+        return (this.serviceEnable == true);
+    }
+
 
     public void flushTopLines() {
         // remove 10m to the max as the data are not always growing
@@ -467,7 +492,7 @@ public class HotspotCache {
                 log.warn("bulkInsertBeacons going slow ! "+_beaconDelayedInsert.size()+" pending");
                 log.warn("bulkInsertBeacons saves "+hadToSave+" in "+duration+"ms "+duration/(hadToSave/100.0)+"ms/ 100 units");
             }
-            
+
         }
     }
 

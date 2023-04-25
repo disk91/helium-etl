@@ -182,6 +182,7 @@ public class AwsService {
 
     @Scheduled(fixedDelay = 180_000, initialDelay = 10_000)
     protected void AwsBeaconSync() {
+        if ( ! hotspotCache.isReady() ) return;
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isBeaconLoadEnable() ) return;
 
@@ -372,6 +373,7 @@ public class AwsService {
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 15_000)
     protected void AwsWitnessSync() {
+        if ( ! hotspotCache.isReady() ) return;
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isWitnessLoadEnable() ) return;
 
@@ -623,6 +625,7 @@ public class AwsService {
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 17_000)
     protected void AwsIoTPocSync() {
+        if ( ! hotspotCache.isReady() ) return;
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isIotpocLoadEnable() ) return;
         log.info("Running AwsIoTPoc Sync");
@@ -899,6 +902,7 @@ public class AwsService {
     // Reward are once a day, so no need to search faster than on every 20 minutes
     @Scheduled(fixedDelay = 1200_000, initialDelay = 13_000)
     protected void AwsRewardSync() {
+        if ( ! hotspotCache.isReady() ) return;
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isRewardLoadEnable() ) return;
         log.info("Running AwsValidWitnessService Sync");
