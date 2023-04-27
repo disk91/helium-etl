@@ -156,13 +156,13 @@ public class HotspotData {
         setBeaconned(bs);
 
         List<WitnessHistory> whs = new ArrayList<>();
-        for (WitnessHistory wh : witnessesHistory) {
+        for (WitnessHistory wh : h.getWitnessesHistory()) {
             whs.add(wh.clone());
         }
         setWitnessesHistory(whs);
 
         List<BeaconHistory> bhs = new ArrayList<>();
-        for (BeaconHistory bh : beaconHistory) {
+        for (BeaconHistory bh : h.getBeaconHistory()) {
             bhs.add(bh.clone());
         }
         setBeaconHistory(bhs);
