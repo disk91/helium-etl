@@ -61,6 +61,8 @@ public class WebSecurityProfile {
                         .antMatchers("/").permitAll()
                         .antMatchers("/internal/3.0/exit").permitAll()
                         .antMatchers("/internal/3.0/health").permitAll()
+                        // Public Api
+                        .antMatchers("/hotspot/3.0").permitAll()
                         // swagger documentation
                         .antMatchers("/swagger-doc/**").permitAll()
                         .antMatchers("/v3/api-docs/**").permitAll()
