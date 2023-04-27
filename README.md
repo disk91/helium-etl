@@ -52,6 +52,14 @@ mv /etl/configuration/nginx/default.conf /etl/configuration/nginx/default.conf.w
 mv /etl/configuration/nginx/default.conf.withssl /etl/configuration/nginx/default.conf
 ```
 
+if you want to use self signed certificate
+```agsl
+openssl req -x509 -nodes -subj "/CN=etl.foo.bar" \
+        -addext "subjectAltName=DNS:etl.foo.bar" -days 9999 -newkey rsa:2048 \
+        -keyout /etl/configuration/ssl/live/etl.foo.bar/privkey.pem \
+        -out /etl/configuration/ssl/live/etl.foo.bar/fullchain.pem
+```
+
 Later to renew the certificate
 ```
 docker compose run --rm certbot renew
@@ -67,6 +75,14 @@ If later you need to stop the etl, it's important to let it time to terminate da
 For this, use the following command `make stop-etl`. If you need to stop everything, you
 can use `make stop`.
 
+## tips
+
+When using **ufw** to protect ports, you need to allow docker communication with port 9100 used by
+node-exporter in host mode. For this add a rule:
+
+```
+ufw allow from 172.0.0.0/8 to any port 9100
+```
 
 ## Developers
 This is only for developers who want to work on the etl solution

@@ -39,6 +39,8 @@ services:
       - /etl/configuration/ssl/:/etc/nginx/ssl/:ro
     profiles:
       - webserver
+    networks:
+      - public_net
 
   certbot:
     image: certbot/certbot:latest
@@ -257,6 +259,8 @@ services:
       - "--collector.tcpstat"
     pid: host
     network_mode: host
+    security_opt:
+      - apparmor:unconfined
     restart: unless-stopped
     volumes:
       - /proc:/host/proc:ro
