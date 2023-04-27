@@ -7,7 +7,7 @@ The choice of MongoDB allows to create a scalable architecture with sharding and
 too large single tenant DB as we have with postgresql.
 
 ### Recommanded HW
-- 32GB RAM server
+- 64GB RAM server
 - 3x or 4x SSD/NVMe units for storage
 
 ### Install
@@ -26,6 +26,9 @@ AWS credential are needed to retrieve data from helium repository, these data ar
 accessible with *requester_pays* mode. It means you pay for any S3 action made on the
 repository. Your credentials are created with IAM AWS tool and need to have `AmazonS3ReadOnlyAccess` role.
 
+-- **setup NGINX** in `etl/nginx/default.conf` and `etl/nginx/default.conf.withssl`
+Change the name of the service `etl.foo.bar` with your dns name
+
 - **create the environment**
 ```agsl
 make install
@@ -37,6 +40,23 @@ the performance.
 
 You can eventually move the data on different SSD after this setup by remapping the
 directories on different drives.
+
+- **setup nginx certificates**
+
+Run the following command / replace `etl.foo.bar` by your DNS entry
+```
+docker compose --profile webserver up -d
+docker compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot/ -d etl.foo.bar
+docker compose --profile webserver down
+mv /etl/configuration/nginx/default.conf /etl/configuration/nginx/default.conf.withoutssl
+mv /etl/configuration/nginx/default.conf.withssl /etl/configuration/nginx/default.conf
+```
+
+Later to renew the certificate
+```
+docker compose run --rm certbot renew
+```
+
 
 - **start etl**
 ```

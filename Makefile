@@ -38,7 +38,7 @@ build: back
 install: setup back
 
 start:
-	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring up -d
+	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring --profile webserver up -d
 
 stop-etl: .FORCE
 	$(DOCKER_CMD) stop -t 10800 etl

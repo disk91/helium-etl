@@ -16,7 +16,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 19000m
+          memory: 32000m
     ports:
       - 127.0.0.1:8091:8091
     profiles:
@@ -25,6 +25,27 @@ services:
       - public_net
       - mongo_net
       - monitoring_net
+
+  ## Nginx front
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+    volumes:
+      - /etl/configuration/nginx/:/etc/nginx/conf.d/:ro
+      - /etl/configuration/certbot/:/var/www/certbot/:ro
+      - /etl/configuration/ssl/:/etc/nginx/ssl/:ro
+    profiles:
+      - webserver
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - /etl/configuration/certbot/:/var/www/certbot/:rw
+      - /etl/configuration/ssl/:/etc/letsencrypt/:rw
+
 
   ## Router - get the traffic request
   mongo-router01:
