@@ -223,6 +223,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         for (LatLng p : posHistory) {
             ph.add(p.clone());
         }
+        c.setPosHistory(ph);
 
         List<Witness> ws = new ArrayList<>();
         for (Witness w : witnesses) {

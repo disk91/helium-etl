@@ -217,7 +217,7 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
                         this.tooLong = true;
                     }
 
-                    if (this.tooLong || (this.total100CacheTime / (total100CacheTry - 100)) > 5_000) {
+                    if (this.tooLong || (this.total100CacheTime / (total100CacheTry - 100)) > 500_000) {
                         log.info(this.name + " avg cache tm : " + (this.total100CacheTime / (total100CacheTry - 100)) + "ns");
                     }
 

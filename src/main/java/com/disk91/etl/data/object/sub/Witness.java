@@ -1,22 +1,75 @@
 package com.disk91.etl.data.object.sub;
 
 import fr.ingeniousthings.tools.ClonnableObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Witness Data", description = "Information related to a witnesser")
 public class Witness implements ClonnableObject<Witness> {
 
-    private long lastSeen;
+    @Schema(
+            description = "Hotspot concerned, public key, base58",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private String hs;
+
+    @Schema(
+            description = "Timestamp UTC, last time that hotspot has been seen",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private long lastSeen;
+
+    @Schema(
+            description = "Last RSSI for that hotspot",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private double lastRssi;
+
+    @Schema(
+            description = "Last SNR for that hotspot",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private double lastSnr;
 
+    @Schema(
+            description = "Sum of Rssi for averaging",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private double totRssi;
+
+    @Schema(
+            description = "Sum of SNR for averaging",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private double totSnr;
+
+    @Schema(
+            description = "Num of witnesses for averaging",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private double countWitnesses;
 
+    @Schema(
+            description = "Number of time this one has been selected",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private long totSelected;
+
+    @Schema(
+            description = "Number of time this one has not been selected",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private long totUnselected;
 
+    @Schema(
+            description = "Last known position (latitude) for that hotspot",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private double lat = 0.0;
+    @Schema(
+            description = "Last known position (longitude) for that hotspot",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private double lng = 0.0;
 
     // --------

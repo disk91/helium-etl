@@ -209,9 +209,22 @@ public class HotspotCache {
     @Autowired
     protected HotspotsRepository hotspotsRepository;
 
+    // non blocking read only interface to hotspots
+    public Hotspot getOneHotspot(String hotspotId) throws ITNotFoundException {
+        Hotspot hs = heliumHotspotCache.get(hotspotId);
+        if ( hs == null ) {
+            // try db
+            hs = hotspotsRepository.findOneHotspotByHotspotId(hotspotId);
+            if (hs == null) {
+                throw new ITNotFoundException();
+            }
+        }
+        return hs;
+    }
+
     // non blocking interface to prevent init problem here all
     // the request are blocked time to get it from Db
-    public Hotspot getHotspot(String hotspotId, boolean cache) {
+    protected Hotspot getHotspot(String hotspotId, boolean cache) {
         Hotspot hs = heliumHotspotCache.get(hotspotId);
         if ( hs == null ) {
             return getHotspotSync(hotspotId, cache);
@@ -219,7 +232,7 @@ public class HotspotCache {
         return hs;
     }
 
-    synchronized public Hotspot getHotspotSync(String hotspotId, boolean cache) {
+    synchronized protected Hotspot getHotspotSync(String hotspotId, boolean cache) {
         Hotspot hs = heliumHotspotCache.get(hotspotId);
         if ( hs == null ) {
             hs = hotspotsRepository.findOneHotspotByHotspotId(hotspotId);
