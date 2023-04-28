@@ -247,6 +247,7 @@ public class HotspotCache {
                 hs.setBeaconHistory(new ArrayList<>());
                 hs.setWitnessesHistory(new ArrayList<>());
                 hs.setBeaconned(new ArrayList<>());
+                hs.setRewardHistories(new ArrayList<>());
                 hs.setLastBeacon(0);
                 hs.setLastWitness(0);
                 hs.setVersion(1);
@@ -264,6 +265,9 @@ public class HotspotCache {
                 }
                 if ( hs.getPosHistory() == null ) {
                     hs.setPosHistory(new ArrayList<>());
+                }
+                if ( hs.getRewardHistories() == null ) {
+                    hs.setRewardHistories(new ArrayList<>());
                 }
             }
             if ( cache && hs != null ) {
