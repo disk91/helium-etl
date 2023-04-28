@@ -138,32 +138,42 @@ public class HotspotData {
         setOffsetReward(h.getOffsetReward());
 
         List<LatLng> ph = new ArrayList<>();
-        for (LatLng p : h.getPosHistory()) {
-            ph.add(p.clone());
+        if ( h.getPosHistory() != null ) {
+            for (LatLng p : h.getPosHistory()) {
+                ph.add(p.clone());
+            }
         }
         setPosHistory(ph);
 
         List<Witness> ws = new ArrayList<>();
-        for (Witness w : h.getWitnesses()) {
-            ws.add(w.clone());
+        if ( h.getWitnesses() != null ) {
+            for (Witness w : h.getWitnesses()) {
+                ws.add(w.clone());
+            }
         }
         setWitnesses(ws);
 
         List<Witness> bs = new ArrayList<>();
-        for (Witness w : h.getBeaconned()) {
-            bs.add(w.clone());
+        if ( h.getBeaconned() != null ) {
+            for (Witness w : h.getBeaconned()) {
+                bs.add(w.clone());
+            }
         }
         setBeaconned(bs);
 
         List<WitnessHistory> whs = new ArrayList<>();
-        for (WitnessHistory wh : h.getWitnessesHistory()) {
-            whs.add(wh.clone());
+        if ( h.getWitnessesHistory() != null ) {
+            for (WitnessHistory wh : h.getWitnessesHistory()) {
+                whs.add(wh.clone());
+            }
         }
         setWitnessesHistory(whs);
 
         List<BeaconHistory> bhs = new ArrayList<>();
-        for (BeaconHistory bh : h.getBeaconHistory()) {
-            bhs.add(bh.clone());
+        if ( h.getBeaconHistory() != null ) {
+            for (BeaconHistory bh : h.getBeaconHistory()) {
+                bhs.add(bh.clone());
+            }
         }
         setBeaconHistory(bhs);
     }
