@@ -1,9 +1,7 @@
 package com.disk91.etl.data.object;
 
-import com.disk91.etl.data.object.sub.BeaconHistory;
-import com.disk91.etl.data.object.sub.LatLng;
+import com.disk91.etl.data.object.sub.*;
 import com.disk91.etl.data.object.sub.Witness;
-import com.disk91.etl.data.object.sub.WitnessHistory;
 import fr.ingeniousthings.tools.ClonnableObject;
 import fr.ingeniousthings.tools.Now;
 import org.springframework.data.annotation.Id;
@@ -62,6 +60,9 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     // Quantitative history
     private List<BeaconHistory> beaconHistory;
 
+    // Reward history (once a day)
+    private List<RewardHistory> rewardHistories;
+
     // ---------------------------------------------------------
     // Synchronous update
 
@@ -71,7 +72,38 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         this.sumRewardBeacon += beacon;
         this.sumRewardWitness += witness;
         this.sumRewardDc += dcs;
+
+        long hRef = Now.ThisHourUtc(tm);
+        RewardHistory bh = new RewardHistory();
+        bh.setTimeRef(hRef);
+        bh.setDataReward(dcs);
+        bh.setBeaconReward(beacon);
+        bh.setWitnessReward(witness);
+
+        // find older one
+        long oldest = Now.NowUtcMs();
+        for (RewardHistory _bh : this.getRewardHistories()) {
+            if (_bh.getTimeRef() < oldest) {
+               oldest = _bh.getTimeRef();
+            }
+        }
+
+        // need to clean an older one ?
+        if (this.getRewardHistories().size() > 30) {
+            ArrayList<RewardHistory> nl = new ArrayList<>();
+            nl.add(bh);
+            for (RewardHistory _bh : this.getRewardHistories()) {
+                if (_bh.getTimeRef() != oldest) {
+                    nl.add(_bh);
+                }
+            }
+            this.setRewardHistories(nl);
+        } else {
+            this.getRewardHistories().add(bh);
+        }
     }
+
+
 
     synchronized public void updatePosition(long timestamp, double lat, double lng, double alt, double gain) {
         LatLng _p = this.getPosition();
@@ -120,8 +152,9 @@ public class Hotspot implements ClonnableObject<Hotspot> {
                     }
                 }
                 this.setBeaconHistory(nl);
+            } else {
+                this.getBeaconHistory().add(bh);
             }
-            this.getBeaconHistory().add(bh);
         }
     }
 
@@ -195,8 +228,9 @@ public class Hotspot implements ClonnableObject<Hotspot> {
                     }
                 }
                 this.setWitnessesHistory(nl);
+            } else {
+                this.getWitnessesHistory().add(wh);
             }
-            this.getWitnessesHistory().add(wh);
         }
     }
 
@@ -396,5 +430,13 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setFirstSeen(long firstSeen) {
         this.firstSeen = firstSeen;
+    }
+
+    public List<RewardHistory> getRewardHistories() {
+        return rewardHistories;
+    }
+
+    public void setRewardHistories(List<RewardHistory> rewardHistories) {
+        this.rewardHistories = rewardHistories;
     }
 }
