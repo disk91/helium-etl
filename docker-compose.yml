@@ -33,6 +33,8 @@ services:
       - 80:80
       - 443:443
     restart: unless-stopped
+    depends_on:
+      - etl
     volumes:
       - /etl/configuration/nginx/:/etc/nginx/conf.d/:ro
       - /etl/configuration/certbot/:/var/www/certbot/:ro
