@@ -1,10 +1,7 @@
 package com.disk91.etl.api.interfaces;
 
 import com.disk91.etl.data.object.Hotspot;
-import com.disk91.etl.data.object.sub.BeaconHistory;
-import com.disk91.etl.data.object.sub.LatLng;
-import com.disk91.etl.data.object.sub.Witness;
-import com.disk91.etl.data.object.sub.WitnessHistory;
+import com.disk91.etl.data.object.sub.*;
 import fr.ingeniousthings.tools.ClonnableObject;
 import fr.ingeniousthings.tools.Now;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -119,6 +116,11 @@ public class HotspotData {
     )
     private List<BeaconHistory> beaconHistory;
 
+    @Schema(
+            description = "Rewards history, quantitative, per hour, for real, once a day",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private List<RewardHistory> rewardHistories;
 
 
     // ---------------------------------------------------------
@@ -176,6 +178,15 @@ public class HotspotData {
             }
         }
         setBeaconHistory(bhs);
+
+        List<RewardHistory> rhs = new ArrayList<>();
+        if ( h.getRewardHistories() != null ) {
+            for (RewardHistory bh : h.getRewardHistories()) {
+                rhs.add(bh.clone());
+            }
+        }
+        setRewardHistories(rhs);
+
     }
 
 
@@ -308,5 +319,13 @@ public class HotspotData {
 
     public void setSumRewardDc(long sumRewardDc) {
         this.sumRewardDc = sumRewardDc;
+    }
+
+    public List<RewardHistory> getRewardHistories() {
+        return rewardHistories;
+    }
+
+    public void setRewardHistories(List<RewardHistory> rewardHistories) {
+        this.rewardHistories = rewardHistories;
     }
 }

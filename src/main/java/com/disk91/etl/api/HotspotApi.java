@@ -22,12 +22,16 @@ package com.disk91.etl.api;
 import com.disk91.etl.api.interfaces.ActionResult;
 import com.disk91.etl.api.interfaces.HotspotData;
 import com.disk91.etl.data.object.Hotspot;
+import com.disk91.etl.data.object.Reward;
 import com.disk91.etl.service.ExitService;
 import com.disk91.etl.service.HotspotCache;
 import com.disk91.etl.service.PrometeusService;
+import com.disk91.etl.service.RewardService;
 import fr.ingeniousthings.tools.ITNotFoundException;
+import fr.ingeniousthings.tools.ITParseException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -41,6 +45,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @Tag( name = "hotspot api", description = "hotspot api" )
 @CrossOrigin
@@ -75,6 +80,38 @@ public class HotspotApi {
             return new ResponseEntity<>(r, HttpStatus.OK);
         } catch (ITNotFoundException x) {
             return new ResponseEntity<>(ActionResult.NODATA(), HttpStatus.NO_CONTENT);
+        }
+    }
+
+
+    @Autowired
+    protected RewardService rewardService;
+
+    @Operation(summary = "Get Hotspot rewards",
+            description = "Get Hotspot rewards data",
+            responses = {
+                    @ApiResponse(responseCode = "200", description= "Done",
+                                    content = @Content(array = @ArraySchema(schema = @Schema( implementation = Reward.class)))),
+                    @ApiResponse(responseCode = "400", description= "Bad Request", content = @Content(schema = @Schema(implementation = ActionResult.class)))
+            }
+    )
+    @RequestMapping(value="/rewards/{hotspotId}/{from}/{to}/",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method= RequestMethod.GET)
+    public ResponseEntity<?> getHotspotRewards(
+            HttpServletRequest request,
+            @Parameter(required = true, name = "hotspotId", description = "Base58 hotspot public key encoded")
+            @PathVariable String hotspotId,
+            @Parameter(required = true, name = "from", description = "from date UTC Ms")
+            @PathVariable long from,
+            @Parameter(required = true, name = "to", description = "to date UTC Ms")
+            @PathVariable long to
+    ) {
+        try {
+            List<Reward> r = rewardService.getHotspotRewards(hotspotId,from,to);
+            return new ResponseEntity<>(r, HttpStatus.OK);
+        } catch (ITParseException x) {
+            return new ResponseEntity<>(ActionResult.BADREQUEST(), HttpStatus.BAD_REQUEST);
         }
     }
 
