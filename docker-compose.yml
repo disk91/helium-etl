@@ -167,7 +167,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3000m
+          memory: 3500m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-01a:/data/db
@@ -188,7 +188,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3000m
+          memory: 3500m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-02a:/data/db
@@ -208,7 +208,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3000m
+          memory: 3500m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-03a:/data/db
