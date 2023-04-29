@@ -13,10 +13,9 @@ services:
     environment:
       - AWS_ACCESS_KEY=
       - AWS_SECRET_KEY=
-    deploy:
-      resources:
-        limits:
-          memory: 34000m
+    mem_limit: 33000m
+    memswap_limit: 33000m
+    mem_reservation: 33000m
     ports:
       - 127.0.0.1:8091:8091
     profiles:
@@ -167,7 +166,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3500m
+          memory: 3200m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-01a:/data/db
@@ -188,7 +187,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3500m
+          memory: 3200m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-02a:/data/db
@@ -208,7 +207,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3500m
+          memory: 3200m
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/shard-03a:/data/db
