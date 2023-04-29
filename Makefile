@@ -44,5 +44,5 @@ stop-etl: .FORCE
 	$(DOCKER_CMD) stop -t 10800 etl
 
 stop: stop-etl
-	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring stop
+	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring --profile webserver stop
 
