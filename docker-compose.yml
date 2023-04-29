@@ -16,7 +16,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 32000m
+          memory: 34000m
     ports:
       - 127.0.0.1:8091:8091
     profiles:
