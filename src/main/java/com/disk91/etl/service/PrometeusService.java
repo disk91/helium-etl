@@ -177,6 +177,14 @@ public class PrometeusService {
     }
 
 
+    // time to process 1 hour of data
+    private long hourlyIotRate = 0;
+    public void setHourlyIoTRate(long newValue) {
+        this.hourlyIotRate = newValue;
+    }
+    protected Supplier<Number> getHourlyIotRate() { return ()->hourlyIotRate;}
+
+
     // ---
     // Prometeus
     public PrometeusService(MeterRegistry registry) {
@@ -199,6 +207,10 @@ public class PrometeusService {
 
         Gauge.builder("etl.iotpoc.processed.time", getIoTPocProcesseTimes())
                 .description("Processing time for iot poc")
+                .register(registry);
+
+        Gauge.builder("etl.iotpoc.hour.rate", getHourlyIotRate())
+                .description("Server time to process 1 hour of IoT Poc Data")
                 .register(registry);
 
         Gauge.builder("etl.reward.processed", getRewardProcesses())

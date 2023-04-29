@@ -622,6 +622,8 @@ public class AwsService {
         }
     }
 
+    private long currentHour = 0;
+    private long currentHourTs = 0;
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 17_000)
     protected void AwsIoTPocSync() {
@@ -665,6 +667,7 @@ public class AwsService {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3ObjectSummary> objects = list.getObjectSummaries();
                 for (S3ObjectSummary object : objects) {
+
                     long cSize = object.getSize();
                     long rSize = 0;
                     totalObject++;
@@ -684,6 +687,22 @@ public class AwsService {
                         paramRepository.save(iotPocFile);
                         continue;
                     }
+
+                    // prometheus update for getting time to process 1 hour as indicator
+                    // round file date to 1 hour
+                    long fileHour = fileDate / 3_600_000;
+                    fileHour = fileHour * 3_600_000;
+                    if ( currentHour == 0 ) {
+                        currentHour = fileHour;
+                        currentHourTs = Now.NowUtcMs();
+                    }
+                    if ( currentHour != fileHour ) {
+                        // new hour
+                        prometeusService.setHourlyIoTRate(Now.NowUtcMs()-currentHourTs);
+                        currentHourTs = Now.NowUtcMs();
+                        currentHour = fileHour;
+                    }
+
 
                     /* --  no need to sync with beacon read as the verified poc are including Beacon & Poc all at once
                     try {
@@ -779,7 +798,10 @@ public class AwsService {
                             // Add in queues - find it with a random element in the pub key
                             // to make sure a single hotspot goes to the same queues to not
                             // have collisions
-                            int q = w.getBeaconReport().getReport().getPubKey().byteAt(4);
+                            int q = w.getBeaconReport().getReport().getPubKey().byteAt(4)
+                                    + w.getBeaconReport().getReport().getPubKey().byteAt(5)
+                                    + w.getBeaconReport().getReport().getPubKey().byteAt(6)
+                                    + w.getBeaconReport().getReport().getPubKey().byteAt(7);
                             q &= (etlConfig.getIotpocLoadParallelWorkers() - 1);
                             try {
                                 // when a queue is full just wait, it should be balanced
@@ -828,16 +850,16 @@ public class AwsService {
             } while (list.isTruncated());
         } catch (AmazonServiceException x) {
             prometeusService.addAwsFailure();
-            log.error("AwsIoTPocSync - "+x.getMessage());
-            x.printStackTrace();
+            log.error("AwsIoTPocSync - Service "+x.getMessage());
+            //x.printStackTrace();
         } catch (AmazonClientException x) {
             prometeusService.addAwsFailure();
-            log.error("AwsIoTPocSync - "+x.getMessage());
-            x.printStackTrace();
+            log.error("AwsIoTPocSync - Client "+x.getMessage());
+            //x.printStackTrace();
         } catch (Exception x) {
             prometeusService.addAwsFailure();
             log.error("IoTPoc Batch Failure "+x.getMessage());
-            x.printStackTrace();
+            //x.printStackTrace();
         } finally {
             // wait the parallel Thread to stop max 5 minutes
             this.pocThreadEnable = false;

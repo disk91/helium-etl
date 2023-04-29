@@ -206,6 +206,8 @@ public class Hotspot implements ClonnableObject<Hotspot> {
                 if (wh.getTimeRef() == hRef) {
                     // update
                     wh.setCountWitnesses(wh.getCountWitnesses() + 1);
+                    // selected
+                    if ( selected ) wh.setSeletedWitness(wh.getSeletedWitness() + 1);
                     updated = true;
                     break;
                 }
@@ -217,6 +219,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             WitnessHistory wh = new WitnessHistory();
             wh.setTimeRef(hRef);
             wh.setCountWitnesses(1);
+            if ( selected ) wh.setSeletedWitness(1);
 
             // need to clean an older one ?
             if (this.getWitnessesHistory().size() > maxHistEntries ) {
