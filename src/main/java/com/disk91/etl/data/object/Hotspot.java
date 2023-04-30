@@ -286,6 +286,12 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         }
         c.setBeaconHistory(bhs);
 
+        List<RewardHistory> rhs = new ArrayList<>();
+        for (RewardHistory rh : rewardHistories) {
+            rhs.add(rh.clone());
+        }
+        c.setRewardHistories(rhs);
+
         return c;
     }
 
