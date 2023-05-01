@@ -306,7 +306,7 @@ public class HotspotCache {
         ) {
             modifications = 0;
             lastModification = now;
-            long updated = heliumHotspotCache.commit(true,etlConfig.getCacheHotspotCommit()); // async commit to quit immediately
+            long updated = heliumHotspotCache.commit(true,20_000); // async commit to quit immediately, limit to 100 object every time
             // avoid to have a parallel request to start as the async process can take a few mx to start and another pending updateHotspot takes
             // the opportunity to run a concurrent request and consume memory we need
             long s = Now.NowUtcMs() ; while ( !hotspotCacheAsync.isRunning() && ((Now.NowUtcMs()-s) < 10_000) );
