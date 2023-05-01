@@ -831,7 +831,20 @@ public class AwsService {
                     } // end of current file
                     toProcess.clear();
 
-                    this.firstFile = false;
+                    if ( this.firstFile ) {
+                        // we need to wait for the queue to be empty
+                        int pending;
+                        do {
+                            pending = 0;
+                            for ( int q = 0; q < etlConfig.getIotpocLoadParallelWorkers() ; q++ ) {
+                                pending += queues[q].size();
+                            }
+                            try { Thread.sleep(2000); } catch (InterruptedException x) {};
+                            log.debug("Waiting for 1st file to finish... "+pending);
+                        } while ( pending > 0);
+                        this.firstFile = false;
+                    }
+
                     prometeusService.addFileProcessed();
                     prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
                     prometeusService.changeFileIoTPocTimestamp(fileDate);
