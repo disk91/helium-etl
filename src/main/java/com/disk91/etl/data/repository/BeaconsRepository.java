@@ -13,4 +13,6 @@ public interface BeaconsRepository extends MongoRepository<Beacon, String> {
     // timestamp distance my help
     public List<Beacon> findBeaconByData(String data);
 
+    public Beacon findOneBeaconByHotspotIdAndTimestamp(String hotspotId, long timestamp);
+
 }

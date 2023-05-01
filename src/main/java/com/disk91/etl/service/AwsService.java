@@ -591,6 +591,7 @@ public class AwsService {
     // ---------------------------------------
 
     protected boolean pocThreadEnable = true;
+    protected volatile boolean firstFile = true;
 
     public class ProcessIoTPoc implements Runnable {
 
@@ -609,7 +610,7 @@ public class AwsService {
             lora_poc_v1 w;
             while ( (w = queue.poll()) != null || pocThreadEnable ) {
                 if ( w != null) {
-                   if (!hotspotCache.addIoTPoC(w)) {
+                   if (!hotspotCache.addIoTPoC(w, firstFile)) {
                         log.debug("Th(" + id + ") iotpoc not processed " + w.getBeaconReport().getReceivedTimestamp());
                    }
                 } else {
@@ -830,6 +831,7 @@ public class AwsService {
                     } // end of current file
                     toProcess.clear();
 
+                    this.firstFile = false;
                     prometeusService.addFileProcessed();
                     prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
                     prometeusService.changeFileIoTPocTimestamp(fileDate);

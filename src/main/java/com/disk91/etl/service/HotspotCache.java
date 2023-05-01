@@ -290,18 +290,22 @@ public class HotspotCache {
      * update, this one is blocking. We do this on every 2 hours.
      */
     private long modifications = 0;
+    private long lastModification = 0;
     private boolean forceSyncUpdate = false;
     private long lastForceSync = Now.NowUtcMs();
     public synchronized void updateHotspot(Hotspot o) {
         heliumHotspotCache.put(o,o.getHotspotId());
         modifications++;
         prometeusService.changeHsModification(modifications);
+        long now = Now.NowUtcMs();
         if ( ! hotspotCacheAsync.isRunning()
-        && (    modifications > etlConfig.getCacheHotspotCommit()   // to commit the modifications
-             || heliumHotspotCache.isInAsyncSync()                  // to terminate async sync in batch
+        && (    modifications > etlConfig.getCacheHotspotCommit()       // to commit the modifications
+             || (now - lastModification) > 15*Now.ONE_MINUTE // make sure we commit on every 15 minutes at least
+             || heliumHotspotCache.isInAsyncSync()                      // to terminate async sync in batch
            )
         ) {
             modifications = 0;
+            lastModification = now;
             long updated = heliumHotspotCache.commit(true,etlConfig.getCacheHotspotCommit()); // async commit to quit immediately
             // avoid to have a parallel request to start as the async process can take a few mx to start and another pending updateHotspot takes
             // the opportunity to run a concurrent request and consume memory we need
@@ -621,10 +625,8 @@ public class HotspotCache {
     // Manage IoT PoC
     // ======================================================
 
-    public boolean addIoTPoC(lora_poc_v1 p) {
+    public boolean addIoTPoC(lora_poc_v1 p, boolean inFirstFile) {
 
-        // do not proceed twice (try at least)
-        if ( p.getBeaconReport().getReceivedTimestamp() < iotpocTopLine.getLongValue() ) return false;
         long start = Now.NowUtcMs();
 
         // contains POC and Witness information
@@ -633,6 +635,17 @@ public class HotspotCache {
         // Update the beaconner
         String hsBeaconerId = HeliumHelper.pubAddressToName(beacon.getReport().getPubKey());
         Hotspot beaconner = this.getHotspot(hsBeaconerId, true);
+
+        if ( inFirstFile ) {
+            // search for beacon in case the file has been stopped in the middle
+            Beacon b = beaconsRepository.findOneBeaconByHotspotIdAndTimestamp(
+                    hsBeaconerId,
+                    beacon.getReport().getTimestamp()
+            );
+            // already processed
+            if ( b != null ) return false;
+        }
+
 
         if ( (start - beaconner.getPosition().getLastDatePosition()) > 12*Now.ONE_HOUR ) {
             // no need to verify position on every beacon
