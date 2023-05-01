@@ -810,7 +810,6 @@ public class AwsService {
                             } catch (InterruptedException x) {
                                 x.printStackTrace();
                             }
-                            ;
                             queues[q].add(w);
 
                             // print progress log on regular basis
@@ -839,8 +838,8 @@ public class AwsService {
                             for ( int q = 0; q < etlConfig.getIotpocLoadParallelWorkers() ; q++ ) {
                                 pending += queues[q].size();
                             }
-                            try { Thread.sleep(2000); } catch (InterruptedException x) {};
-                            log.debug("Waiting for 1st file to finish... "+pending);
+                            try { Thread.sleep(10_000); } catch (InterruptedException x) {};
+                            log.info("> Waiting for 1st file to be finished... "+pending);
                         } while ( pending > 0);
                         this.firstFile = false;
                     }

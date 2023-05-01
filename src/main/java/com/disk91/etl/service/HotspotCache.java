@@ -290,7 +290,7 @@ public class HotspotCache {
      * update, this one is blocking. We do this on every 2 hours.
      */
     private long modifications = 0;
-    private long lastModification = 0;
+    private long lastModification = Now.NowUtcMs();
     private boolean forceSyncUpdate = false;
     private long lastForceSync = Now.NowUtcMs();
     public synchronized void updateHotspot(Hotspot o) {
