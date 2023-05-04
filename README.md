@@ -7,8 +7,11 @@ The choice of MongoDB allows to create a scalable architecture with sharding and
 too large single tenant DB as we have with postgresql.
 
 ### Recommanded HW
-- 64GB RAM server
+- 96GB RAM server
 - 3x or 4x SSD/NVMe units for storage
+
+Works with 64G systems (but have some swap even if memory not fully allocated, 
+use docker-compose and Dockerfile with -64G extension)
 
 ### Install
 Tested on Ubuntu 22.04LTS
