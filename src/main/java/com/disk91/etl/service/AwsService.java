@@ -149,6 +149,7 @@ public class AwsService {
     public void stopService() {
         this.serviceEnable = false;
     }
+    public void restartService() { this.serviceEnable = true; }
     public boolean hasStopped() {
         return (this.serviceEnable == false && this.runningJobs == 0);
     }
@@ -606,7 +607,7 @@ public class AwsService {
         }
         public void run() {
             this.status = true;
-            log.info("Starting iot_poc process thread "+id);
+            log.debug("Starting iot_poc process thread "+id);
             lora_poc_v1 w;
             while ( (w = queue.poll()) != null || pocThreadEnable ) {
                 if ( w != null) {
@@ -619,7 +620,7 @@ public class AwsService {
                     } catch (InterruptedException x) {x.printStackTrace();}
                 }
             }
-            log.info("Closing iot_poc process thread "+id);
+            log.debug("Closing iot_poc process thread "+id);
         }
     }
 
@@ -917,7 +918,7 @@ public class AwsService {
         }
         public void run() {
             this.status = true;
-            log.info("Starting Reward process thread "+id);
+            log.debug("Starting Reward process thread "+id);
             iot_reward_share w;
             while ( (w = queue.poll()) != null || rewardThreadEnable ) {
                 if ( w != null) {
@@ -930,7 +931,7 @@ public class AwsService {
                     } catch (InterruptedException x) {x.printStackTrace();}
                 }
             }
-            log.info("Closing rewards process thread "+id);
+            log.debug("Closing rewards process thread "+id);
         }
     }
 

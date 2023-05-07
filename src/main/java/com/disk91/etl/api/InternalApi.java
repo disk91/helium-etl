@@ -71,6 +71,62 @@ public class InternalApi {
         return new ResponseEntity<>(ActionResult.SUCESS(), HttpStatus.OK);
     }
 
+    @Operation(summary = "Pause the application - this API is not exposed",
+            description = "Request the backend to pause processing after terminating current work.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description= "Done", content = @Content(schema = @Schema(implementation = ActionResult.class)))
+            }
+    )
+    @RequestMapping(value="/pause",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method= RequestMethod.GET)
+    public ResponseEntity<?> requestPauseApplication(
+            HttpServletRequest request
+    ) {
+        log.info("Request to pause the application");
+        exitService.onCallPause();
+        return new ResponseEntity<>(ActionResult.SUCESS(), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Pause state of the application - this API is not exposed",
+            description = "return 200 when the pause has been completed and 202 when not yet",
+            responses = {
+                    @ApiResponse(responseCode = "200", description= "Done", content = @Content(schema = @Schema(implementation = ActionResult.class))),
+                    @ApiResponse(responseCode = "202", description= "Done", content = @Content(schema = @Schema(implementation = ActionResult.class)))
+            }
+    )
+    @RequestMapping(value="/pause/status",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method= RequestMethod.GET)
+    public ResponseEntity<?> requestPauseStatus(
+            HttpServletRequest request
+    ) {
+        if ( exitService.isInPause() ) {
+            return new ResponseEntity<>(ActionResult.SUCESS(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(ActionResult.SUCESS(), HttpStatus.ACCEPTED);
+        }
+    }
+
+
+    @Operation(summary = "Resume the application - this API is not exposed",
+            description = "Request the backend to resume processing ",
+            responses = {
+                    @ApiResponse(responseCode = "200", description= "Done", content = @Content(schema = @Schema(implementation = ActionResult.class)))
+            }
+    )
+    @RequestMapping(value="/resume",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method= RequestMethod.GET)
+    public ResponseEntity<?> requestResumeApplication(
+            HttpServletRequest request
+    ) {
+        log.info("Request to resume the application");
+        exitService.onCallResume();
+        return new ResponseEntity<>(ActionResult.SUCESS(), HttpStatus.OK);
+    }
+
+
     @Operation(summary = "Healthcheck",
             description = "Just to make sure the api is up & running.",
             responses = {

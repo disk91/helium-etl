@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.Lifecycle;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
@@ -17,6 +18,8 @@ public class ExitService implements Lifecycle {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private boolean exiting = false;
+
+    private boolean inPause = false;
 
     @Autowired
     protected EtlConfig etlConfig;
@@ -45,6 +48,45 @@ public class ExitService implements Lifecycle {
         return (!this.exiting);
     }
 
+    public boolean isInPause() { return (this.inPause); }
+    public boolean requestPause = false;
+
+    /**
+     * Request to terminate the current operation, like an exit
+     * but not quit, it will be resumed after. This operation is
+     * required to have a coherent backup
+     */
+    public synchronized void onCallPause() {
+        if (this.inPause || this.requestPause ) return;
+        requestPause = true;
+        log.info("### Pending pause request");
+    }
+
+    /**
+     * better as async function but don't want to create a class for this
+     */
+    @Scheduled( fixedDelay = 10_000, initialDelay = 30_000)
+    private void asyncPause() {
+        if ( requestPause ) {
+            log.info("### Start pause request");
+            this.stopAwsService();
+            hotspotCache.pauseService();
+            Now.sleep(5_000);
+            log.info("### Etl in pause");
+            this.inPause = true;
+            this.requestPause = false;
+        }
+    }
+
+
+    public synchronized void onCallResume() {
+        if ( !this.inPause ) return;
+        log.info("### Start resume request");
+        hotspotCache.resumeService();
+        awsService.restartService();
+        this.inPause = false;
+        log.info("### Etl resumed");
+    }
 
     public void onCallExit() {
         if (this.exiting) return;
@@ -53,6 +95,23 @@ public class ExitService implements Lifecycle {
         log.error("Exiting application");
 
         log.warn("Exit - stopping services");
+        this.stopAwsService();
+
+        log.warn("Exit - flush cache");
+        hotspotCache.stopService();
+        beaconROCache.stopService();
+
+        log.warn("Exit - completed");
+        this.exiting = true;
+        try {
+            // not ideal but let some time to finish everythings
+            Thread.sleep(1_000);
+        } catch (InterruptedException e) {};
+        EtlApplication.exit();
+
+    }
+
+    private void stopAwsService() {
         awsService.stopService();
 
         int services = 0;
@@ -72,19 +131,7 @@ public class ExitService implements Lifecycle {
             }
         } while (services > 0);
 
-        log.warn("Exit - flush cache");
-        hotspotCache.stopService();
-        beaconROCache.stopService();
-
-
-        log.info("Exit - completed");
-        this.exiting = true;
-        try {
-            // not ideal but let some time to finish everythings
-            Thread.sleep(1_000);
-        } catch (InterruptedException e) {};
-        EtlApplication.exit();
-
     }
+
 
 }

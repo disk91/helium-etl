@@ -168,11 +168,51 @@ public class HotspotCache {
         }
     }
 
+    public void pauseService() {
+        // flush pending write
+        log.info("Flush Beacon & Witness pending");
+        long s = Now.NowUtcMs();
+        while ( inAsyncWrite == true  && (Now.NowUtcMs() - s) < 120_000 );
+        bulkInsertRewards();
+        flushInsertWitness();
+        flushInsertBeacon();
+
+        while (hotspotCacheAsync.isRunning() ) {
+            try { Thread.sleep(100); } catch ( InterruptedException x) {};
+        };
+
+        // commit all other modifications
+        log.info("Commit hotspot cache");
+        long updated;
+        do {
+            updated = heliumHotspotCache.commit(true,20_000);
+            if ( updated > 0 ) {
+                // wait for async process to start
+                long st = Now.NowUtcMs();
+                while (!hotspotCacheAsync.isRunning() && ((Now.NowUtcMs() - st) < 10_000)) ;
+                // wait for end of async process
+                st = Now.NowUtcMs();
+                while (hotspotCacheAsync.isRunning() && ((Now.NowUtcMs() - st) < Now.ONE_HOUR)) {
+                    Now.sleep(1000);
+                }
+            }
+        } while ( updated >= 20_000 );
+        modifications = 0;
+
+        log.info("Flush top lines");
+        this.flushTopLines();
+        this.serviceEnable = false;
+    }
+
+    public void resumeService() {
+        this.serviceEnable = true;
+    }
+
     public void stopService() {
         // flush pending write
         log.info("Flush Beacon & Witness pending");
         long s = Now.NowUtcMs();
-        while ( inAsyncWrite == true  && (Now.NowUtcMs() - s) < 60_000 );
+        while ( inAsyncWrite == true  && (Now.NowUtcMs() - s) < 120_000 );
         bulkInsertRewards();
         flushInsertWitness();
         flushInsertBeacon();
@@ -311,12 +351,12 @@ public class HotspotCache {
             // the opportunity to run a concurrent request and consume memory we need
             long s = Now.NowUtcMs() ; while ( !hotspotCacheAsync.isRunning() && ((Now.NowUtcMs()-s) < 10_000) );
 
-            if ( updated < etlConfig.getCacheHotspotCommit() ) {
+            if ( updated < 20_000 ) {
                 // basically means that this update takes all the pending updates
                 modifications = 0;
             } else {
                 // or we have some pending
-                modifications = updated-etlConfig.getCacheHotspotCommit();
+                modifications = updated-20_000;
             }
         }
     }

@@ -122,6 +122,12 @@ public class Now {
         return NowUtcMs()+v;
     }
 
+
+    public static void sleep(long ms) {
+        try { Thread.sleep(ms); } catch ( InterruptedException x ) {};
+    }
+
+
     public static long ONE_FULL_DAY = 24*3600*1000;
     public static long ONE_HOUR = 1*3600*1000;
 
