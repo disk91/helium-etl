@@ -29,12 +29,20 @@ public class HeliumHelper {
         return pubAddressToName(pubAddr.toByteArray());
     }
 
+    public static String solanaAddress( byte [] pubAddr ) {
+        if ( pubAddr.length > 0 ) {
+            byte[] r = new byte[pubAddr.length-1];
+            System.arraycopy(pubAddr,1,r,0,pubAddr.length-1);
+            return Base58.encode(r,false);
+        } else return "";
+    }
+
     public static byte[] nameToPubAddress(String name) {
         try {
             if (name.length() > 0) {
                 byte[] decoded = Base58.decode(name, true);
                 byte[] r = new byte[decoded.length-1];
-                System.arraycopy(decoded,1,r,0,r.length-1);
+                System.arraycopy(decoded,1,r,0,decoded.length-1);
                 return r;
             }
         } catch (ITParseException x) {

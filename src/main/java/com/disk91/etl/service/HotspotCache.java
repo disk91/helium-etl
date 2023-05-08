@@ -10,6 +10,7 @@ import com.disk91.etl.data.repository.*;
 import com.disk91.etl.helium.legacy.model.MakerElement;
 import com.disk91.etl.helium.legacy.model.hotspot.HotspotDetail;
 import com.helium.grpc.*;
+import com.mongodb.MongoBulkWriteException;
 import com.mongodb.WriteConcern;
 import com.mongodb.bulk.BulkWriteResult;
 import com.uber.h3core.H3Core;
@@ -330,7 +331,7 @@ public class HotspotCache {
             if ( cache && hs != null ) {
                 heliumHotspotCache.put(hs,hotspotId,false);
             }
-        }
+        } else this.addForEnrichemnent(hs);
         return hs;
     }
 
@@ -643,17 +644,22 @@ public class HotspotCache {
             //_toWriteWitness.parallelStream().forEach(witnessesRepository::save);
             // bulk write performance is around 0.53ms with journal enabled
             // bulk write performance is arounf 0.40ms with journal disable (no real difference)
-            mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(false));
-            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
-            bulkInsert.insert(_toWriteWitness);
-            BulkWriteResult bulkWriteResult = bulkInsert.execute();
-            long duration = Now.NowUtcMs() - start;
-            int hadToSave = _toWriteWitness.size();
-            _toWriteWitness.clear();
+            try {
+                mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(false));
+                BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, com.disk91.etl.data.object.Witness.class);
+                bulkInsert.insert(_toWriteWitness);
+                BulkWriteResult bulkWriteResult = bulkInsert.execute();
+                long duration = Now.NowUtcMs() - start;
+                int hadToSave = _toWriteWitness.size();
 
-            if ( _witnessDelayedInsert.size() > MIN_BEFORE_BATCH_WITNESS_INSERT ) {
-                log.warn("bulkInsertWitness going slow ! "+_witnessDelayedInsert.size()+" pending");
-                log.warn("bulkInsertWitness saves "+hadToSave+" in "+duration+"ms "+duration/(hadToSave/100.0)+"ms/ 100 units");
+                if (_witnessDelayedInsert.size() > MIN_BEFORE_BATCH_WITNESS_INSERT) {
+                    log.warn("bulkInsertWitness going slow ! " + _witnessDelayedInsert.size() + " pending");
+                    log.warn("bulkInsertWitness saves " + hadToSave + " in " + duration + "ms " + duration / (hadToSave / 100.0) + "ms/ 100 units");
+                }
+            } catch ( MongoBulkWriteException x ) {
+                log.error("Error during witness write "+x.getMessage());
+            } finally {
+                _toWriteWitness.clear();
             }
         }
     }
@@ -970,6 +976,7 @@ public class HotspotCache {
 
         while ( this.asyncEnrichement.size() > 0 ) {
             Hotspot h = this.asyncEnrichement.poll();
+            log.info("Enrich Hotspot - "+h.getHotspotId());
             if ( h != null ) {
                 // check if already updated
                 if ( h.getOwner() != null  && h.getOwner().getHntOwner().length() > 2 ) continue;
@@ -986,7 +993,9 @@ public class HotspotCache {
                     Owner o = new Owner();
                     o.setHntOwner(hd.getOwner());
                     o.setTimeMs(addedMs);
-                    o.setSolOwner("");
+                    byte [] _p = HeliumHelper.nameToPubAddress(hd.getOwner());
+                    o.setSolOwner(HeliumHelper.solanaAddress(_p));
+
                     if ( h.getOwner() != null  && h.getOwner().getSolOwner().length() > 2 ) {
                         // already have an owner
                         if ( h.getOwner().getSolOwner().compareTo(o.getSolOwner()) != 0 ) {
@@ -1012,8 +1021,8 @@ public class HotspotCache {
                     p.setLng(hd.getLng());
                     p.setCountry(hd.getGeocode().getShort_country());
                     p.setCity(hd.getGeocode().getLong_city());
-                    p.setGain(hd.getGain());
-                    p.setAlt(hd.getElevation());
+                    p.setGain(hd.getGain()/10.0); // dBi after division
+                    p.setAlt(hd.getElevation()); // in meter
                     p.setLastDatePosition(Now.APRIL_19_2023);
                     if (    h.getPosition() != null
                          && Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng())
@@ -1029,7 +1038,7 @@ public class HotspotCache {
                             h.getPosHistory().add(p);
                         }
                     }
-
+                    this.updateHotspot(h);
 
                 } catch ( ITNotFoundException x ) {
                     log.warn("Enrich, not found for "+h.getHotspotId());
