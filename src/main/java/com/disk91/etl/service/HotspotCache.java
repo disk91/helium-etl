@@ -715,7 +715,7 @@ public class HotspotCache {
             if (h3 != null) {
                 LatLng pos = h3.cellToLatLng(Long.parseLong(beacon.getLocation()));
                 if (pos != null && Gps.isAValidCoordinate(pos.lat, pos.lng) && Gps.distance(beaconner.getPosition().getLat(), pos.lat, beaconner.getPosition().getLng(), pos.lng, 0, 0) > 500) {
-                    beaconner.updatePosition(beacon.getReceivedTimestamp(), pos.lat, pos.lng, 0.0, 3.0);
+                    beaconner.updatePosition(beacon.getReceivedTimestamp(), pos.lat, pos.lng, 0.0, -1.0);
                     log.debug("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
                 }
             }
@@ -1025,11 +1025,16 @@ public class HotspotCache {
                     p.setAlt(hd.getElevation()); // in meter
                     p.setLastDatePosition(Now.APRIL_19_2023);
                     if (    h.getPosition() != null
-                         && Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng())
-                         && Gps.distance(h.getPosition().getLat(), p.getLat(), h.getPosition().getLng(), p.getLng(),0,0) < 500
+                         && (  (    Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng())
+                                  && Gps.distance(h.getPosition().getLat(), p.getLat(), h.getPosition().getLng(), p.getLng(),0,0) < 500 )
+                              || ( ! Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng() ) )
+                            )
                     ) {
                         // less than 500 m assuming same position, more details on this one
-                        h.setPosition(p);
+                        // or the previous coordinate was invalid
+                        if ( Gps.isAValidCoordinate(p.getLat(), p.getLng()) ) {
+                            h.setPosition(p);
+                        }
                     } else {
                         if ( h.getPosition() == null ) h.setPosition(p);
                         else {

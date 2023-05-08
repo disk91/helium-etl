@@ -121,8 +121,10 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         this.getPosHistory().add(_p.clone());
         _p.setLat(lat);
         _p.setLng(lng);
-        _p.setAlt(0.0);
-        _p.setGain(3.0);
+        _p.setCity("");
+        _p.setCountry("");
+        _p.setAlt(alt);
+        _p.setGain(gain);
     }
 
     synchronized public void updateLastBeacon(long tm) {
