@@ -1,4 +1,4 @@
-package com.disk91.taxminer.helium.model;
+package com.disk91.etl.helium.legacy.model;
 
 public class EtlState {
     protected boolean isOnPrimary;

@@ -133,4 +133,6 @@ public class Now {
 
     public static long ONE_MINUTE = 60*1000;
 
+    public static long APRIL_19_2023 = 1681862400000L;
+
 }

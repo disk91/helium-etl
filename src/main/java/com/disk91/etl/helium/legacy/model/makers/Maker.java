@@ -1,4 +1,4 @@
-package com.disk91.taxminer.helium.model.makers;
+package com.disk91.etl.helium.legacy.model.makers;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

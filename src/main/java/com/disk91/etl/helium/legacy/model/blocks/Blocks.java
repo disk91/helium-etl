@@ -1,6 +1,5 @@
-package com.disk91.taxminer.helium.model.blocks;
+package com.disk91.etl.helium.legacy.model.blocks;
 
-import com.disk91.taxminer.helium.model.stats.StatsData;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;

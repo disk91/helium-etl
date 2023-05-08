@@ -5,7 +5,10 @@ import com.disk91.etl.data.object.Beacon;
 import com.disk91.etl.data.object.Hotspot;
 import com.disk91.etl.data.object.Param;
 import com.disk91.etl.data.object.Reward;
+import com.disk91.etl.data.object.sub.Owner;
 import com.disk91.etl.data.repository.*;
+import com.disk91.etl.helium.legacy.model.MakerElement;
+import com.disk91.etl.helium.legacy.model.hotspot.HotspotDetail;
 import com.helium.grpc.*;
 import com.mongodb.WriteConcern;
 import com.mongodb.bulk.BulkWriteResult;
@@ -26,7 +29,11 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -283,6 +290,8 @@ public class HotspotCache {
                 hs.setAnimalName(Animal.getAnimalName(hotspotId,'-'));
                 hs.setPosition(new com.disk91.etl.data.object.sub.LatLng());
                 hs.setPosHistory(new ArrayList<>());
+                hs.setOwner(new Owner());
+                hs.setOwnerHistory(new ArrayList<>());
                 hs.setWitnesses(new ArrayList<>());
                 hs.setBeaconHistory(new ArrayList<>());
                 hs.setWitnessesHistory(new ArrayList<>());
@@ -309,6 +318,14 @@ public class HotspotCache {
                 if ( hs.getRewardHistories() == null ) {
                     hs.setRewardHistories(new ArrayList<>());
                 }
+                if ( hs.getOwnerHistory() == null ) {
+                    hs.setOwnerHistory(new ArrayList<>());
+                }
+                if ( hs.getOwner() == null ) {
+                    hs.setOwner(new Owner());
+                }
+                // init from legacy
+                this.addForEnrichemnent(hs);
             }
             if ( cache && hs != null ) {
                 heliumHotspotCache.put(hs,hotspotId,false);
@@ -691,7 +708,7 @@ public class HotspotCache {
             // no need to verify position on every beacon
             if (h3 != null) {
                 LatLng pos = h3.cellToLatLng(Long.parseLong(beacon.getLocation()));
-                if (pos != null && Gps.isAValidCoordinate(pos.lat, pos.lng) && Gps.distance(beaconner.getPosition().getLat(), pos.lat, beaconner.getPosition().getLng(), pos.lng, 0, 0) > 300) {
+                if (pos != null && Gps.isAValidCoordinate(pos.lat, pos.lng) && Gps.distance(beaconner.getPosition().getLat(), pos.lat, beaconner.getPosition().getLng(), pos.lng, 0, 0) > 500) {
                     beaconner.updatePosition(beacon.getReceivedTimestamp(), pos.lat, pos.lng, 0.0, 3.0);
                     log.debug("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
                 }
@@ -928,6 +945,105 @@ public class HotspotCache {
         }
 
     }
+
+
+    // ============================================
+    // Hotspot Enrichement from Legacy
+    // ============================================
+
+    @Autowired
+    protected LegacyEtlService legacyEtlService;
+
+    protected ConcurrentLinkedQueue<Hotspot> asyncEnrichement = null;
+
+    protected void addForEnrichemnent(Hotspot h) {
+        // already updated
+        if ( h.getOwner() != null  && h.getOwner().getHntOwner().length() > 2 ) return;
+        // check if not too much hotspot are pending
+        if ( this.asyncEnrichement != null && this.asyncEnrichement.size() < 500 ) this.asyncEnrichement.add(h);
+    }
+
+    @Scheduled(fixedDelay = 5_000, initialDelay = 60_000)
+    private void enrich() {
+        if ( !this.serviceEnable ) return;
+        if ( asyncEnrichement == null ) { this.asyncEnrichement = new ConcurrentLinkedQueue<>(); return; }
+
+        while ( this.asyncEnrichement.size() > 0 ) {
+            Hotspot h = this.asyncEnrichement.poll();
+            if ( h != null ) {
+                // check if already updated
+                if ( h.getOwner() != null  && h.getOwner().getHntOwner().length() > 2 ) continue;
+
+                try {
+                    HotspotDetail hd = legacyEtlService.getHotspotDetails(h.getHotspotId(), false);
+                    long tot = legacyEtlService.getHotspotTotalReward(h.getHotspotId());
+
+                    TemporalAccessor ta = DateTimeFormatter.ISO_INSTANT.parse(hd.getTimestamp_added());
+                    Instant i = Instant.from(ta);
+                    Date d = Date.from(i);
+                    long addedMs = d.getTime();
+
+                    Owner o = new Owner();
+                    o.setHntOwner(hd.getOwner());
+                    o.setTimeMs(addedMs);
+                    o.setSolOwner("");
+                    if ( h.getOwner() != null  && h.getOwner().getSolOwner().length() > 2 ) {
+                        // already have an owner
+                        if ( h.getOwner().getSolOwner().compareTo(o.getSolOwner()) != 0 ) {
+                            if ( h.getOwnerHistory() == null ) h.setOwnerHistory(new ArrayList<>());
+                            h.getOwnerHistory().add(o);
+                        }
+                    } else {
+                        h.setOwner(o);
+                    }
+                    h.setOffsetReward(tot);
+
+                    // Update insertion
+                    if ( addedMs  < h.getFirstSeen() || h.getFirstSeen() == 0 ) {
+                        h.setFirstSeen(addedMs);
+                    }
+
+                    // update brand
+                    h.setBrand(MakerElement.GetHotspotBrand(hd.getPayer()));
+
+                    // check position
+                    com.disk91.etl.data.object.sub.LatLng p = new com.disk91.etl.data.object.sub.LatLng();
+                    p.setLat(hd.getLat());
+                    p.setLng(hd.getLng());
+                    p.setCountry(hd.getGeocode().getShort_country());
+                    p.setCity(hd.getGeocode().getLong_city());
+                    p.setGain(hd.getGain());
+                    p.setAlt(hd.getElevation());
+                    p.setLastDatePosition(Now.APRIL_19_2023);
+                    if (    h.getPosition() != null
+                         && Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng())
+                         && Gps.distance(h.getPosition().getLat(), p.getLat(), h.getPosition().getLng(), p.getLng(),0,0) < 500
+                    ) {
+                        // less than 500 m assuming same position, more details on this one
+                        h.setPosition(p);
+                    } else {
+                        if ( h.getPosition() == null ) h.setPosition(p);
+                        else {
+                            // hotspot position is new compare to the current one, add in history
+                            if ( h.getPosHistory() == null ) h.setPosHistory(new ArrayList<>());
+                            h.getPosHistory().add(p);
+                        }
+                    }
+
+
+                } catch ( ITNotFoundException x ) {
+                    log.warn("Enrich, not found for "+h.getHotspotId());
+                } catch ( ITParseException x) {
+                    log.warn("Enrich, parse for "+h.getHotspotId());
+                } catch ( Exception x ) {
+                    log.error("Enrich "+x.getMessage());
+                }
+            }
+
+
+        }
+    }
+
 
 
 }

@@ -27,6 +27,19 @@ public class LatLng implements ClonnableObject<LatLng> {
     private double lng;
 
     @Schema(
+            description = "Country",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String country = "";
+
+    @Schema(
+            description = "City",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String city = "";
+
+
+    @Schema(
             description = "Altitude - not filled",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
@@ -46,6 +59,8 @@ public class LatLng implements ClonnableObject<LatLng> {
         c.setLng(lng);
         c.setAlt(alt);
         c.setGain(gain);
+        c.setCountry(country);
+        c.setCity(city);
         c.setLastDatePosition(lastDatePosition);
         return c;
     }
@@ -92,5 +107,21 @@ public class LatLng implements ClonnableObject<LatLng> {
 
     public void setGain(double gain) {
         this.gain = gain;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 }

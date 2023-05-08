@@ -1,4 +1,4 @@
-package com.disk91.taxminer.helium.model.hotspot;
+package com.disk91.etl.helium.legacy.model.hotspot;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

@@ -28,6 +28,9 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     private String hotspotId;
     private String animalName;
 
+    private Owner owner;
+    private List<Owner> ownerHistory;
+
     private LatLng position;
 
     private List<LatLng> posHistory;
@@ -62,6 +65,13 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     // Reward history (once a day)
     private List<RewardHistory> rewardHistories;
+
+    public enum HotspotBrand {
+        UNKNOWN, HELIUM, RAK, NEBRA, KERLINK, COTX, SENSECAP, SYNCROBIT, BOBCAT, LONGAP,
+        SMARTMIMIC, CALCHIP, DEWI, PISCES, CLODPI, LINXDOT, CONTROLLINO, HELTEC, FREEDOMFI, PANTHERX,
+        HUMMINGBIRD, RISINGHF, BROWAN, MILESIGHT, DEEPER, MIDAS, DRAGINO, PYCOM
+    };
+    protected HotspotBrand brand = HotspotBrand.UNKNOWN;
 
     // ---------------------------------------------------------
     // Synchronous update
@@ -250,11 +260,19 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         c.setLastWitness(lastWitness);
         c.setAnimalName(animalName);
         c.setPosition(position.clone());
+        c.setOwner(owner.clone());
         c.setLastReward(lastReward);
         c.setSumRewardBeacon(sumRewardBeacon);
         c.setSumRewardWitness(sumRewardWitness);
         c.setSumRewardDc(sumRewardDc);
         c.setOffsetReward(offsetReward);
+        c.setBrand(brand);
+
+        List<Owner> oh = new ArrayList<>();
+        for ( Owner o : ownerHistory ) {
+            oh.add(o.clone());
+        }
+        c.setOwnerHistory(oh);
 
         List<LatLng> ph = new ArrayList<>();
         for (LatLng p : posHistory) {
@@ -447,5 +465,29 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setRewardHistories(List<RewardHistory> rewardHistories) {
         this.rewardHistories = rewardHistories;
+    }
+
+    public Owner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
+    }
+
+    public List<Owner> getOwnerHistory() {
+        return ownerHistory;
+    }
+
+    public void setOwnerHistory(List<Owner> ownerHistory) {
+        this.ownerHistory = ownerHistory;
+    }
+
+    public HotspotBrand getBrand() {
+        return brand;
+    }
+
+    public void setBrand(HotspotBrand brand) {
+        this.brand = brand;
     }
 }

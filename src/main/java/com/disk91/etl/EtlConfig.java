@@ -38,6 +38,38 @@ public class EtlConfig {
     }
 
     // ====================================
+    // Helium legacy config
+    // ====================================
+
+    @Value("${helium.legacy.api.endpoint}")
+    private String heliumLegacyApiEndpoint;
+
+    @Value("${helium.legacy.api.user}")
+    private String heliumLegacyApiUser;
+
+    @Value("${helium.legacy.api.pass}")
+    private String heliumLegacyApiPass;
+
+    @Value("${helium.legacy.api.credits}")
+    private int heliumLegacyApiCredits;
+
+    public String getHeliumLegacyApiEndpoint() {
+        return heliumLegacyApiEndpoint;
+    }
+
+    public String getHeliumLegacyApiUser() {
+        return heliumLegacyApiUser;
+    }
+
+    public String getHeliumLegacyApiPass() {
+        return heliumLegacyApiPass;
+    }
+
+    public int getHeliumLegacyApiCredits() {
+        return heliumLegacyApiCredits;
+    }
+
+    // ====================================
     // Internal settings
     // ====================================
 

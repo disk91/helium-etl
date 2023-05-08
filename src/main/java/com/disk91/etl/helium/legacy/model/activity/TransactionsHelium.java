@@ -1,8 +1,6 @@
-package com.disk91.taxminer.helium.model.activity;
+package com.disk91.etl.helium.legacy.model.activity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TransactionsHelium {
