@@ -40,14 +40,15 @@ public class RewardService {
         log.info(">> process reward search "+(Now.NowUtcMs()-start)+" ms");
         ArrayList<Reward> rewards = new ArrayList<>();
         if ( rs != null ) {
+            boolean quit = false;
             do {
                 rewards.addAll(rs.getContent());
                 if ( rs.hasNext() ) {
                     rs = rewardRepository.findRewardsByHotspotIdAndStartPeriodBetweenOrderByStartPeriodAsc(
                             hsId, from, to + Now.ONE_FULL_DAY,
                             rs.nextPageable());
-                }
-            } while ( rs != null && rs.hasNext() );
+                } else quit = true;
+            } while ( rs != null && !quit );
         }
 
         return rewards;

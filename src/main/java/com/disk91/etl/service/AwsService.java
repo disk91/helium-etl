@@ -942,7 +942,7 @@ public class AwsService {
         if ( ! hotspotCache.isReady() ) return;
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isRewardLoadEnable() ) return;
-        log.info("Running AwsValidWitnessService Sync");
+        log.info("Running AwsRewardService Sync");
 
         synchronized (this) {
             this.runningJobs++;
