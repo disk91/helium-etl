@@ -1,0 +1,355 @@
+services:
+
+  etl:
+    image: disk91/etl
+    container_name: etl
+    restart: unless-stopped
+    stop_grace_period: 180m
+    depends_on:
+      mongo-router01:
+        condition: service_healthy
+      mongo-router02:
+        condition: service_healthy
+    environment:
+      - AWS_ACCESS_KEY=
+      - AWS_SECRET_KEY=
+    mem_limit: 18000m
+    memswap_limit: 18000m
+    mem_reservation: 18000m
+    ports:
+      - 127.0.0.1:8091:8091
+    profiles:
+      - etl
+    networks:
+      - public_net
+      - mongo_net
+      - monitoring_net
+
+  ## Nginx front
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+    depends_on:
+      - etl
+    volumes:
+      - /etl/configuration/nginx/:/etc/nginx/conf.d/:ro
+      - /etl/configuration/certbot/:/var/www/certbot/:ro
+      - /etl/configuration/ssl/:/etc/nginx/ssl/:ro
+    profiles:
+      - webserver
+    networks:
+      - public_net
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - /etl/configuration/certbot/:/var/www/certbot/:rw
+      - /etl/configuration/ssl/:/etc/letsencrypt/:rw
+
+
+  ## Router - get the traffic request
+  mongo-router01:
+    image: mongo:6.0.1
+    container_name: mongo-router-01
+    command: mongos --port 27017 --configdb rs-config-server/mongo-configsvr01:27017,mongo-configsvr02:27017,mongo-configsvr03:27017 --bind_ip_all
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    ports:
+      - 27120:27017
+    restart: always
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/router-01:/data/db
+      - /etl/configuration/mongo/router-01:/data/configdb
+    profiles:
+      - mongo
+    depends_on:
+      - mongo-configsvr01
+      - mongo-configsvr02
+      - mongo-configsvr03
+      - mongo-shard01a
+      - mongo-shard02a
+      - mongo-shard03a
+    networks:
+      - mongo_net
+
+  mongo-router02:
+    image: mongo:6.0.1
+    container_name: mongo-router-02
+    command: mongos --port 27017 --configdb rs-config-server/mongo-configsvr01:27017,mongo-configsvr02:27017,mongo-configsvr03:27017 --bind_ip_all
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    ports:
+      - 27121:27017
+    restart: always
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/router-02:/data/db
+      - /etl/configuration/mongo/router-02:/data/configdb
+    networks:
+      - mongo_net
+    profiles:
+      - mongo
+    depends_on:
+      - mongo-configsvr01
+      - mongo-configsvr02
+      - mongo-configsvr03
+      - mongo-shard01a
+      - mongo-shard02a
+      - mongo-shard03a
+
+  ## Config Servers - know the cluster configuration
+  mongo-configsvr01:
+    image: mongo:6.0.1
+    container_name: mongo-config-01
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/config-01:/data/db
+      - /etl/configuration/mongo/config-01:/data/configdb
+    restart: always
+    networks:
+      - mongo_net
+    profiles:
+      - mongo
+    ports:
+      - 27017:27017
+
+  mongo-configsvr02:
+    image: mongo:6.0.1
+    container_name: mongo-config-02
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/config-02:/data/db
+      - /etl/configuration/mongo/config-02:/data/configdb
+    restart: always
+    networks:
+      - mongo_net
+    profiles:
+      - mongo
+    ports:
+      - 27017:27017
+
+  mongo-configsvr03:
+    image: mongo:6.0.1
+    container_name: mongo-config-03
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/config-03:/data/db
+      - /etl/configuration/mongo/config-03:/data/configdb
+    restart: always
+    networks:
+      - mongo_net
+    profiles:
+      - mongo
+    ports:
+      - 27017:27017
+
+  ## Shards
+  mongo-shard01a:
+    image: mongo:6.0.1
+    container_name: shard-01-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/shard-01a:/data/db
+      - /etl/configuration/mongo/shard-01a:/data/configdb
+    restart: always
+    profiles:
+      - mongo
+    networks:
+      - mongo_net
+    ports:
+      - 27017:27017
+
+
+  mongo-shard02a:
+    image: mongo:6.0.1
+    container_name: shard-02-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-02
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/shard-02a:/data/db
+      - /etl/configuration/mongo/shard-02a:/data/configdb
+    restart: always
+    profiles:
+      - mongo
+    networks:
+      - mongo_net
+    ports:
+      - 27017:27017
+
+  mongo-shard03a:
+    image: mongo:6.0.1
+    container_name: shard-03-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-03
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+    volumes:
+      - /etl/configuration/mongo/scripts:/scripts
+      - /etl/mongo/shard-03a:/data/db
+      - /etl/configuration/mongo/shard-03a:/data/configdb
+    restart: always
+    profiles:
+      - mongo
+    networks:
+      - mongo_net
+    ports:
+      - 27017:27017
+
+  prometheus:
+    image: prom/prometheus
+    container_name: etl-prometheus
+    restart: unless-stopped
+    volumes:
+      - /etl/configuration/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /etl/prometheus:/prometheus
+    profiles:
+      - monitoring
+    networks:
+      - monitoring_net
+      - public_net
+    ports:
+      - 127.0.0.1:9090:9090
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: etl-node-exp
+    command:
+      - '--web.listen-address=127.0.0.1:9100'
+      - '--web.listen-address=172.17.0.1:9100'
+      - '--web.listen-address=172.99.1.254:9100'
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - "--collector.filesystem"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+      - "--collector.netstat"
+      - "--collector.meminfo"
+      - "--collector.cpu"
+      - "--collector.loadavg"
+      - "--collector.systemd"
+      - "--collector.processes"
+      - "--collector.ethtool"
+      - "--collector.interrupts"
+      - "--collector.tcpstat"
+    pid: host
+    network_mode: host
+    security_opt:
+      - apparmor:unconfined
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
+    profiles:
+      - monitoring
+
+  mongo_exporter:
+    image: percona/mongodb_exporter:2.36
+    container_name: etl-mongo-exporter
+    restart: unless-stopped
+    command:
+      - "--web.listen-address=0.0.0.0:9216"
+      - "--discovering-mode"
+      - "--collector.diagnosticdata"
+      - "--collector.replicasetstatus"
+      - "--collector.dbstats"
+      - "--collector.topmetrics"
+      - "--collector.indexstats"
+      - "--collector.collstats"
+      - "--compatible-mode"
+    ports:
+      - 9216:9216
+    environment:
+      - MONGODB_URI=mongodb://mongo-shard01a:27017
+    profiles:
+      - monitoring
+    networks:
+      - monitoring_net
+      - mongo_net
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: etl-cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /cgroup:/cgroup:ro
+    command:
+      - '-port=8093'
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    networks:
+      - monitoring_net
+    ports:
+      - 8093:8093
+
+  grafana:
+    image: grafana/grafana-oss
+    container_name: etl-grafana
+    restart: unless-stopped
+    volumes:
+      - /etl/grafana:/var/lib/grafana
+      - /etl/configuration/grafana:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_HTTP_PORT=8092
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+    networks:
+      - monitoring_net
+      - public_net
+    ports:
+      - 127.0.0.1:8092:8092
+
+
+networks:
+  public_net:
+  mongo_net:
+    internal: true
+  monitoring_net:
+    internal: true
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.99.0.0/16
+          ip_range: 172.99.1.0/24
+          gateway: 172.99.1.254

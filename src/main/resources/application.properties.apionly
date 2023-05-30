@@ -1,0 +1,85 @@
+# Main Application
+config.file = ./configuration.properties
+spring.main.banner-mode=off
+logging.level.org.springframework=WARN
+spring.task.scheduling.pool.size=32
+
+#  intercept SIGTERM signal
+spring.main.register-shutdown-hook=true 
+server.shutdown=graceful
+spring.task.execution.shutdown.await-termination=true
+spring.task.execution.shutdown.await-termination-period=10s
+spring.task.scheduling.shutdown.await-termination=true
+spring.task.scheduling.shutdown.await-termination-period=10s
+
+#mongodb
+spring.data.mongodb.uri=mongodb://mongo-router01:27017,mongo-router02:27017/helium-etl
+#spring.data.mongodb.host=localhost
+#spring.data.mongodb.port=27017
+#spring.data.mongodb.database=helium-etl
+#spring.data.mongodb.username=
+#spring.data.mongodb.password=
+spring.data.mongodb.auto-index-creation=true
+exit.timeout.minutes=30
+
+#logging
+logging.level.com.disk91.etl.service.HotspotCacheAsync=debug
+logging.level.org.springframework.data=info
+logging.level.=info
+
+# Caching log
+logging.cache.fixedrate=3600000
+
+# caching control
+cache.hotspot.size=500000
+cache.beacon.size=200000
+cache.hotspot.commit=100000
+
+# History management
+hotspot.beacon.history.entries=300
+hotspot.witness.history.entries=300
+hotspot.update.prevent.until.days=30
+# start loading historical data after a given date (in S from EPOC) 1/1/2023
+beacon.history.startdate=1672531200
+witness.history.startdate=1672531200
+iotpoc.history.startdate=1677628800
+reward.history.startdate=1677628800
+
+# RAW Beacon loading
+beacon.load.enable=false
+
+# RAW Witness loading
+witness.load.enable=false
+#  It must be a power of 2
+witness.load.parallel.workers=32
+witness.load.parallel.queue.size=128
+
+# VERIFIED IoT PoC loading ( should replace RAW )
+iotpoc.load.enable=false
+iotpoc.load.unselected=false
+iotpoc.load.parallel.workers=32
+iotpoc.load.parallel.queue.size=128
+
+# Rewards
+reward.load.enable=false
+reward.load.parallel.workers=8
+reward.load.parallel.queue.size=64
+
+# legacy ETL for data enrichment
+helium.legacy.api.endpoint=
+helium.legacy.api.user=
+helium.legacy.api.pass=
+helium.legacy.api.credits=
+
+# Aws S3
+aws.access.key=${AWS_ACCESS_KEY}
+aws.secret.key=${AWS_SECRET_KEY}
+aws.bucket.name=foundation-poc-data-requester-pays
+
+# Metering
+management.endpoints.web.exposure.include=health,info,metrics,scheduledtasks,threaddump,prometheus
+
+# web server
+server.port=8091
+server.address=0.0.0.0
+server.forward-headers-strategy=native
