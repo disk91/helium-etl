@@ -21,6 +21,7 @@ package com.disk91.etl.api;
 
 import com.disk91.etl.api.interfaces.ActionResult;
 import com.disk91.etl.api.interfaces.HotspotData;
+import com.disk91.etl.api.interfaces.HotspotPosition;
 import com.disk91.etl.api.interfaces.HotspotStat;
 import com.disk91.etl.data.object.Hotspot;
 import com.disk91.etl.data.object.Param;
@@ -76,6 +77,31 @@ public class HotspotApi {
         try {
             Hotspot hs = hotspotCache.getOneHotspot(hotspotId);
             HotspotData r = new HotspotData();
+            r.initFrom(hs);
+            return new ResponseEntity<>(r, HttpStatus.OK);
+        } catch (ITNotFoundException x) {
+            return new ResponseEntity<>(ActionResult.NODATA(), HttpStatus.NO_CONTENT);
+        }
+    }
+
+    @Operation(summary = "Get Hotspot details",
+            description = "Get Hotspot radio & reward data",
+            responses = {
+                    @ApiResponse(responseCode = "200", description= "Done", content = @Content(schema = @Schema(implementation = HotspotPosition.class))),
+                    @ApiResponse(responseCode = "204", description= "No content", content = @Content(schema = @Schema(implementation = ActionResult.class)))
+            }
+    )
+    @RequestMapping(value="/{hotspotId}/pos",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method= RequestMethod.GET)
+    public ResponseEntity<?> getHotspotPosition(
+            HttpServletRequest request,
+            @Parameter(required = true, name = "hotspotId", description = "Base58 hotspot public key encoded")
+            @PathVariable String hotspotId
+    ) {
+        try {
+            Hotspot hs = hotspotCache.getOneHotspot(hotspotId);
+            HotspotPosition r = new HotspotPosition();
             r.initFrom(hs);
             return new ResponseEntity<>(r, HttpStatus.OK);
         } catch (ITNotFoundException x) {

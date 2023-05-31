@@ -32,6 +32,18 @@ public class HotspotData {
     private String animalName;
 
     @Schema(
+            description = "Hotspot Owner address",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private Owner owner;
+
+    @Schema(
+            description = "Hotspot Owner history",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private List<Owner> ownerHistory;
+
+    @Schema(
             description = "Hotspot position, lat / lng, can be 0,0",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
@@ -122,6 +134,12 @@ public class HotspotData {
     )
     private List<RewardHistory> rewardHistories;
 
+    @Schema(
+            description = "Hotspot Brand",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private Hotspot.HotspotBrand brand;
+
 
     // ---------------------------------------------------------
     // clone
@@ -138,6 +156,16 @@ public class HotspotData {
         setSumRewardWitness(h.getSumRewardWitness());
         setSumRewardDc(h.getSumRewardDc());
         setOffsetReward(h.getOffsetReward());
+        setOwner(h.getOwner().clone());
+        setBrand(h.getBrand());
+
+        List<Owner> oh = new ArrayList<>();
+        if ( h.getOwnerHistory() != null ) {
+            for ( Owner o : h.getOwnerHistory() ) {
+                oh.add(o.clone());
+            }
+        }
+        setOwnerHistory(oh);
 
         List<LatLng> ph = new ArrayList<>();
         if ( h.getPosHistory() != null ) {
@@ -327,5 +355,29 @@ public class HotspotData {
 
     public void setRewardHistories(List<RewardHistory> rewardHistories) {
         this.rewardHistories = rewardHistories;
+    }
+
+    public Owner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
+    }
+
+    public List<Owner> getOwnerHistory() {
+        return ownerHistory;
+    }
+
+    public void setOwnerHistory(List<Owner> ownerHistory) {
+        this.ownerHistory = ownerHistory;
+    }
+
+    public Hotspot.HotspotBrand getBrand() {
+        return brand;
+    }
+
+    public void setBrand(Hotspot.HotspotBrand brand) {
+        this.brand = brand;
     }
 }
