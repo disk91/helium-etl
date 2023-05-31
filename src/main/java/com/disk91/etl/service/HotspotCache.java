@@ -964,7 +964,7 @@ public class HotspotCache {
 
     protected void addForEnrichemnent(Hotspot h) {
         // already updated
-        if ( h.getOwner() != null  && h.getOwner().getHntOwner().length() > 2 ) return;
+        if ( h.getOwner() != null && h.getOwner().getHntOwner().length() > 2 ) return;
         // check if not too much hotspot are pending
         if ( this.asyncEnrichement != null && this.asyncEnrichement.size() < 500 ) this.asyncEnrichement.add(h);
     }
@@ -974,87 +974,92 @@ public class HotspotCache {
         if ( !this.serviceEnable ) return;
         if ( asyncEnrichement == null ) { this.asyncEnrichement = new ConcurrentLinkedQueue<>(); return; }
 
-        while ( this.asyncEnrichement.size() > 0 ) {
-            Hotspot h = this.asyncEnrichement.poll();
-            log.info("Enrich Hotspot - "+h.getHotspotId());
-            if ( h != null ) {
-                // check if already updated
-                if ( h.getOwner() != null  && h.getOwner().getHntOwner().length() > 2 ) continue;
+        try {
+            while (this.asyncEnrichement.size() > 0) {
+                Hotspot h = this.asyncEnrichement.poll();
+                log.info("Enrich Hotspot - " + h.getHotspotId());
+                if (h != null) {
+                    // check if already updated
+                    if (h.getOwner() != null && h.getOwner().getHntOwner().length() > 2) continue;
 
-                try {
-                    HotspotDetail hd = legacyEtlService.getHotspotDetails(h.getHotspotId(), false);
-                    long tot = legacyEtlService.getHotspotTotalReward(h.getHotspotId());
+                    try {
+                        HotspotDetail hd = legacyEtlService.getHotspotDetails(h.getHotspotId(), false);
+                        long tot = legacyEtlService.getHotspotTotalReward(h.getHotspotId());
+                        log.info("Found "+hd.getGeocode().getLong_city()+" ("+hd.getGeocode().getShort_country()+") with "+tot+" Hnt");
 
-                    TemporalAccessor ta = DateTimeFormatter.ISO_INSTANT.parse(hd.getTimestamp_added());
-                    Instant i = Instant.from(ta);
-                    Date d = Date.from(i);
-                    long addedMs = d.getTime();
+                        TemporalAccessor ta = DateTimeFormatter.ISO_INSTANT.parse(hd.getTimestamp_added());
+                        Instant i = Instant.from(ta);
+                        Date d = Date.from(i);
+                        long addedMs = d.getTime();
 
-                    Owner o = new Owner();
-                    o.setHntOwner(hd.getOwner());
-                    o.setTimeMs(addedMs);
-                    byte [] _p = HeliumHelper.nameToPubAddress(hd.getOwner());
-                    o.setSolOwner(HeliumHelper.solanaAddress(_p));
+                        Owner o = new Owner();
+                        o.setHntOwner(hd.getOwner());
+                        o.setTimeMs(addedMs);
+                        byte[] _p = HeliumHelper.nameToPubAddress(hd.getOwner());
+                        o.setSolOwner(HeliumHelper.solanaAddress(_p));
 
-                    if ( h.getOwner() != null  && h.getOwner().getSolOwner().length() > 2 ) {
-                        // already have an owner
-                        if ( h.getOwner().getSolOwner().compareTo(o.getSolOwner()) != 0 ) {
-                            if ( h.getOwnerHistory() == null ) h.setOwnerHistory(new ArrayList<>());
-                            h.getOwnerHistory().add(o);
+                        if (h.getOwner() != null && h.getOwner().getSolOwner().length() > 2) {
+                            // already have an owner
+                            if (h.getOwner().getSolOwner().compareTo(o.getSolOwner()) != 0) {
+                                if (h.getOwnerHistory() == null) h.setOwnerHistory(new ArrayList<>());
+                                h.getOwnerHistory().add(o);
+                            }
+                        } else {
+                            h.setOwner(o);
                         }
-                    } else {
-                        h.setOwner(o);
-                    }
-                    h.setOffsetReward(tot);
+                        h.setOffsetReward(tot);
 
-                    // Update insertion
-                    if ( addedMs  < h.getFirstSeen() || h.getFirstSeen() == 0 ) {
-                        h.setFirstSeen(addedMs);
-                    }
-
-                    // update brand
-                    h.setBrand(MakerElement.GetHotspotBrand(hd.getPayer()));
-
-                    // check position
-                    com.disk91.etl.data.object.sub.LatLng p = new com.disk91.etl.data.object.sub.LatLng();
-                    p.setLat(hd.getLat());
-                    p.setLng(hd.getLng());
-                    p.setCountry(hd.getGeocode().getShort_country());
-                    p.setCity(hd.getGeocode().getLong_city());
-                    p.setGain(hd.getGain()/10.0); // dBi after division
-                    p.setAlt(hd.getElevation()); // in meter
-                    p.setLastDatePosition(Now.APRIL_19_2023);
-                    if (    h.getPosition() != null
-                         && (  (    Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng())
-                                  && Gps.distance(h.getPosition().getLat(), p.getLat(), h.getPosition().getLng(), p.getLng(),0,0) < 500 )
-                              || ( ! Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng() ) )
-                            )
-                    ) {
-                        // less than 500 m assuming same position, more details on this one
-                        // or the previous coordinate was invalid
-                        if ( Gps.isAValidCoordinate(p.getLat(), p.getLng()) ) {
-                            h.setPosition(p);
+                        // Update insertion
+                        if (addedMs < h.getFirstSeen() || h.getFirstSeen() == 0) {
+                            h.setFirstSeen(addedMs);
                         }
-                    } else {
-                        if ( h.getPosition() == null ) h.setPosition(p);
-                        else {
-                            // hotspot position is new compare to the current one, add in history
-                            if ( h.getPosHistory() == null ) h.setPosHistory(new ArrayList<>());
-                            h.getPosHistory().add(p);
-                        }
-                    }
-                    this.updateHotspot(h);
 
-                } catch ( ITNotFoundException x ) {
-                    log.warn("Enrich, not found for "+h.getHotspotId());
-                } catch ( ITParseException x) {
-                    log.warn("Enrich, parse for "+h.getHotspotId());
-                } catch ( Exception x ) {
-                    log.error("Enrich "+x.getMessage());
+                        // update brand
+                        h.setBrand(MakerElement.GetHotspotBrand(hd.getPayer()));
+
+                        // check position
+                        com.disk91.etl.data.object.sub.LatLng p = new com.disk91.etl.data.object.sub.LatLng();
+                        p.setLat(hd.getLat());
+                        p.setLng(hd.getLng());
+                        p.setCountry(hd.getGeocode().getShort_country());
+                        p.setCity(hd.getGeocode().getLong_city());
+                        p.setGain(hd.getGain() / 10.0); // dBi after division
+                        p.setAlt(hd.getElevation()); // in meter
+                        p.setLastDatePosition(Now.APRIL_19_2023);
+                        if (h.getPosition() != null
+                                && ((Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng())
+                                && Gps.distance(h.getPosition().getLat(), p.getLat(), h.getPosition().getLng(), p.getLng(), 0, 0) < 500)
+                                || (!Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng()))
+                        )
+                        ) {
+                            // less than 500 m assuming same position, more details on this one
+                            // or the previous coordinate was invalid
+                            if (Gps.isAValidCoordinate(p.getLat(), p.getLng())) {
+                                h.setPosition(p);
+                            }
+                        } else {
+                            if (h.getPosition() == null) h.setPosition(p);
+                            else {
+                                // hotspot position is new compare to the current one, add in history
+                                if (h.getPosHistory() == null) h.setPosHistory(new ArrayList<>());
+                                h.getPosHistory().add(p);
+                            }
+                        }
+                        this.updateHotspot(h);
+
+                    } catch (ITNotFoundException x) {
+                        log.warn("Enrich, not found for " + h.getHotspotId());
+                    } catch (ITParseException x) {
+                        log.warn("Enrich, parse for " + h.getHotspotId());
+                    } catch (Exception x) {
+                        log.error("Enrich " + x.getMessage());
+                    }
+                } else {
+                    return;
                 }
             }
-
-
+        } catch (Exception x) {
+            log.error("Exception in enrichement : "+x.getMessage() );
         }
     }
 
