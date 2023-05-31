@@ -966,7 +966,7 @@ public class HotspotCache {
         // already updated
         if ( h.getOwner() != null && h.getOwner().getHntOwner().length() > 2 ) return;
         // check if not too much hotspot are pending
-        if ( this.asyncEnrichement != null && this.asyncEnrichement.size() < 500 ) this.asyncEnrichement.add(h);
+        if ( this.asyncEnrichement != null && this.asyncEnrichement.size() < 1000 ) this.asyncEnrichement.add(h);
     }
 
     @Scheduled(fixedDelay = 5_000, initialDelay = 60_000)
