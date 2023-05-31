@@ -11,8 +11,8 @@ services:
       mongo-router02:
         condition: service_healthy
     environment:
-      - AWS_ACCESS_KEY=
-      - AWS_SECRET_KEY=
+      - AWS_ACCESS_KEY=none
+      - AWS_SECRET_KEY=none
     mem_limit: 18000m
     memswap_limit: 18000m
     mem_reservation: 18000m

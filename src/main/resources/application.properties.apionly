@@ -69,7 +69,7 @@ reward.load.parallel.queue.size=64
 helium.legacy.api.endpoint=
 helium.legacy.api.user=
 helium.legacy.api.pass=
-helium.legacy.api.credits=
+helium.legacy.api.credits=0
 
 # Aws S3
 aws.access.key=${AWS_ACCESS_KEY}
