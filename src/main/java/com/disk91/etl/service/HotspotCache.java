@@ -30,11 +30,13 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -1058,6 +1060,24 @@ public class HotspotCache {
                     return;
                 }
             }
+            // we are empty, may be get some hotspots like 100 more ;)
+            Iterator<String> i = heliumHotspotCache.list().asIterator();
+            int cpt = 0;
+            SecureRandom r = new SecureRandom();
+            while (i.hasNext() && cpt < 200) {
+                String hs = i.next();
+                int v = r.nextInt(64);
+                if ( v == 0 ) {
+                    // add random to not be stuck with a list of non existing hotspot on backend
+                    Hotspot h = this.getHotspot(hs, false);
+                    if ( h.getOwner() == null || h.getOwner().getHntOwner() == null || h.getOwner().getHntOwner().length() < 2) {
+                        // candidate
+                        addForEnrichemnent(h);
+                        cpt++;
+                    }
+                }
+            }
+
         } catch (Exception x) {
             log.error("Exception in enrichement : "+x.getMessage() );
         }

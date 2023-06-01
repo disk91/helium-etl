@@ -22,6 +22,7 @@ package fr.ingeniousthings.tools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -178,6 +179,10 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     public abstract void bulkCacheUpdate(List<T> objects);
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+    public Enumeration<K> list() {
+        return this.cache.keys();
+    }
 
     public T get(K key) {
         long start = Now.NanoTime();
