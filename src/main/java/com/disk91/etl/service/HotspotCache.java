@@ -51,6 +51,7 @@ public class HotspotCache {
 
     protected int runningJobs;
     protected boolean serviceEnable; // false to stop the services
+    protected boolean stopRequested = false; // true when a stop is requested
 
 
     private ObjectCache<String, Hotspot> heliumHotspotCache;
@@ -221,6 +222,7 @@ public class HotspotCache {
     public void stopService() {
         // flush pending write
         log.info("Flush Beacon & Witness pending");
+        this.stopRequested = true;
         long s = Now.NowUtcMs();
         while ( inAsyncWrite == true  && (Now.NowUtcMs() - s) < 120_000 );
         bulkInsertRewards();
@@ -973,11 +975,12 @@ public class HotspotCache {
 
     @Scheduled(fixedDelay = 5_000, initialDelay = 60_000)
     private void enrich() {
-        if ( !this.serviceEnable ) return;
+        if ( !this.serviceEnable  || this.stopRequested ) return;
         if ( asyncEnrichement == null ) { this.asyncEnrichement = new ConcurrentLinkedQueue<>(); return; }
 
         try {
             while (this.asyncEnrichement.size() > 0) {
+                if ( !this.serviceEnable || this.stopRequested ) return;
                 Hotspot h = this.asyncEnrichement.poll();
                 log.info("Enrich Hotspot - " + h.getHotspotId());
                 if (h != null) {
