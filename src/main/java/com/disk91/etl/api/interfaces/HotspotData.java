@@ -156,7 +156,9 @@ public class HotspotData {
         setSumRewardWitness(h.getSumRewardWitness());
         setSumRewardDc(h.getSumRewardDc());
         setOffsetReward(h.getOffsetReward());
-        setOwner(h.getOwner().clone());
+        if ( h.getOwner() != null ) {
+            setOwner(h.getOwner().clone());
+        } else setOwner(new Owner());
         setBrand(h.getBrand());
 
         List<Owner> oh = new ArrayList<>();
