@@ -41,17 +41,24 @@ public class EtlConfig {
     // Helium legacy config
     // ====================================
 
-    @Value("${helium.legacy.api.endpoint}")
+    @Value("${helium.legacy.api.endpoint:}")
     private String heliumLegacyApiEndpoint;
 
-    @Value("${helium.legacy.api.user}")
+    @Value("${helium.legacy.api.user:}")
     private String heliumLegacyApiUser;
 
-    @Value("${helium.legacy.api.pass}")
+    @Value("${helium.legacy.api.pass:}")
     private String heliumLegacyApiPass;
 
-    @Value("${helium.legacy.api.credits}")
+    @Value("${helium.legacy.api.credits:100}")
     private int heliumLegacyApiCredits;
+
+    @Value("${helium.legacy.api.enable:false}")
+    private boolean heliumLegacyApiEnable;
+
+    public boolean isHeliumLegacyApiEnable() {
+        return heliumLegacyApiEnable;
+    }
 
     public String getHeliumLegacyApiEndpoint() {
         return heliumLegacyApiEndpoint;

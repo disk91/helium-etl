@@ -17,6 +17,7 @@ import java.util.List;
 @Document(collection = "etl_hotspots")
 @CompoundIndexes({
         @CompoundIndex(name = "hotspotId", def = "{'hotspotId' : 'hashed'}"),
+        @CompoundIndex(name = "animalName", def = "{'animalName' : 'hashed'}"),
         @CompoundIndex(name = "hotspotId_Id", def = "{'hotspotId' : 1, 'id' : 1}")
 })
 @Sharded(shardKey = { "hotspotId", "id" }, shardingStrategy = ShardingStrategy.RANGE)

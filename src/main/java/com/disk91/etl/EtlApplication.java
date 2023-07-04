@@ -23,7 +23,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.annotation.PreDestroy;
 
-//@EnableAsync
 @EnableScheduling
 @EnableAsync
 @EnableWebMvc

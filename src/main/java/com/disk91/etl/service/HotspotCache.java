@@ -967,6 +967,8 @@ public class HotspotCache {
     protected ConcurrentLinkedQueue<Hotspot> asyncEnrichement = null;
 
     protected void addForEnrichemnent(Hotspot h) {
+        if ( ! etlConfig.isHeliumLegacyApiEnable() ) return;
+
         // already updated
         if ( h.getOwner() != null && h.getOwner().getHntOwner().length() > 2 ) return;
         // check if not too much hotspot are pending
@@ -975,6 +977,7 @@ public class HotspotCache {
 
     @Scheduled(fixedDelay = 5_000, initialDelay = 60_000)
     private void enrich() {
+        if ( ! etlConfig.isHeliumLegacyApiEnable() ) return;
         if ( !this.serviceEnable  || this.stopRequested ) return;
         if ( asyncEnrichement == null ) { this.asyncEnrichement = new ConcurrentLinkedQueue<>(); return; }
 
