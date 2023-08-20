@@ -18,32 +18,32 @@ private static final long serialVersionUID = 0L;
   private iot_reward_share() {
   }
 
-  @Override
+  @java.lang.Override
   @SuppressWarnings({"unused"})
-  protected Object newInstance(
+  protected java.lang.Object newInstance(
       UnusedPrivateParameter unused) {
     return new iot_reward_share();
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return PocLoRa.internal_static_helium_poc_lora_iot_reward_share_descriptor;
+    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_iot_reward_share_descriptor;
   }
 
-  @Override
-  protected FieldAccessorTable
+  @java.lang.Override
+  protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return PocLoRa.internal_static_helium_poc_lora_iot_reward_share_fieldAccessorTable
+    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_iot_reward_share_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            iot_reward_share.class, Builder.class);
+            com.helium.grpc.iot_reward_share.class, com.helium.grpc.iot_reward_share.Builder.class);
   }
 
   private int rewardCase_ = 0;
   @SuppressWarnings("serial")
-  private Object reward_;
+  private java.lang.Object reward_;
   public enum RewardCase
       implements com.google.protobuf.Internal.EnumLite,
-          InternalOneOfEnum {
+          com.google.protobuf.AbstractMessage.InternalOneOfEnum {
     GATEWAY_REWARD(3),
     OPERATIONAL_REWARD(4),
     REWARD_NOT_SET(0);
@@ -56,7 +56,7 @@ private static final long serialVersionUID = 0L;
      * @return The enum associated with the given number.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
-    @Deprecated
+    @java.lang.Deprecated
     public static RewardCase valueOf(int value) {
       return forNumber(value);
     }
@@ -90,7 +90,7 @@ private static final long serialVersionUID = 0L;
    * <code>uint64 start_period = 1;</code>
    * @return The startPeriod.
    */
-  @Override
+  @java.lang.Override
   public long getStartPeriod() {
     return startPeriod_;
   }
@@ -105,7 +105,7 @@ private static final long serialVersionUID = 0L;
    * <code>uint64 end_period = 2;</code>
    * @return The endPeriod.
    */
-  @Override
+  @java.lang.Override
   public long getEndPeriod() {
     return endPeriod_;
   }
@@ -115,7 +115,7 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
    * @return Whether the gatewayReward field is set.
    */
-  @Override
+  @java.lang.Override
   public boolean hasGatewayReward() {
     return rewardCase_ == 3;
   }
@@ -123,22 +123,22 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
    * @return The gatewayReward.
    */
-  @Override
-  public gateway_reward getGatewayReward() {
+  @java.lang.Override
+  public com.helium.grpc.gateway_reward getGatewayReward() {
     if (rewardCase_ == 3) {
-       return (gateway_reward) reward_;
+       return (com.helium.grpc.gateway_reward) reward_;
     }
-    return gateway_reward.getDefaultInstance();
+    return com.helium.grpc.gateway_reward.getDefaultInstance();
   }
   /**
    * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
    */
-  @Override
-  public gateway_rewardOrBuilder getGatewayRewardOrBuilder() {
+  @java.lang.Override
+  public com.helium.grpc.gateway_rewardOrBuilder getGatewayRewardOrBuilder() {
     if (rewardCase_ == 3) {
-       return (gateway_reward) reward_;
+       return (com.helium.grpc.gateway_reward) reward_;
     }
-    return gateway_reward.getDefaultInstance();
+    return com.helium.grpc.gateway_reward.getDefaultInstance();
   }
 
   public static final int OPERATIONAL_REWARD_FIELD_NUMBER = 4;
@@ -146,7 +146,7 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
    * @return Whether the operationalReward field is set.
    */
-  @Override
+  @java.lang.Override
   public boolean hasOperationalReward() {
     return rewardCase_ == 4;
   }
@@ -154,26 +154,26 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
    * @return The operationalReward.
    */
-  @Override
-  public operational_reward getOperationalReward() {
+  @java.lang.Override
+  public com.helium.grpc.operational_reward getOperationalReward() {
     if (rewardCase_ == 4) {
-       return (operational_reward) reward_;
+       return (com.helium.grpc.operational_reward) reward_;
     }
-    return operational_reward.getDefaultInstance();
+    return com.helium.grpc.operational_reward.getDefaultInstance();
   }
   /**
    * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
    */
-  @Override
-  public operational_rewardOrBuilder getOperationalRewardOrBuilder() {
+  @java.lang.Override
+  public com.helium.grpc.operational_rewardOrBuilder getOperationalRewardOrBuilder() {
     if (rewardCase_ == 4) {
-       return (operational_reward) reward_;
+       return (com.helium.grpc.operational_reward) reward_;
     }
-    return operational_reward.getDefaultInstance();
+    return com.helium.grpc.operational_reward.getDefaultInstance();
   }
 
   private byte memoizedIsInitialized = -1;
-  @Override
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -183,7 +183,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @Override
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (startPeriod_ != 0L) {
@@ -193,15 +193,15 @@ private static final long serialVersionUID = 0L;
       output.writeUInt64(2, endPeriod_);
     }
     if (rewardCase_ == 3) {
-      output.writeMessage(3, (gateway_reward) reward_);
+      output.writeMessage(3, (com.helium.grpc.gateway_reward) reward_);
     }
     if (rewardCase_ == 4) {
-      output.writeMessage(4, (operational_reward) reward_);
+      output.writeMessage(4, (com.helium.grpc.operational_reward) reward_);
     }
     getUnknownFields().writeTo(output);
   }
 
-  @Override
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -217,26 +217,26 @@ private static final long serialVersionUID = 0L;
     }
     if (rewardCase_ == 3) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, (gateway_reward) reward_);
+        .computeMessageSize(3, (com.helium.grpc.gateway_reward) reward_);
     }
     if (rewardCase_ == 4) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(4, (operational_reward) reward_);
+        .computeMessageSize(4, (com.helium.grpc.operational_reward) reward_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
   }
 
-  @Override
-  public boolean equals(final Object obj) {
+  @java.lang.Override
+  public boolean equals(final java.lang.Object obj) {
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof iot_reward_share)) {
+    if (!(obj instanceof com.helium.grpc.iot_reward_share)) {
       return super.equals(obj);
     }
-    iot_reward_share other = (iot_reward_share) obj;
+    com.helium.grpc.iot_reward_share other = (com.helium.grpc.iot_reward_share) obj;
 
     if (getStartPeriod()
         != other.getStartPeriod()) return false;
@@ -259,7 +259,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @Override
+  @java.lang.Override
   public int hashCode() {
     if (memoizedHashCode != 0) {
       return memoizedHashCode;
@@ -289,69 +289,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static iot_reward_share parseFrom(
+  public static com.helium.grpc.iot_reward_share parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static iot_reward_share parseFrom(
+  public static com.helium.grpc.iot_reward_share parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static iot_reward_share parseFrom(
+  public static com.helium.grpc.iot_reward_share parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static iot_reward_share parseFrom(
+  public static com.helium.grpc.iot_reward_share parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static iot_reward_share parseFrom(byte[] data)
+  public static com.helium.grpc.iot_reward_share parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static iot_reward_share parseFrom(
+  public static com.helium.grpc.iot_reward_share parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static iot_reward_share parseFrom(java.io.InputStream input)
+  public static com.helium.grpc.iot_reward_share parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static iot_reward_share parseFrom(
+  public static com.helium.grpc.iot_reward_share parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static iot_reward_share parseDelimitedFrom(java.io.InputStream input)
+  public static com.helium.grpc.iot_reward_share parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static iot_reward_share parseDelimitedFrom(
+  public static com.helium.grpc.iot_reward_share parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static iot_reward_share parseFrom(
+  public static com.helium.grpc.iot_reward_share parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static iot_reward_share parseFrom(
+  public static com.helium.grpc.iot_reward_share parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -359,23 +359,23 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  @Override
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(iot_reward_share prototype) {
+  public static Builder newBuilder(com.helium.grpc.iot_reward_share prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
-  @Override
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
   }
 
-  @Override
+  @java.lang.Override
   protected Builder newBuilderForType(
-      BuilderParent parent) {
+      com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
@@ -385,18 +385,18 @@ private static final long serialVersionUID = 0L;
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:helium.poc_lora.iot_reward_share)
-      iot_reward_shareOrBuilder {
+      com.helium.grpc.iot_reward_shareOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return PocLoRa.internal_static_helium_poc_lora_iot_reward_share_descriptor;
+      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_iot_reward_share_descriptor;
     }
 
-    @Override
-    protected FieldAccessorTable
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return PocLoRa.internal_static_helium_poc_lora_iot_reward_share_fieldAccessorTable
+      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_iot_reward_share_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              iot_reward_share.class, Builder.class);
+              com.helium.grpc.iot_reward_share.class, com.helium.grpc.iot_reward_share.Builder.class);
     }
 
     // Construct using com.helium.grpc.iot_reward_share.newBuilder()
@@ -405,11 +405,11 @@ private static final long serialVersionUID = 0L;
     }
 
     private Builder(
-        BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       super(parent);
 
     }
-    @Override
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       bitField0_ = 0;
@@ -426,36 +426,36 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @Override
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return PocLoRa.internal_static_helium_poc_lora_iot_reward_share_descriptor;
+      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_iot_reward_share_descriptor;
     }
 
-    @Override
-    public iot_reward_share getDefaultInstanceForType() {
-      return iot_reward_share.getDefaultInstance();
+    @java.lang.Override
+    public com.helium.grpc.iot_reward_share getDefaultInstanceForType() {
+      return com.helium.grpc.iot_reward_share.getDefaultInstance();
     }
 
-    @Override
-    public iot_reward_share build() {
-      iot_reward_share result = buildPartial();
+    @java.lang.Override
+    public com.helium.grpc.iot_reward_share build() {
+      com.helium.grpc.iot_reward_share result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    @Override
-    public iot_reward_share buildPartial() {
-      iot_reward_share result = new iot_reward_share(this);
+    @java.lang.Override
+    public com.helium.grpc.iot_reward_share buildPartial() {
+      com.helium.grpc.iot_reward_share result = new com.helium.grpc.iot_reward_share(this);
       if (bitField0_ != 0) { buildPartial0(result); }
       buildPartialOneofs(result);
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(iot_reward_share result) {
+    private void buildPartial0(com.helium.grpc.iot_reward_share result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.startPeriod_ = startPeriod_;
@@ -465,7 +465,7 @@ private static final long serialVersionUID = 0L;
       }
     }
 
-    private void buildPartialOneofs(iot_reward_share result) {
+    private void buildPartialOneofs(com.helium.grpc.iot_reward_share result) {
       result.rewardCase_ = rewardCase_;
       result.reward_ = this.reward_;
       if (rewardCase_ == 3 &&
@@ -478,18 +478,18 @@ private static final long serialVersionUID = 0L;
       }
     }
 
-    @Override
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof iot_reward_share) {
-        return mergeFrom((iot_reward_share)other);
+      if (other instanceof com.helium.grpc.iot_reward_share) {
+        return mergeFrom((com.helium.grpc.iot_reward_share)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(iot_reward_share other) {
-      if (other == iot_reward_share.getDefaultInstance()) return this;
+    public Builder mergeFrom(com.helium.grpc.iot_reward_share other) {
+      if (other == com.helium.grpc.iot_reward_share.getDefaultInstance()) return this;
       if (other.getStartPeriod() != 0L) {
         setStartPeriod(other.getStartPeriod());
       }
@@ -514,18 +514,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @Override
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
-    @Override
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       if (extensionRegistry == null) {
-        throw new NullPointerException();
+        throw new java.lang.NullPointerException();
       }
       try {
         boolean done = false;
@@ -575,7 +575,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     private int rewardCase_ = 0;
-    private Object reward_;
+    private java.lang.Object reward_;
     public RewardCase
         getRewardCase() {
       return RewardCase.forNumber(
@@ -600,7 +600,7 @@ private static final long serialVersionUID = 0L;
      * <code>uint64 start_period = 1;</code>
      * @return The startPeriod.
      */
-    @Override
+    @java.lang.Override
     public long getStartPeriod() {
       return startPeriod_;
     }
@@ -644,7 +644,7 @@ private static final long serialVersionUID = 0L;
      * <code>uint64 end_period = 2;</code>
      * @return The endPeriod.
      */
-    @Override
+    @java.lang.Override
     public long getEndPeriod() {
       return endPeriod_;
     }
@@ -680,12 +680,12 @@ private static final long serialVersionUID = 0L;
     }
 
     private com.google.protobuf.SingleFieldBuilderV3<
-        gateway_reward, gateway_reward.Builder, gateway_rewardOrBuilder> gatewayRewardBuilder_;
+        com.helium.grpc.gateway_reward, com.helium.grpc.gateway_reward.Builder, com.helium.grpc.gateway_rewardOrBuilder> gatewayRewardBuilder_;
     /**
      * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
      * @return Whether the gatewayReward field is set.
      */
-    @Override
+    @java.lang.Override
     public boolean hasGatewayReward() {
       return rewardCase_ == 3;
     }
@@ -693,24 +693,24 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
      * @return The gatewayReward.
      */
-    @Override
-    public gateway_reward getGatewayReward() {
+    @java.lang.Override
+    public com.helium.grpc.gateway_reward getGatewayReward() {
       if (gatewayRewardBuilder_ == null) {
         if (rewardCase_ == 3) {
-          return (gateway_reward) reward_;
+          return (com.helium.grpc.gateway_reward) reward_;
         }
-        return gateway_reward.getDefaultInstance();
+        return com.helium.grpc.gateway_reward.getDefaultInstance();
       } else {
         if (rewardCase_ == 3) {
           return gatewayRewardBuilder_.getMessage();
         }
-        return gateway_reward.getDefaultInstance();
+        return com.helium.grpc.gateway_reward.getDefaultInstance();
       }
     }
     /**
      * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
      */
-    public Builder setGatewayReward(gateway_reward value) {
+    public Builder setGatewayReward(com.helium.grpc.gateway_reward value) {
       if (gatewayRewardBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -727,7 +727,7 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
      */
     public Builder setGatewayReward(
-        gateway_reward.Builder builderForValue) {
+        com.helium.grpc.gateway_reward.Builder builderForValue) {
       if (gatewayRewardBuilder_ == null) {
         reward_ = builderForValue.build();
         onChanged();
@@ -740,11 +740,11 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
      */
-    public Builder mergeGatewayReward(gateway_reward value) {
+    public Builder mergeGatewayReward(com.helium.grpc.gateway_reward value) {
       if (gatewayRewardBuilder_ == null) {
         if (rewardCase_ == 3 &&
-            reward_ != gateway_reward.getDefaultInstance()) {
-          reward_ = gateway_reward.newBuilder((gateway_reward) reward_)
+            reward_ != com.helium.grpc.gateway_reward.getDefaultInstance()) {
+          reward_ = com.helium.grpc.gateway_reward.newBuilder((com.helium.grpc.gateway_reward) reward_)
               .mergeFrom(value).buildPartial();
         } else {
           reward_ = value;
@@ -782,36 +782,36 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
      */
-    public gateway_reward.Builder getGatewayRewardBuilder() {
+    public com.helium.grpc.gateway_reward.Builder getGatewayRewardBuilder() {
       return getGatewayRewardFieldBuilder().getBuilder();
     }
     /**
      * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
      */
-    @Override
-    public gateway_rewardOrBuilder getGatewayRewardOrBuilder() {
+    @java.lang.Override
+    public com.helium.grpc.gateway_rewardOrBuilder getGatewayRewardOrBuilder() {
       if ((rewardCase_ == 3) && (gatewayRewardBuilder_ != null)) {
         return gatewayRewardBuilder_.getMessageOrBuilder();
       } else {
         if (rewardCase_ == 3) {
-          return (gateway_reward) reward_;
+          return (com.helium.grpc.gateway_reward) reward_;
         }
-        return gateway_reward.getDefaultInstance();
+        return com.helium.grpc.gateway_reward.getDefaultInstance();
       }
     }
     /**
      * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        gateway_reward, gateway_reward.Builder, gateway_rewardOrBuilder>
+        com.helium.grpc.gateway_reward, com.helium.grpc.gateway_reward.Builder, com.helium.grpc.gateway_rewardOrBuilder> 
         getGatewayRewardFieldBuilder() {
       if (gatewayRewardBuilder_ == null) {
         if (!(rewardCase_ == 3)) {
-          reward_ = gateway_reward.getDefaultInstance();
+          reward_ = com.helium.grpc.gateway_reward.getDefaultInstance();
         }
         gatewayRewardBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            gateway_reward, gateway_reward.Builder, gateway_rewardOrBuilder>(
-                (gateway_reward) reward_,
+            com.helium.grpc.gateway_reward, com.helium.grpc.gateway_reward.Builder, com.helium.grpc.gateway_rewardOrBuilder>(
+                (com.helium.grpc.gateway_reward) reward_,
                 getParentForChildren(),
                 isClean());
         reward_ = null;
@@ -822,12 +822,12 @@ private static final long serialVersionUID = 0L;
     }
 
     private com.google.protobuf.SingleFieldBuilderV3<
-        operational_reward, operational_reward.Builder, operational_rewardOrBuilder> operationalRewardBuilder_;
+        com.helium.grpc.operational_reward, com.helium.grpc.operational_reward.Builder, com.helium.grpc.operational_rewardOrBuilder> operationalRewardBuilder_;
     /**
      * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
      * @return Whether the operationalReward field is set.
      */
-    @Override
+    @java.lang.Override
     public boolean hasOperationalReward() {
       return rewardCase_ == 4;
     }
@@ -835,24 +835,24 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
      * @return The operationalReward.
      */
-    @Override
-    public operational_reward getOperationalReward() {
+    @java.lang.Override
+    public com.helium.grpc.operational_reward getOperationalReward() {
       if (operationalRewardBuilder_ == null) {
         if (rewardCase_ == 4) {
-          return (operational_reward) reward_;
+          return (com.helium.grpc.operational_reward) reward_;
         }
-        return operational_reward.getDefaultInstance();
+        return com.helium.grpc.operational_reward.getDefaultInstance();
       } else {
         if (rewardCase_ == 4) {
           return operationalRewardBuilder_.getMessage();
         }
-        return operational_reward.getDefaultInstance();
+        return com.helium.grpc.operational_reward.getDefaultInstance();
       }
     }
     /**
      * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
      */
-    public Builder setOperationalReward(operational_reward value) {
+    public Builder setOperationalReward(com.helium.grpc.operational_reward value) {
       if (operationalRewardBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -869,7 +869,7 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
      */
     public Builder setOperationalReward(
-        operational_reward.Builder builderForValue) {
+        com.helium.grpc.operational_reward.Builder builderForValue) {
       if (operationalRewardBuilder_ == null) {
         reward_ = builderForValue.build();
         onChanged();
@@ -882,11 +882,11 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
      */
-    public Builder mergeOperationalReward(operational_reward value) {
+    public Builder mergeOperationalReward(com.helium.grpc.operational_reward value) {
       if (operationalRewardBuilder_ == null) {
         if (rewardCase_ == 4 &&
-            reward_ != operational_reward.getDefaultInstance()) {
-          reward_ = operational_reward.newBuilder((operational_reward) reward_)
+            reward_ != com.helium.grpc.operational_reward.getDefaultInstance()) {
+          reward_ = com.helium.grpc.operational_reward.newBuilder((com.helium.grpc.operational_reward) reward_)
               .mergeFrom(value).buildPartial();
         } else {
           reward_ = value;
@@ -924,36 +924,36 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
      */
-    public operational_reward.Builder getOperationalRewardBuilder() {
+    public com.helium.grpc.operational_reward.Builder getOperationalRewardBuilder() {
       return getOperationalRewardFieldBuilder().getBuilder();
     }
     /**
      * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
      */
-    @Override
-    public operational_rewardOrBuilder getOperationalRewardOrBuilder() {
+    @java.lang.Override
+    public com.helium.grpc.operational_rewardOrBuilder getOperationalRewardOrBuilder() {
       if ((rewardCase_ == 4) && (operationalRewardBuilder_ != null)) {
         return operationalRewardBuilder_.getMessageOrBuilder();
       } else {
         if (rewardCase_ == 4) {
-          return (operational_reward) reward_;
+          return (com.helium.grpc.operational_reward) reward_;
         }
-        return operational_reward.getDefaultInstance();
+        return com.helium.grpc.operational_reward.getDefaultInstance();
       }
     }
     /**
      * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        operational_reward, operational_reward.Builder, operational_rewardOrBuilder>
+        com.helium.grpc.operational_reward, com.helium.grpc.operational_reward.Builder, com.helium.grpc.operational_rewardOrBuilder> 
         getOperationalRewardFieldBuilder() {
       if (operationalRewardBuilder_ == null) {
         if (!(rewardCase_ == 4)) {
-          reward_ = operational_reward.getDefaultInstance();
+          reward_ = com.helium.grpc.operational_reward.getDefaultInstance();
         }
         operationalRewardBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            operational_reward, operational_reward.Builder, operational_rewardOrBuilder>(
-                (operational_reward) reward_,
+            com.helium.grpc.operational_reward, com.helium.grpc.operational_reward.Builder, com.helium.grpc.operational_rewardOrBuilder>(
+                (com.helium.grpc.operational_reward) reward_,
                 getParentForChildren(),
                 isClean());
         reward_ = null;
@@ -962,13 +962,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return operationalRewardBuilder_;
     }
-    @Override
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
-    @Override
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -979,18 +979,18 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:helium.poc_lora.iot_reward_share)
-  private static final iot_reward_share DEFAULT_INSTANCE;
+  private static final com.helium.grpc.iot_reward_share DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new iot_reward_share();
+    DEFAULT_INSTANCE = new com.helium.grpc.iot_reward_share();
   }
 
-  public static iot_reward_share getDefaultInstance() {
+  public static com.helium.grpc.iot_reward_share getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
   private static final com.google.protobuf.Parser<iot_reward_share>
       PARSER = new com.google.protobuf.AbstractParser<iot_reward_share>() {
-    @Override
+    @java.lang.Override
     public iot_reward_share parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1014,13 +1014,13 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
-  @Override
+  @java.lang.Override
   public com.google.protobuf.Parser<iot_reward_share> getParserForType() {
     return PARSER;
   }
 
-  @Override
-  public iot_reward_share getDefaultInstanceForType() {
+  @java.lang.Override
+  public com.helium.grpc.iot_reward_share getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

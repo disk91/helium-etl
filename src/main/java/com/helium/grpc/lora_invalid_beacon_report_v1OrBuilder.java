@@ -26,7 +26,7 @@ public interface lora_invalid_beacon_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_reason reason = 2;</code>
    * @return The reason.
    */
-  invalid_reason getReason();
+  com.helium.grpc.invalid_reason getReason();
 
   /**
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 3;</code>
@@ -37,9 +37,82 @@ public interface lora_invalid_beacon_report_v1OrBuilder extends
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 3;</code>
    * @return The report.
    */
-  lora_beacon_report_req_v1 getReport();
+  com.helium.grpc.lora_beacon_report_req_v1 getReport();
   /**
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 3;</code>
    */
-  lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
+  com.helium.grpc.lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
+
+  /**
+   * <pre>
+   * string representation of the gateways u64 hex location
+   * </pre>
+   *
+   * <code>string location = 4;</code>
+   * @return The location.
+   */
+  java.lang.String getLocation();
+  /**
+   * <pre>
+   * string representation of the gateways u64 hex location
+   * </pre>
+   *
+   * <code>string location = 4;</code>
+   * @return The bytes for location.
+   */
+  com.google.protobuf.ByteString
+      getLocationBytes();
+
+  /**
+   * <pre>
+   *&#47; the transmit gain value of the gateway in dbi x 10
+   * / For example 1 dbi = 10, 15 dbi = 150
+   * / derived from gateway metadata
+   * </pre>
+   *
+   * <code>int32 gain = 5;</code>
+   * @return The gain.
+   */
+  int getGain();
+
+  /**
+   * <pre>
+   *&#47; The asserted elevation of the gateway in AGL ( above ground level)
+   * / derived from gateway metadata
+   * </pre>
+   *
+   * <code>int32 elevation = 6;</code>
+   * @return The elevation.
+   */
+  int getElevation();
+
+  /**
+   * <pre>
+   * provides any additional context for invalid reason
+   * for example the deny list version used as part of the deny list check
+   * </pre>
+   *
+   * <code>.helium.poc_lora.invalid_details invalid_details = 7;</code>
+   * @return Whether the invalidDetails field is set.
+   */
+  boolean hasInvalidDetails();
+  /**
+   * <pre>
+   * provides any additional context for invalid reason
+   * for example the deny list version used as part of the deny list check
+   * </pre>
+   *
+   * <code>.helium.poc_lora.invalid_details invalid_details = 7;</code>
+   * @return The invalidDetails.
+   */
+  com.helium.grpc.invalid_details getInvalidDetails();
+  /**
+   * <pre>
+   * provides any additional context for invalid reason
+   * for example the deny list version used as part of the deny list check
+   * </pre>
+   *
+   * <code>.helium.poc_lora.invalid_details invalid_details = 7;</code>
+   */
+  com.helium.grpc.invalid_detailsOrBuilder getInvalidDetailsOrBuilder();
 }

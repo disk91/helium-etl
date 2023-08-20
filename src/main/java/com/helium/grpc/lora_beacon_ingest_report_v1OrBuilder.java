@@ -26,9 +26,9 @@ public interface lora_beacon_ingest_report_v1OrBuilder extends
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 2;</code>
    * @return The report.
    */
-  lora_beacon_report_req_v1 getReport();
+  com.helium.grpc.lora_beacon_report_req_v1 getReport();
   /**
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 2;</code>
    */
-  lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
+  com.helium.grpc.lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
 }

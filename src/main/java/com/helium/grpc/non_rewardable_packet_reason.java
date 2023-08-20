@@ -4,29 +4,21 @@
 package com.helium.grpc;
 
 /**
- * Protobuf enum {@code helium.poc_lora.verification_status}
+ * Protobuf enum {@code helium.poc_lora.non_rewardable_packet_reason}
  */
-public enum verification_status
+public enum non_rewardable_packet_reason
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>valid = 0;</code>
+   * <code>gateway_not_found_for_packet = 0;</code>
    */
-  valid(0),
-  /**
-   * <code>invalid = 1;</code>
-   */
-  invalid(1),
+  gateway_not_found_for_packet(0),
   UNRECOGNIZED(-1),
   ;
 
   /**
-   * <code>valid = 0;</code>
+   * <code>gateway_not_found_for_packet = 0;</code>
    */
-  public static final int valid_VALUE = 0;
-  /**
-   * <code>invalid = 1;</code>
-   */
-  public static final int invalid_VALUE = 1;
+  public static final int gateway_not_found_for_packet_VALUE = 0;
 
 
   public final int getNumber() {
@@ -43,7 +35,7 @@ public enum verification_status
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
-  public static verification_status valueOf(int value) {
+  public static non_rewardable_packet_reason valueOf(int value) {
     return forNumber(value);
   }
 
@@ -51,23 +43,22 @@ public enum verification_status
    * @param value The numeric wire value of the corresponding enum entry.
    * @return The enum associated with the given numeric wire value.
    */
-  public static verification_status forNumber(int value) {
+  public static non_rewardable_packet_reason forNumber(int value) {
     switch (value) {
-      case 0: return valid;
-      case 1: return invalid;
+      case 0: return gateway_not_found_for_packet;
       default: return null;
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<verification_status>
+  public static com.google.protobuf.Internal.EnumLiteMap<non_rewardable_packet_reason>
       internalGetValueMap() {
     return internalValueMap;
   }
   private static final com.google.protobuf.Internal.EnumLiteMap<
-      verification_status> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<verification_status>() {
-          public verification_status findValueByNumber(int number) {
-            return verification_status.forNumber(number);
+      non_rewardable_packet_reason> internalValueMap =
+        new com.google.protobuf.Internal.EnumLiteMap<non_rewardable_packet_reason>() {
+          public non_rewardable_packet_reason findValueByNumber(int number) {
+            return non_rewardable_packet_reason.forNumber(number);
           }
         };
 
@@ -85,12 +76,12 @@ public enum verification_status
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return com.helium.grpc.PocLoRa.getDescriptor().getEnumTypes().get(0);
+    return com.helium.grpc.PocLoRa.getDescriptor().getEnumTypes().get(3);
   }
 
-  private static final verification_status[] VALUES = values();
+  private static final non_rewardable_packet_reason[] VALUES = values();
 
-  public static verification_status valueOf(
+  public static non_rewardable_packet_reason valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
       throw new java.lang.IllegalArgumentException(
@@ -104,10 +95,10 @@ public enum verification_status
 
   private final int value;
 
-  private verification_status(int value) {
+  private non_rewardable_packet_reason(int value) {
     this.value = value;
   }
 
-  // @@protoc_insertion_point(enum_scope:helium.poc_lora.verification_status)
+  // @@protoc_insertion_point(enum_scope:helium.poc_lora.non_rewardable_packet_reason)
 }
 

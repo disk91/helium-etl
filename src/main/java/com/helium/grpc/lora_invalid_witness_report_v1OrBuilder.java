@@ -26,7 +26,7 @@ public interface lora_invalid_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_reason reason = 2;</code>
    * @return The reason.
    */
-  invalid_reason getReason();
+  com.helium.grpc.invalid_reason getReason();
 
   /**
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
@@ -37,11 +37,11 @@ public interface lora_invalid_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
    * @return The report.
    */
-  lora_witness_report_req_v1 getReport();
+  com.helium.grpc.lora_witness_report_req_v1 getReport();
   /**
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
    */
-  lora_witness_report_req_v1OrBuilder getReportOrBuilder();
+  com.helium.grpc.lora_witness_report_req_v1OrBuilder getReportOrBuilder();
 
   /**
    * <pre>
@@ -62,5 +62,35 @@ public interface lora_invalid_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_participant_side participant_side = 4;</code>
    * @return The participantSide.
    */
-  invalid_participant_side getParticipantSide();
+  com.helium.grpc.invalid_participant_side getParticipantSide();
+
+  /**
+   * <pre>
+   * provides any additional context for invalid reason
+   * for example the deny list version used as part of the deny list check
+   * </pre>
+   *
+   * <code>.helium.poc_lora.invalid_details invalid_details = 5;</code>
+   * @return Whether the invalidDetails field is set.
+   */
+  boolean hasInvalidDetails();
+  /**
+   * <pre>
+   * provides any additional context for invalid reason
+   * for example the deny list version used as part of the deny list check
+   * </pre>
+   *
+   * <code>.helium.poc_lora.invalid_details invalid_details = 5;</code>
+   * @return The invalidDetails.
+   */
+  com.helium.grpc.invalid_details getInvalidDetails();
+  /**
+   * <pre>
+   * provides any additional context for invalid reason
+   * for example the deny list version used as part of the deny list check
+   * </pre>
+   *
+   * <code>.helium.poc_lora.invalid_details invalid_details = 5;</code>
+   */
+  com.helium.grpc.invalid_detailsOrBuilder getInvalidDetailsOrBuilder();
 }

@@ -18,11 +18,19 @@ public interface lora_valid_beacon_report_v1OrBuilder extends
   long getReceivedTimestamp();
 
   /**
+   * <pre>
+   * string representation of the gateways u64 hex location
+   * </pre>
+   *
    * <code>string location = 2;</code>
    * @return The location.
    */
-  String getLocation();
+  java.lang.String getLocation();
   /**
+   * <pre>
+   * string representation of the gateways u64 hex location
+   * </pre>
+   *
    * <code>string location = 2;</code>
    * @return The bytes for location.
    */
@@ -49,11 +57,11 @@ public interface lora_valid_beacon_report_v1OrBuilder extends
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 4;</code>
    * @return The report.
    */
-  lora_beacon_report_req_v1 getReport();
+  com.helium.grpc.lora_beacon_report_req_v1 getReport();
   /**
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 4;</code>
    */
-  lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
+  com.helium.grpc.lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
 
   /**
    * <pre>
@@ -65,4 +73,27 @@ public interface lora_valid_beacon_report_v1OrBuilder extends
    * @return The rewardUnit.
    */
   int getRewardUnit();
+
+  /**
+   * <pre>
+   *&#47; the transmit gain value of the gateway in dbi x 10
+   * / For example 1 dbi = 10, 15 dbi = 150
+   * / derived from gateway metadata
+   * </pre>
+   *
+   * <code>int32 gain = 6;</code>
+   * @return The gain.
+   */
+  int getGain();
+
+  /**
+   * <pre>
+   *&#47; The asserted elevation of the gateway in AGL ( above ground level)
+   * / derived from gateway metadata
+   * </pre>
+   *
+   * <code>int32 elevation = 7;</code>
+   * @return The elevation.
+   */
+  int getElevation();
 }

@@ -22,21 +22,21 @@ public interface lora_poc_v1OrBuilder extends
    * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
    * @return The beaconReport.
    */
-  lora_valid_beacon_report_v1 getBeaconReport();
+  com.helium.grpc.lora_valid_beacon_report_v1 getBeaconReport();
   /**
    * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
    */
-  lora_valid_beacon_report_v1OrBuilder getBeaconReportOrBuilder();
+  com.helium.grpc.lora_valid_beacon_report_v1OrBuilder getBeaconReportOrBuilder();
 
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
    */
-  java.util.List<lora_verified_witness_report_v1>
+  java.util.List<com.helium.grpc.lora_verified_witness_report_v1> 
       getSelectedWitnessesList();
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
    */
-  lora_verified_witness_report_v1 getSelectedWitnesses(int index);
+  com.helium.grpc.lora_verified_witness_report_v1 getSelectedWitnesses(int index);
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
    */
@@ -44,23 +44,23 @@ public interface lora_poc_v1OrBuilder extends
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
    */
-  java.util.List<? extends lora_verified_witness_report_v1OrBuilder>
+  java.util.List<? extends com.helium.grpc.lora_verified_witness_report_v1OrBuilder> 
       getSelectedWitnessesOrBuilderList();
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
    */
-  lora_verified_witness_report_v1OrBuilder getSelectedWitnessesOrBuilder(
+  com.helium.grpc.lora_verified_witness_report_v1OrBuilder getSelectedWitnessesOrBuilder(
       int index);
 
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
    */
-  java.util.List<lora_verified_witness_report_v1>
+  java.util.List<com.helium.grpc.lora_verified_witness_report_v1> 
       getUnselectedWitnessesList();
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
    */
-  lora_verified_witness_report_v1 getUnselectedWitnesses(int index);
+  com.helium.grpc.lora_verified_witness_report_v1 getUnselectedWitnesses(int index);
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
    */
@@ -68,11 +68,11 @@ public interface lora_poc_v1OrBuilder extends
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
    */
-  java.util.List<? extends lora_verified_witness_report_v1OrBuilder>
+  java.util.List<? extends com.helium.grpc.lora_verified_witness_report_v1OrBuilder> 
       getUnselectedWitnessesOrBuilderList();
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
    */
-  lora_verified_witness_report_v1OrBuilder getUnselectedWitnessesOrBuilder(
+  com.helium.grpc.lora_verified_witness_report_v1OrBuilder getUnselectedWitnessesOrBuilder(
       int index);
 }

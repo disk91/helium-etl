@@ -11,7 +11,7 @@ public interface lora_beacon_report_resp_v1OrBuilder extends
    * <code>string id = 1;</code>
    * @return The id.
    */
-  String getId();
+  java.lang.String getId();
   /**
    * <code>string id = 1;</code>
    * @return The bytes for id.

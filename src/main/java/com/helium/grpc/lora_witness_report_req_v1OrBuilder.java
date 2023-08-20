@@ -37,7 +37,7 @@ public interface lora_witness_report_req_v1OrBuilder extends
 
   /**
    * <pre>
-   * Signal in ddbm
+   * Signal in ddBm
    * </pre>
    *
    * <code>sint32 signal = 6;</code>
@@ -46,6 +46,10 @@ public interface lora_witness_report_req_v1OrBuilder extends
   int getSignal();
 
   /**
+   * <pre>
+   * SNR in ddB
+   * </pre>
+   *
    * <code>int32 snr = 7;</code>
    * @return The snr.
    */
@@ -70,7 +74,7 @@ public interface lora_witness_report_req_v1OrBuilder extends
    * <code>.helium.data_rate datarate = 10;</code>
    * @return The datarate.
    */
-  data_rate getDatarate();
+  com.helium.grpc.data_rate getDatarate();
 
   /**
    * <code>bytes signature = 11;</code>

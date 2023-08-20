@@ -56,7 +56,7 @@ public interface lora_beacon_report_req_v1OrBuilder extends
    * <code>.helium.data_rate datarate = 8;</code>
    * @return The datarate.
    */
-  data_rate getDatarate();
+  com.helium.grpc.data_rate getDatarate();
 
   /**
    * <pre>
