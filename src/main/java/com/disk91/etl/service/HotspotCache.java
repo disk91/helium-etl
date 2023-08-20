@@ -302,6 +302,9 @@ public class HotspotCache {
                 hs.setWitnessesHistory(new ArrayList<>());
                 hs.setBeaconned(new ArrayList<>());
                 hs.setRewardHistories(new ArrayList<>());
+                hs.setDenyHistories(new ArrayList<>());
+                hs.setInDenyList(false);
+                hs.setLastDataReward(0);
                 hs.setLastBeacon(0);
                 hs.setLastWitness(0);
                 hs.setVersion(1);
@@ -328,6 +331,11 @@ public class HotspotCache {
                 }
                 if ( hs.getOwner() == null ) {
                     hs.setOwner(new Owner());
+                }
+                if ( hs.getDenyHistories() == null ) {
+                    hs.setDenyHistories(new ArrayList<>());
+                    hs.setInDenyList(false);
+                    hs.setLastDataReward(0);
                 }
                 // init from legacy
                 this.addForEnrichemnent(hs);
@@ -713,14 +721,29 @@ public class HotspotCache {
             if ( b != null ) return false;
         }
 
+        // init the hexScale & update the gateway info
+        double hexScale = beacon.getHexScale() / 10_000.0;
+        double elevation = beacon.getElevation();
+        double gain = beacon.getGain() / 10.0;
+        boolean forcePosUdate = false;
+        if (   beaconner.getPosition() == null
+            || hexScale != beaconner.getPosition().getHexScale()
+            || elevation != beaconner.getPosition().getAlt()
+            || gain != beaconner.getPosition().getGain()
+        ) forcePosUdate = true;
 
-        if ( (start - beaconner.getPosition().getLastDatePosition()) > 12*Now.ONE_HOUR ) {
+        if ( forcePosUdate || (start - beaconner.getPosition().getLastDatePosition()) > 12*Now.ONE_HOUR ) {
             // no need to verify position on every beacon
             if (h3 != null) {
                 LatLng pos = h3.cellToLatLng(Long.parseLong(beacon.getLocation()));
-                if (pos != null && Gps.isAValidCoordinate(pos.lat, pos.lng) && Gps.distance(beaconner.getPosition().getLat(), pos.lat, beaconner.getPosition().getLng(), pos.lng, 0, 0) > 500) {
-                    beaconner.updatePosition(beacon.getReceivedTimestamp(), pos.lat, pos.lng, 0.0, -1.0);
-                    log.debug("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
+                if (pos != null && Gps.isAValidCoordinate(pos.lat, pos.lng) ) {
+                    if ( beaconner.getPosition() == null ) {
+                        beaconner.updatePosition(beacon.getReceivedTimestamp(), pos.lat, pos.lng, elevation, gain,hexScale);
+                        log.debug("Position create : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
+                    } else if ( forcePosUdate || Gps.distance(beaconner.getPosition().getLat(), pos.lat, beaconner.getPosition().getLng(), pos.lng, 0, 0) > 500) {
+                        beaconner.updatePosition(beacon.getReceivedTimestamp(), pos.lat, pos.lng, elevation, gain,hexScale);
+                        log.debug("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
+                    }
                 }
             }
         }
@@ -767,6 +790,13 @@ public class HotspotCache {
             long wstart = Now.NowUtcMs();
             String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
             Hotspot witnessed = this.getHotspot(witnesserId, true);
+
+            // check if removed from deny list
+            if ( witnessed.isInDenyList() ) {
+                log.debug("Found a hotspot to remove from deny list "+witnessed.getHotspotId());
+                witnessed.updateDeny(v.getReport().getTimestamp(),false);
+            }
+
             beaconner.addBeaconed(
                     witnesserId,
                     v.getReport().getTimestamp(),
@@ -820,6 +850,15 @@ public class HotspotCache {
         for ( lora_verified_witness_report_v1 v : p.getUnselectedWitnessesList() ) {
             String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
             Hotspot witnessed = this.getHotspot(witnesserId, true);
+
+            // if the reason is related to denied list
+            if ( v.hasInvalidDetails() && v.getInvalidDetails() != null ) {
+                if ( v.getInvalidDetails().hasDenylistTag() && ! witnessed.isInDenyList() ) {
+                    log.debug("Found a hotspot to add in deny list "+witnessed.getHotspotId());
+                    witnessed.updateDeny(v.getReport().getTimestamp(),true);
+                }
+            }
+
             beaconner.addBeaconed(
                     witnesserId,
                     v.getReport().getTimestamp(),

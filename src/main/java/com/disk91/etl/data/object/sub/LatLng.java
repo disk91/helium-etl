@@ -51,6 +51,12 @@ public class LatLng implements ClonnableObject<LatLng> {
     )
     private double gain;
 
+    @Schema(
+        description = "Hex Scale",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private double hexScale = 0;
+
     // --------
 
     public LatLng clone() {
@@ -62,6 +68,7 @@ public class LatLng implements ClonnableObject<LatLng> {
         c.setCountry(country);
         c.setCity(city);
         c.setLastDatePosition(lastDatePosition);
+        c.setHexScale(hexScale);
         return c;
     }
 
@@ -124,4 +131,10 @@ public class LatLng implements ClonnableObject<LatLng> {
     public void setCity(String city) {
         this.city = city;
     }
+
+    public double getHexScale() { return this.hexScale; }
+
+    public void setHexScale(double hexScale) { this.hexScale = hexScale; }
+
+
 }

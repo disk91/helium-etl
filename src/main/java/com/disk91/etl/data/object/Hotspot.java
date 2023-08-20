@@ -35,6 +35,11 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     private LatLng position;
 
     private List<LatLng> posHistory;
+
+    private boolean inDenyList;
+
+    private List<DenyHistory> denyHistories;
+
     private int version;
 
     private long firstSeen = 0;
@@ -42,6 +47,8 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     private long lastBeacon;
 
     private long lastWitness;
+
+    private long lastDataReward;
 
     private long lastReward;
 
@@ -84,6 +91,10 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         this.sumRewardWitness += witness;
         this.sumRewardDc += dcs;
 
+        if ( dcs > 0 ) {
+            this.lastDataReward = tm;
+        }
+
         long hRef = Now.ThisHourUtc(tm);
         RewardHistory bh = new RewardHistory();
         bh.setTimeRef(hRef);
@@ -116,16 +127,30 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
 
 
-    synchronized public void updatePosition(long timestamp, double lat, double lng, double alt, double gain) {
-        LatLng _p = this.getPosition();
-        _p.setLastDatePosition(timestamp);
-        this.getPosHistory().add(_p.clone());
-        _p.setLat(lat);
-        _p.setLng(lng);
-        _p.setCity("");
-        _p.setCountry("");
-        _p.setAlt(alt);
-        _p.setGain(gain);
+    synchronized public void updatePosition(long timestamp, double lat, double lng, double alt, double gain, double hexScale) {
+        if ( this.position != null ) {
+            this.position.setLastDatePosition(timestamp);
+            this.getPosHistory().add(this.position.clone());
+        } else {
+            this.position = new LatLng();
+        }
+        this.position.setLat(lat);
+        this.position.setLng(lng);
+        this.position.setCity("");
+        this.position.setCountry("");
+        this.position.setAlt(alt);
+        this.position.setGain(gain);
+        this.position.setHexScale(hexScale);
+    }
+
+    synchronized public void updateDeny(long timestamp, boolean isDenied) {
+        if ( this.inDenyList != isDenied ) {
+            DenyHistory _d = new DenyHistory();
+            _d.setTimestamp(timestamp);
+            _d.setWasInDenyList(this.inDenyList);
+            this.getDenyHistories().add(_d);
+            this.inDenyList = isDenied;
+        }
     }
 
     synchronized public void updateLastBeacon(long tm) {
@@ -270,6 +295,8 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         c.setSumRewardDc(sumRewardDc);
         c.setOffsetReward(offsetReward);
         c.setBrand(brand);
+        c.setInDenyList(inDenyList);
+        c.setLastDataReward(lastDataReward);
 
         List<Owner> oh = new ArrayList<>();
         for ( Owner o : ownerHistory ) {
@@ -312,6 +339,12 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             rhs.add(rh.clone());
         }
         c.setRewardHistories(rhs);
+
+        List<DenyHistory> dhs = new ArrayList<>();
+        for (DenyHistory dh : denyHistories) {
+            dhs.add(dh.clone());
+        }
+        c.setDenyHistories(dhs);
 
         return c;
     }
@@ -492,5 +525,29 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setBrand(HotspotBrand brand) {
         this.brand = brand;
+    }
+
+    public boolean isInDenyList() {
+        return inDenyList;
+    }
+
+    public void setInDenyList(boolean inDenyList) {
+        this.inDenyList = inDenyList;
+    }
+
+    public List<DenyHistory> getDenyHistories() {
+        return denyHistories;
+    }
+
+    public void setDenyHistories(List<DenyHistory> denyHistories) {
+        this.denyHistories = denyHistories;
+    }
+
+    public long getLastDataReward() {
+        return lastDataReward;
+    }
+
+    public void setLastDataReward(long lastDataReward) {
+        this.lastDataReward = lastDataReward;
     }
 }
