@@ -26,24 +26,24 @@ private static final long serialVersionUID = 0L;
     unselectedWitnesses_ = java.util.Collections.emptyList();
   }
 
-  @java.lang.Override
+  @Override
   @SuppressWarnings({"unused"})
-  protected java.lang.Object newInstance(
+  protected Object newInstance(
       UnusedPrivateParameter unused) {
     return new lora_poc_v1();
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_poc_v1_descriptor;
+    return PocLoRa.internal_static_helium_poc_lora_lora_poc_v1_descriptor;
   }
 
-  @java.lang.Override
-  protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+  @Override
+  protected FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_poc_v1_fieldAccessorTable
+    return PocLoRa.internal_static_helium_poc_lora_lora_poc_v1_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.helium.grpc.lora_poc_v1.class, com.helium.grpc.lora_poc_v1.Builder.class);
+            lora_poc_v1.class, Builder.class);
   }
 
   public static final int POC_ID_FIELD_NUMBER = 1;
@@ -52,18 +52,18 @@ private static final long serialVersionUID = 0L;
    * <code>bytes poc_id = 1;</code>
    * @return The pocId.
    */
-  @java.lang.Override
+  @Override
   public com.google.protobuf.ByteString getPocId() {
     return pocId_;
   }
 
   public static final int BEACON_REPORT_FIELD_NUMBER = 2;
-  private com.helium.grpc.lora_valid_beacon_report_v1 beaconReport_;
+  private lora_valid_beacon_report_v1 beaconReport_;
   /**
    * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
    * @return Whether the beaconReport field is set.
    */
-  @java.lang.Override
+  @Override
   public boolean hasBeaconReport() {
     return beaconReport_ != null;
   }
@@ -71,102 +71,102 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
    * @return The beaconReport.
    */
-  @java.lang.Override
-  public com.helium.grpc.lora_valid_beacon_report_v1 getBeaconReport() {
-    return beaconReport_ == null ? com.helium.grpc.lora_valid_beacon_report_v1.getDefaultInstance() : beaconReport_;
+  @Override
+  public lora_valid_beacon_report_v1 getBeaconReport() {
+    return beaconReport_ == null ? lora_valid_beacon_report_v1.getDefaultInstance() : beaconReport_;
   }
   /**
    * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
    */
-  @java.lang.Override
-  public com.helium.grpc.lora_valid_beacon_report_v1OrBuilder getBeaconReportOrBuilder() {
-    return beaconReport_ == null ? com.helium.grpc.lora_valid_beacon_report_v1.getDefaultInstance() : beaconReport_;
+  @Override
+  public lora_valid_beacon_report_v1OrBuilder getBeaconReportOrBuilder() {
+    return beaconReport_ == null ? lora_valid_beacon_report_v1.getDefaultInstance() : beaconReport_;
   }
 
   public static final int SELECTED_WITNESSES_FIELD_NUMBER = 3;
   @SuppressWarnings("serial")
-  private java.util.List<com.helium.grpc.lora_verified_witness_report_v1> selectedWitnesses_;
+  private java.util.List<lora_verified_witness_report_v1> selectedWitnesses_;
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
    */
-  @java.lang.Override
-  public java.util.List<com.helium.grpc.lora_verified_witness_report_v1> getSelectedWitnessesList() {
+  @Override
+  public java.util.List<lora_verified_witness_report_v1> getSelectedWitnessesList() {
     return selectedWitnesses_;
   }
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
    */
-  @java.lang.Override
-  public java.util.List<? extends com.helium.grpc.lora_verified_witness_report_v1OrBuilder> 
+  @Override
+  public java.util.List<? extends lora_verified_witness_report_v1OrBuilder>
       getSelectedWitnessesOrBuilderList() {
     return selectedWitnesses_;
   }
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
    */
-  @java.lang.Override
+  @Override
   public int getSelectedWitnessesCount() {
     return selectedWitnesses_.size();
   }
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
    */
-  @java.lang.Override
-  public com.helium.grpc.lora_verified_witness_report_v1 getSelectedWitnesses(int index) {
+  @Override
+  public lora_verified_witness_report_v1 getSelectedWitnesses(int index) {
     return selectedWitnesses_.get(index);
   }
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
    */
-  @java.lang.Override
-  public com.helium.grpc.lora_verified_witness_report_v1OrBuilder getSelectedWitnessesOrBuilder(
+  @Override
+  public lora_verified_witness_report_v1OrBuilder getSelectedWitnessesOrBuilder(
       int index) {
     return selectedWitnesses_.get(index);
   }
 
   public static final int UNSELECTED_WITNESSES_FIELD_NUMBER = 4;
   @SuppressWarnings("serial")
-  private java.util.List<com.helium.grpc.lora_verified_witness_report_v1> unselectedWitnesses_;
+  private java.util.List<lora_verified_witness_report_v1> unselectedWitnesses_;
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
    */
-  @java.lang.Override
-  public java.util.List<com.helium.grpc.lora_verified_witness_report_v1> getUnselectedWitnessesList() {
+  @Override
+  public java.util.List<lora_verified_witness_report_v1> getUnselectedWitnessesList() {
     return unselectedWitnesses_;
   }
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
    */
-  @java.lang.Override
-  public java.util.List<? extends com.helium.grpc.lora_verified_witness_report_v1OrBuilder> 
+  @Override
+  public java.util.List<? extends lora_verified_witness_report_v1OrBuilder>
       getUnselectedWitnessesOrBuilderList() {
     return unselectedWitnesses_;
   }
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
    */
-  @java.lang.Override
+  @Override
   public int getUnselectedWitnessesCount() {
     return unselectedWitnesses_.size();
   }
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
    */
-  @java.lang.Override
-  public com.helium.grpc.lora_verified_witness_report_v1 getUnselectedWitnesses(int index) {
+  @Override
+  public lora_verified_witness_report_v1 getUnselectedWitnesses(int index) {
     return unselectedWitnesses_.get(index);
   }
   /**
    * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
    */
-  @java.lang.Override
-  public com.helium.grpc.lora_verified_witness_report_v1OrBuilder getUnselectedWitnessesOrBuilder(
+  @Override
+  public lora_verified_witness_report_v1OrBuilder getUnselectedWitnessesOrBuilder(
       int index) {
     return unselectedWitnesses_.get(index);
   }
 
   private byte memoizedIsInitialized = -1;
-  @java.lang.Override
+  @Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -176,7 +176,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (!pocId_.isEmpty()) {
@@ -194,7 +194,7 @@ private static final long serialVersionUID = 0L;
     getUnknownFields().writeTo(output);
   }
 
-  @java.lang.Override
+  @Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -221,15 +221,15 @@ private static final long serialVersionUID = 0L;
     return size;
   }
 
-  @java.lang.Override
-  public boolean equals(final java.lang.Object obj) {
+  @Override
+  public boolean equals(final Object obj) {
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.helium.grpc.lora_poc_v1)) {
+    if (!(obj instanceof lora_poc_v1)) {
       return super.equals(obj);
     }
-    com.helium.grpc.lora_poc_v1 other = (com.helium.grpc.lora_poc_v1) obj;
+    lora_poc_v1 other = (lora_poc_v1) obj;
 
     if (!getPocId()
         .equals(other.getPocId())) return false;
@@ -246,7 +246,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public int hashCode() {
     if (memoizedHashCode != 0) {
       return memoizedHashCode;
@@ -272,69 +272,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.helium.grpc.lora_poc_v1 parseFrom(
+  public static lora_poc_v1 parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.lora_poc_v1 parseFrom(
+  public static lora_poc_v1 parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.lora_poc_v1 parseFrom(
+  public static lora_poc_v1 parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.lora_poc_v1 parseFrom(
+  public static lora_poc_v1 parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.lora_poc_v1 parseFrom(byte[] data)
+  public static lora_poc_v1 parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.lora_poc_v1 parseFrom(
+  public static lora_poc_v1 parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.lora_poc_v1 parseFrom(java.io.InputStream input)
+  public static lora_poc_v1 parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.lora_poc_v1 parseFrom(
+  public static lora_poc_v1 parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.lora_poc_v1 parseDelimitedFrom(java.io.InputStream input)
+  public static lora_poc_v1 parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.lora_poc_v1 parseDelimitedFrom(
+  public static lora_poc_v1 parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.lora_poc_v1 parseFrom(
+  public static lora_poc_v1 parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.lora_poc_v1 parseFrom(
+  public static lora_poc_v1 parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -342,23 +342,23 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  @java.lang.Override
+  @Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.helium.grpc.lora_poc_v1 prototype) {
+  public static Builder newBuilder(lora_poc_v1 prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
-  @java.lang.Override
+  @Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
   }
 
-  @java.lang.Override
+  @Override
   protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
@@ -373,18 +373,18 @@ private static final long serialVersionUID = 0L;
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:helium.poc_lora.lora_poc_v1)
-      com.helium.grpc.lora_poc_v1OrBuilder {
+      lora_poc_v1OrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_poc_v1_descriptor;
+      return PocLoRa.internal_static_helium_poc_lora_lora_poc_v1_descriptor;
     }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+    @Override
+    protected FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_poc_v1_fieldAccessorTable
+      return PocLoRa.internal_static_helium_poc_lora_lora_poc_v1_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.helium.grpc.lora_poc_v1.class, com.helium.grpc.lora_poc_v1.Builder.class);
+              lora_poc_v1.class, Builder.class);
     }
 
     // Construct using com.helium.grpc.lora_poc_v1.newBuilder()
@@ -393,11 +393,11 @@ private static final long serialVersionUID = 0L;
     }
 
     private Builder(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        BuilderParent parent) {
       super(parent);
 
     }
-    @java.lang.Override
+    @Override
     public Builder clear() {
       super.clear();
       bitField0_ = 0;
@@ -424,36 +424,36 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_poc_v1_descriptor;
+      return PocLoRa.internal_static_helium_poc_lora_lora_poc_v1_descriptor;
     }
 
-    @java.lang.Override
-    public com.helium.grpc.lora_poc_v1 getDefaultInstanceForType() {
-      return com.helium.grpc.lora_poc_v1.getDefaultInstance();
+    @Override
+    public lora_poc_v1 getDefaultInstanceForType() {
+      return lora_poc_v1.getDefaultInstance();
     }
 
-    @java.lang.Override
-    public com.helium.grpc.lora_poc_v1 build() {
-      com.helium.grpc.lora_poc_v1 result = buildPartial();
+    @Override
+    public lora_poc_v1 build() {
+      lora_poc_v1 result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    @java.lang.Override
-    public com.helium.grpc.lora_poc_v1 buildPartial() {
-      com.helium.grpc.lora_poc_v1 result = new com.helium.grpc.lora_poc_v1(this);
+    @Override
+    public lora_poc_v1 buildPartial() {
+      lora_poc_v1 result = new lora_poc_v1(this);
       buildPartialRepeatedFields(result);
       if (bitField0_ != 0) { buildPartial0(result); }
       onBuilt();
       return result;
     }
 
-    private void buildPartialRepeatedFields(com.helium.grpc.lora_poc_v1 result) {
+    private void buildPartialRepeatedFields(lora_poc_v1 result) {
       if (selectedWitnessesBuilder_ == null) {
         if (((bitField0_ & 0x00000004) != 0)) {
           selectedWitnesses_ = java.util.Collections.unmodifiableList(selectedWitnesses_);
@@ -474,7 +474,7 @@ private static final long serialVersionUID = 0L;
       }
     }
 
-    private void buildPartial0(com.helium.grpc.lora_poc_v1 result) {
+    private void buildPartial0(lora_poc_v1 result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.pocId_ = pocId_;
@@ -486,18 +486,18 @@ private static final long serialVersionUID = 0L;
       }
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.helium.grpc.lora_poc_v1) {
-        return mergeFrom((com.helium.grpc.lora_poc_v1)other);
+      if (other instanceof lora_poc_v1) {
+        return mergeFrom((lora_poc_v1)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.helium.grpc.lora_poc_v1 other) {
-      if (other == com.helium.grpc.lora_poc_v1.getDefaultInstance()) return this;
+    public Builder mergeFrom(lora_poc_v1 other) {
+      if (other == lora_poc_v1.getDefaultInstance()) return this;
       if (other.getPocId() != com.google.protobuf.ByteString.EMPTY) {
         setPocId(other.getPocId());
       }
@@ -561,18 +561,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public final boolean isInitialized() {
       return true;
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
+        throw new NullPointerException();
       }
       try {
         boolean done = false;
@@ -595,9 +595,9 @@ private static final long serialVersionUID = 0L;
               break;
             } // case 18
             case 26: {
-              com.helium.grpc.lora_verified_witness_report_v1 m =
+              lora_verified_witness_report_v1 m =
                   input.readMessage(
-                      com.helium.grpc.lora_verified_witness_report_v1.parser(),
+                      lora_verified_witness_report_v1.parser(),
                       extensionRegistry);
               if (selectedWitnessesBuilder_ == null) {
                 ensureSelectedWitnessesIsMutable();
@@ -608,9 +608,9 @@ private static final long serialVersionUID = 0L;
               break;
             } // case 26
             case 34: {
-              com.helium.grpc.lora_verified_witness_report_v1 m =
+              lora_verified_witness_report_v1 m =
                   input.readMessage(
-                      com.helium.grpc.lora_verified_witness_report_v1.parser(),
+                      lora_verified_witness_report_v1.parser(),
                       extensionRegistry);
               if (unselectedWitnessesBuilder_ == null) {
                 ensureUnselectedWitnessesIsMutable();
@@ -642,7 +642,7 @@ private static final long serialVersionUID = 0L;
      * <code>bytes poc_id = 1;</code>
      * @return The pocId.
      */
-    @java.lang.Override
+    @Override
     public com.google.protobuf.ByteString getPocId() {
       return pocId_;
     }
@@ -669,9 +669,9 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private com.helium.grpc.lora_valid_beacon_report_v1 beaconReport_;
+    private lora_valid_beacon_report_v1 beaconReport_;
     private com.google.protobuf.SingleFieldBuilderV3<
-        com.helium.grpc.lora_valid_beacon_report_v1, com.helium.grpc.lora_valid_beacon_report_v1.Builder, com.helium.grpc.lora_valid_beacon_report_v1OrBuilder> beaconReportBuilder_;
+        lora_valid_beacon_report_v1, lora_valid_beacon_report_v1.Builder, lora_valid_beacon_report_v1OrBuilder> beaconReportBuilder_;
     /**
      * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
      * @return Whether the beaconReport field is set.
@@ -683,9 +683,9 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
      * @return The beaconReport.
      */
-    public com.helium.grpc.lora_valid_beacon_report_v1 getBeaconReport() {
+    public lora_valid_beacon_report_v1 getBeaconReport() {
       if (beaconReportBuilder_ == null) {
-        return beaconReport_ == null ? com.helium.grpc.lora_valid_beacon_report_v1.getDefaultInstance() : beaconReport_;
+        return beaconReport_ == null ? lora_valid_beacon_report_v1.getDefaultInstance() : beaconReport_;
       } else {
         return beaconReportBuilder_.getMessage();
       }
@@ -693,7 +693,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
      */
-    public Builder setBeaconReport(com.helium.grpc.lora_valid_beacon_report_v1 value) {
+    public Builder setBeaconReport(lora_valid_beacon_report_v1 value) {
       if (beaconReportBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -710,7 +710,7 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
      */
     public Builder setBeaconReport(
-        com.helium.grpc.lora_valid_beacon_report_v1.Builder builderForValue) {
+        lora_valid_beacon_report_v1.Builder builderForValue) {
       if (beaconReportBuilder_ == null) {
         beaconReport_ = builderForValue.build();
       } else {
@@ -723,11 +723,11 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
      */
-    public Builder mergeBeaconReport(com.helium.grpc.lora_valid_beacon_report_v1 value) {
+    public Builder mergeBeaconReport(lora_valid_beacon_report_v1 value) {
       if (beaconReportBuilder_ == null) {
         if (((bitField0_ & 0x00000002) != 0) &&
           beaconReport_ != null &&
-          beaconReport_ != com.helium.grpc.lora_valid_beacon_report_v1.getDefaultInstance()) {
+          beaconReport_ != lora_valid_beacon_report_v1.getDefaultInstance()) {
           getBeaconReportBuilder().mergeFrom(value);
         } else {
           beaconReport_ = value;
@@ -755,7 +755,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
      */
-    public com.helium.grpc.lora_valid_beacon_report_v1.Builder getBeaconReportBuilder() {
+    public lora_valid_beacon_report_v1.Builder getBeaconReportBuilder() {
       bitField0_ |= 0x00000002;
       onChanged();
       return getBeaconReportFieldBuilder().getBuilder();
@@ -763,23 +763,23 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
      */
-    public com.helium.grpc.lora_valid_beacon_report_v1OrBuilder getBeaconReportOrBuilder() {
+    public lora_valid_beacon_report_v1OrBuilder getBeaconReportOrBuilder() {
       if (beaconReportBuilder_ != null) {
         return beaconReportBuilder_.getMessageOrBuilder();
       } else {
         return beaconReport_ == null ?
-            com.helium.grpc.lora_valid_beacon_report_v1.getDefaultInstance() : beaconReport_;
+            lora_valid_beacon_report_v1.getDefaultInstance() : beaconReport_;
       }
     }
     /**
      * <code>.helium.poc_lora.lora_valid_beacon_report_v1 beacon_report = 2;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        com.helium.grpc.lora_valid_beacon_report_v1, com.helium.grpc.lora_valid_beacon_report_v1.Builder, com.helium.grpc.lora_valid_beacon_report_v1OrBuilder> 
+        lora_valid_beacon_report_v1, lora_valid_beacon_report_v1.Builder, lora_valid_beacon_report_v1OrBuilder>
         getBeaconReportFieldBuilder() {
       if (beaconReportBuilder_ == null) {
         beaconReportBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            com.helium.grpc.lora_valid_beacon_report_v1, com.helium.grpc.lora_valid_beacon_report_v1.Builder, com.helium.grpc.lora_valid_beacon_report_v1OrBuilder>(
+            lora_valid_beacon_report_v1, lora_valid_beacon_report_v1.Builder, lora_valid_beacon_report_v1OrBuilder>(
                 getBeaconReport(),
                 getParentForChildren(),
                 isClean());
@@ -788,22 +788,22 @@ private static final long serialVersionUID = 0L;
       return beaconReportBuilder_;
     }
 
-    private java.util.List<com.helium.grpc.lora_verified_witness_report_v1> selectedWitnesses_ =
+    private java.util.List<lora_verified_witness_report_v1> selectedWitnesses_ =
       java.util.Collections.emptyList();
     private void ensureSelectedWitnessesIsMutable() {
       if (!((bitField0_ & 0x00000004) != 0)) {
-        selectedWitnesses_ = new java.util.ArrayList<com.helium.grpc.lora_verified_witness_report_v1>(selectedWitnesses_);
+        selectedWitnesses_ = new java.util.ArrayList<lora_verified_witness_report_v1>(selectedWitnesses_);
         bitField0_ |= 0x00000004;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        com.helium.grpc.lora_verified_witness_report_v1, com.helium.grpc.lora_verified_witness_report_v1.Builder, com.helium.grpc.lora_verified_witness_report_v1OrBuilder> selectedWitnessesBuilder_;
+        lora_verified_witness_report_v1, lora_verified_witness_report_v1.Builder, lora_verified_witness_report_v1OrBuilder> selectedWitnessesBuilder_;
 
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
-    public java.util.List<com.helium.grpc.lora_verified_witness_report_v1> getSelectedWitnessesList() {
+    public java.util.List<lora_verified_witness_report_v1> getSelectedWitnessesList() {
       if (selectedWitnessesBuilder_ == null) {
         return java.util.Collections.unmodifiableList(selectedWitnesses_);
       } else {
@@ -823,7 +823,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
-    public com.helium.grpc.lora_verified_witness_report_v1 getSelectedWitnesses(int index) {
+    public lora_verified_witness_report_v1 getSelectedWitnesses(int index) {
       if (selectedWitnessesBuilder_ == null) {
         return selectedWitnesses_.get(index);
       } else {
@@ -834,7 +834,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
     public Builder setSelectedWitnesses(
-        int index, com.helium.grpc.lora_verified_witness_report_v1 value) {
+        int index, lora_verified_witness_report_v1 value) {
       if (selectedWitnessesBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -851,7 +851,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
     public Builder setSelectedWitnesses(
-        int index, com.helium.grpc.lora_verified_witness_report_v1.Builder builderForValue) {
+        int index, lora_verified_witness_report_v1.Builder builderForValue) {
       if (selectedWitnessesBuilder_ == null) {
         ensureSelectedWitnessesIsMutable();
         selectedWitnesses_.set(index, builderForValue.build());
@@ -864,7 +864,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
-    public Builder addSelectedWitnesses(com.helium.grpc.lora_verified_witness_report_v1 value) {
+    public Builder addSelectedWitnesses(lora_verified_witness_report_v1 value) {
       if (selectedWitnessesBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -881,7 +881,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
     public Builder addSelectedWitnesses(
-        int index, com.helium.grpc.lora_verified_witness_report_v1 value) {
+        int index, lora_verified_witness_report_v1 value) {
       if (selectedWitnessesBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -898,7 +898,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
     public Builder addSelectedWitnesses(
-        com.helium.grpc.lora_verified_witness_report_v1.Builder builderForValue) {
+        lora_verified_witness_report_v1.Builder builderForValue) {
       if (selectedWitnessesBuilder_ == null) {
         ensureSelectedWitnessesIsMutable();
         selectedWitnesses_.add(builderForValue.build());
@@ -912,7 +912,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
     public Builder addSelectedWitnesses(
-        int index, com.helium.grpc.lora_verified_witness_report_v1.Builder builderForValue) {
+        int index, lora_verified_witness_report_v1.Builder builderForValue) {
       if (selectedWitnessesBuilder_ == null) {
         ensureSelectedWitnessesIsMutable();
         selectedWitnesses_.add(index, builderForValue.build());
@@ -926,7 +926,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
     public Builder addAllSelectedWitnesses(
-        java.lang.Iterable<? extends com.helium.grpc.lora_verified_witness_report_v1> values) {
+        Iterable<? extends lora_verified_witness_report_v1> values) {
       if (selectedWitnessesBuilder_ == null) {
         ensureSelectedWitnessesIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -966,14 +966,14 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
-    public com.helium.grpc.lora_verified_witness_report_v1.Builder getSelectedWitnessesBuilder(
+    public lora_verified_witness_report_v1.Builder getSelectedWitnessesBuilder(
         int index) {
       return getSelectedWitnessesFieldBuilder().getBuilder(index);
     }
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
-    public com.helium.grpc.lora_verified_witness_report_v1OrBuilder getSelectedWitnessesOrBuilder(
+    public lora_verified_witness_report_v1OrBuilder getSelectedWitnessesOrBuilder(
         int index) {
       if (selectedWitnessesBuilder_ == null) {
         return selectedWitnesses_.get(index);  } else {
@@ -983,7 +983,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
-    public java.util.List<? extends com.helium.grpc.lora_verified_witness_report_v1OrBuilder> 
+    public java.util.List<? extends lora_verified_witness_report_v1OrBuilder>
          getSelectedWitnessesOrBuilderList() {
       if (selectedWitnessesBuilder_ != null) {
         return selectedWitnessesBuilder_.getMessageOrBuilderList();
@@ -994,31 +994,31 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
-    public com.helium.grpc.lora_verified_witness_report_v1.Builder addSelectedWitnessesBuilder() {
+    public lora_verified_witness_report_v1.Builder addSelectedWitnessesBuilder() {
       return getSelectedWitnessesFieldBuilder().addBuilder(
-          com.helium.grpc.lora_verified_witness_report_v1.getDefaultInstance());
+          lora_verified_witness_report_v1.getDefaultInstance());
     }
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
-    public com.helium.grpc.lora_verified_witness_report_v1.Builder addSelectedWitnessesBuilder(
+    public lora_verified_witness_report_v1.Builder addSelectedWitnessesBuilder(
         int index) {
       return getSelectedWitnessesFieldBuilder().addBuilder(
-          index, com.helium.grpc.lora_verified_witness_report_v1.getDefaultInstance());
+          index, lora_verified_witness_report_v1.getDefaultInstance());
     }
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 selected_witnesses = 3;</code>
      */
-    public java.util.List<com.helium.grpc.lora_verified_witness_report_v1.Builder> 
+    public java.util.List<lora_verified_witness_report_v1.Builder>
          getSelectedWitnessesBuilderList() {
       return getSelectedWitnessesFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        com.helium.grpc.lora_verified_witness_report_v1, com.helium.grpc.lora_verified_witness_report_v1.Builder, com.helium.grpc.lora_verified_witness_report_v1OrBuilder> 
+        lora_verified_witness_report_v1, lora_verified_witness_report_v1.Builder, lora_verified_witness_report_v1OrBuilder>
         getSelectedWitnessesFieldBuilder() {
       if (selectedWitnessesBuilder_ == null) {
         selectedWitnessesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-            com.helium.grpc.lora_verified_witness_report_v1, com.helium.grpc.lora_verified_witness_report_v1.Builder, com.helium.grpc.lora_verified_witness_report_v1OrBuilder>(
+            lora_verified_witness_report_v1, lora_verified_witness_report_v1.Builder, lora_verified_witness_report_v1OrBuilder>(
                 selectedWitnesses_,
                 ((bitField0_ & 0x00000004) != 0),
                 getParentForChildren(),
@@ -1028,22 +1028,22 @@ private static final long serialVersionUID = 0L;
       return selectedWitnessesBuilder_;
     }
 
-    private java.util.List<com.helium.grpc.lora_verified_witness_report_v1> unselectedWitnesses_ =
+    private java.util.List<lora_verified_witness_report_v1> unselectedWitnesses_ =
       java.util.Collections.emptyList();
     private void ensureUnselectedWitnessesIsMutable() {
       if (!((bitField0_ & 0x00000008) != 0)) {
-        unselectedWitnesses_ = new java.util.ArrayList<com.helium.grpc.lora_verified_witness_report_v1>(unselectedWitnesses_);
+        unselectedWitnesses_ = new java.util.ArrayList<lora_verified_witness_report_v1>(unselectedWitnesses_);
         bitField0_ |= 0x00000008;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        com.helium.grpc.lora_verified_witness_report_v1, com.helium.grpc.lora_verified_witness_report_v1.Builder, com.helium.grpc.lora_verified_witness_report_v1OrBuilder> unselectedWitnessesBuilder_;
+        lora_verified_witness_report_v1, lora_verified_witness_report_v1.Builder, lora_verified_witness_report_v1OrBuilder> unselectedWitnessesBuilder_;
 
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
-    public java.util.List<com.helium.grpc.lora_verified_witness_report_v1> getUnselectedWitnessesList() {
+    public java.util.List<lora_verified_witness_report_v1> getUnselectedWitnessesList() {
       if (unselectedWitnessesBuilder_ == null) {
         return java.util.Collections.unmodifiableList(unselectedWitnesses_);
       } else {
@@ -1063,7 +1063,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
-    public com.helium.grpc.lora_verified_witness_report_v1 getUnselectedWitnesses(int index) {
+    public lora_verified_witness_report_v1 getUnselectedWitnesses(int index) {
       if (unselectedWitnessesBuilder_ == null) {
         return unselectedWitnesses_.get(index);
       } else {
@@ -1074,7 +1074,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
     public Builder setUnselectedWitnesses(
-        int index, com.helium.grpc.lora_verified_witness_report_v1 value) {
+        int index, lora_verified_witness_report_v1 value) {
       if (unselectedWitnessesBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -1091,7 +1091,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
     public Builder setUnselectedWitnesses(
-        int index, com.helium.grpc.lora_verified_witness_report_v1.Builder builderForValue) {
+        int index, lora_verified_witness_report_v1.Builder builderForValue) {
       if (unselectedWitnessesBuilder_ == null) {
         ensureUnselectedWitnessesIsMutable();
         unselectedWitnesses_.set(index, builderForValue.build());
@@ -1104,7 +1104,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
-    public Builder addUnselectedWitnesses(com.helium.grpc.lora_verified_witness_report_v1 value) {
+    public Builder addUnselectedWitnesses(lora_verified_witness_report_v1 value) {
       if (unselectedWitnessesBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -1121,7 +1121,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
     public Builder addUnselectedWitnesses(
-        int index, com.helium.grpc.lora_verified_witness_report_v1 value) {
+        int index, lora_verified_witness_report_v1 value) {
       if (unselectedWitnessesBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -1138,7 +1138,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
     public Builder addUnselectedWitnesses(
-        com.helium.grpc.lora_verified_witness_report_v1.Builder builderForValue) {
+        lora_verified_witness_report_v1.Builder builderForValue) {
       if (unselectedWitnessesBuilder_ == null) {
         ensureUnselectedWitnessesIsMutable();
         unselectedWitnesses_.add(builderForValue.build());
@@ -1152,7 +1152,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
     public Builder addUnselectedWitnesses(
-        int index, com.helium.grpc.lora_verified_witness_report_v1.Builder builderForValue) {
+        int index, lora_verified_witness_report_v1.Builder builderForValue) {
       if (unselectedWitnessesBuilder_ == null) {
         ensureUnselectedWitnessesIsMutable();
         unselectedWitnesses_.add(index, builderForValue.build());
@@ -1166,7 +1166,7 @@ private static final long serialVersionUID = 0L;
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
     public Builder addAllUnselectedWitnesses(
-        java.lang.Iterable<? extends com.helium.grpc.lora_verified_witness_report_v1> values) {
+        Iterable<? extends lora_verified_witness_report_v1> values) {
       if (unselectedWitnessesBuilder_ == null) {
         ensureUnselectedWitnessesIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -1206,14 +1206,14 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
-    public com.helium.grpc.lora_verified_witness_report_v1.Builder getUnselectedWitnessesBuilder(
+    public lora_verified_witness_report_v1.Builder getUnselectedWitnessesBuilder(
         int index) {
       return getUnselectedWitnessesFieldBuilder().getBuilder(index);
     }
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
-    public com.helium.grpc.lora_verified_witness_report_v1OrBuilder getUnselectedWitnessesOrBuilder(
+    public lora_verified_witness_report_v1OrBuilder getUnselectedWitnessesOrBuilder(
         int index) {
       if (unselectedWitnessesBuilder_ == null) {
         return unselectedWitnesses_.get(index);  } else {
@@ -1223,7 +1223,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
-    public java.util.List<? extends com.helium.grpc.lora_verified_witness_report_v1OrBuilder> 
+    public java.util.List<? extends lora_verified_witness_report_v1OrBuilder>
          getUnselectedWitnessesOrBuilderList() {
       if (unselectedWitnessesBuilder_ != null) {
         return unselectedWitnessesBuilder_.getMessageOrBuilderList();
@@ -1234,31 +1234,31 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
-    public com.helium.grpc.lora_verified_witness_report_v1.Builder addUnselectedWitnessesBuilder() {
+    public lora_verified_witness_report_v1.Builder addUnselectedWitnessesBuilder() {
       return getUnselectedWitnessesFieldBuilder().addBuilder(
-          com.helium.grpc.lora_verified_witness_report_v1.getDefaultInstance());
+          lora_verified_witness_report_v1.getDefaultInstance());
     }
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
-    public com.helium.grpc.lora_verified_witness_report_v1.Builder addUnselectedWitnessesBuilder(
+    public lora_verified_witness_report_v1.Builder addUnselectedWitnessesBuilder(
         int index) {
       return getUnselectedWitnessesFieldBuilder().addBuilder(
-          index, com.helium.grpc.lora_verified_witness_report_v1.getDefaultInstance());
+          index, lora_verified_witness_report_v1.getDefaultInstance());
     }
     /**
      * <code>repeated .helium.poc_lora.lora_verified_witness_report_v1 unselected_witnesses = 4;</code>
      */
-    public java.util.List<com.helium.grpc.lora_verified_witness_report_v1.Builder> 
+    public java.util.List<lora_verified_witness_report_v1.Builder>
          getUnselectedWitnessesBuilderList() {
       return getUnselectedWitnessesFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        com.helium.grpc.lora_verified_witness_report_v1, com.helium.grpc.lora_verified_witness_report_v1.Builder, com.helium.grpc.lora_verified_witness_report_v1OrBuilder> 
+        lora_verified_witness_report_v1, lora_verified_witness_report_v1.Builder, lora_verified_witness_report_v1OrBuilder>
         getUnselectedWitnessesFieldBuilder() {
       if (unselectedWitnessesBuilder_ == null) {
         unselectedWitnessesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-            com.helium.grpc.lora_verified_witness_report_v1, com.helium.grpc.lora_verified_witness_report_v1.Builder, com.helium.grpc.lora_verified_witness_report_v1OrBuilder>(
+            lora_verified_witness_report_v1, lora_verified_witness_report_v1.Builder, lora_verified_witness_report_v1OrBuilder>(
                 unselectedWitnesses_,
                 ((bitField0_ & 0x00000008) != 0),
                 getParentForChildren(),
@@ -1267,13 +1267,13 @@ private static final long serialVersionUID = 0L;
       }
       return unselectedWitnessesBuilder_;
     }
-    @java.lang.Override
+    @Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
-    @java.lang.Override
+    @Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1284,18 +1284,18 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:helium.poc_lora.lora_poc_v1)
-  private static final com.helium.grpc.lora_poc_v1 DEFAULT_INSTANCE;
+  private static final lora_poc_v1 DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.helium.grpc.lora_poc_v1();
+    DEFAULT_INSTANCE = new lora_poc_v1();
   }
 
-  public static com.helium.grpc.lora_poc_v1 getDefaultInstance() {
+  public static lora_poc_v1 getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
   private static final com.google.protobuf.Parser<lora_poc_v1>
       PARSER = new com.google.protobuf.AbstractParser<lora_poc_v1>() {
-    @java.lang.Override
+    @Override
     public lora_poc_v1 parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1319,13 +1319,13 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
-  @java.lang.Override
+  @Override
   public com.google.protobuf.Parser<lora_poc_v1> getParserForType() {
     return PARSER;
   }
 
-  @java.lang.Override
-  public com.helium.grpc.lora_poc_v1 getDefaultInstanceForType() {
+  @Override
+  public lora_poc_v1 getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

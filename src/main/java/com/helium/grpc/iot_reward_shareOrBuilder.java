@@ -36,11 +36,11 @@ public interface iot_reward_shareOrBuilder extends
    * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
    * @return The gatewayReward.
    */
-  com.helium.grpc.gateway_reward getGatewayReward();
+  gateway_reward getGatewayReward();
   /**
    * <code>.helium.poc_lora.gateway_reward gateway_reward = 3;</code>
    */
-  com.helium.grpc.gateway_rewardOrBuilder getGatewayRewardOrBuilder();
+  gateway_rewardOrBuilder getGatewayRewardOrBuilder();
 
   /**
    * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
@@ -51,11 +51,11 @@ public interface iot_reward_shareOrBuilder extends
    * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
    * @return The operationalReward.
    */
-  com.helium.grpc.operational_reward getOperationalReward();
+  operational_reward getOperationalReward();
   /**
    * <code>.helium.poc_lora.operational_reward operational_reward = 4;</code>
    */
-  com.helium.grpc.operational_rewardOrBuilder getOperationalRewardOrBuilder();
+  operational_rewardOrBuilder getOperationalRewardOrBuilder();
 
-  com.helium.grpc.iot_reward_share.RewardCase getRewardCase();
+  iot_reward_share.RewardCase getRewardCase();
 }

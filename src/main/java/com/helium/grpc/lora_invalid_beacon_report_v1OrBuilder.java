@@ -26,7 +26,7 @@ public interface lora_invalid_beacon_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_reason reason = 2;</code>
    * @return The reason.
    */
-  com.helium.grpc.invalid_reason getReason();
+  invalid_reason getReason();
 
   /**
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 3;</code>
@@ -37,11 +37,11 @@ public interface lora_invalid_beacon_report_v1OrBuilder extends
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 3;</code>
    * @return The report.
    */
-  com.helium.grpc.lora_beacon_report_req_v1 getReport();
+  lora_beacon_report_req_v1 getReport();
   /**
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 3;</code>
    */
-  com.helium.grpc.lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
+  lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
 
   /**
    * <pre>
@@ -51,7 +51,7 @@ public interface lora_invalid_beacon_report_v1OrBuilder extends
    * <code>string location = 4;</code>
    * @return The location.
    */
-  java.lang.String getLocation();
+  String getLocation();
   /**
    * <pre>
    * string representation of the gateways u64 hex location
@@ -105,7 +105,7 @@ public interface lora_invalid_beacon_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_details invalid_details = 7;</code>
    * @return The invalidDetails.
    */
-  com.helium.grpc.invalid_details getInvalidDetails();
+  invalid_details getInvalidDetails();
   /**
    * <pre>
    * provides any additional context for invalid reason
@@ -114,5 +114,5 @@ public interface lora_invalid_beacon_report_v1OrBuilder extends
    *
    * <code>.helium.poc_lora.invalid_details invalid_details = 7;</code>
    */
-  com.helium.grpc.invalid_detailsOrBuilder getInvalidDetailsOrBuilder();
+  invalid_detailsOrBuilder getInvalidDetailsOrBuilder();
 }

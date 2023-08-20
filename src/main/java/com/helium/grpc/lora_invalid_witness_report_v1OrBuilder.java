@@ -26,7 +26,7 @@ public interface lora_invalid_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_reason reason = 2;</code>
    * @return The reason.
    */
-  com.helium.grpc.invalid_reason getReason();
+  invalid_reason getReason();
 
   /**
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
@@ -37,11 +37,11 @@ public interface lora_invalid_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
    * @return The report.
    */
-  com.helium.grpc.lora_witness_report_req_v1 getReport();
+  lora_witness_report_req_v1 getReport();
   /**
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 3;</code>
    */
-  com.helium.grpc.lora_witness_report_req_v1OrBuilder getReportOrBuilder();
+  lora_witness_report_req_v1OrBuilder getReportOrBuilder();
 
   /**
    * <pre>
@@ -62,7 +62,7 @@ public interface lora_invalid_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_participant_side participant_side = 4;</code>
    * @return The participantSide.
    */
-  com.helium.grpc.invalid_participant_side getParticipantSide();
+  invalid_participant_side getParticipantSide();
 
   /**
    * <pre>
@@ -83,7 +83,7 @@ public interface lora_invalid_witness_report_v1OrBuilder extends
    * <code>.helium.poc_lora.invalid_details invalid_details = 5;</code>
    * @return The invalidDetails.
    */
-  com.helium.grpc.invalid_details getInvalidDetails();
+  invalid_details getInvalidDetails();
   /**
    * <pre>
    * provides any additional context for invalid reason
@@ -92,5 +92,5 @@ public interface lora_invalid_witness_report_v1OrBuilder extends
    *
    * <code>.helium.poc_lora.invalid_details invalid_details = 5;</code>
    */
-  com.helium.grpc.invalid_detailsOrBuilder getInvalidDetailsOrBuilder();
+  invalid_detailsOrBuilder getInvalidDetailsOrBuilder();
 }

@@ -18,32 +18,32 @@ private static final long serialVersionUID = 0L;
   private invalid_details() {
   }
 
-  @java.lang.Override
+  @Override
   @SuppressWarnings({"unused"})
-  protected java.lang.Object newInstance(
+  protected Object newInstance(
       UnusedPrivateParameter unused) {
     return new invalid_details();
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_invalid_details_descriptor;
+    return PocLoRa.internal_static_helium_poc_lora_invalid_details_descriptor;
   }
 
-  @java.lang.Override
-  protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+  @Override
+  protected FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_invalid_details_fieldAccessorTable
+    return PocLoRa.internal_static_helium_poc_lora_invalid_details_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.helium.grpc.invalid_details.class, com.helium.grpc.invalid_details.Builder.class);
+            invalid_details.class, Builder.class);
   }
 
   private int dataCase_ = 0;
   @SuppressWarnings("serial")
-  private java.lang.Object data_;
+  private Object data_;
   public enum DataCase
       implements com.google.protobuf.Internal.EnumLite,
-          com.google.protobuf.AbstractMessage.InternalOneOfEnum {
+          InternalOneOfEnum {
     DENYLIST_TAG(1),
     DATA_NOT_SET(0);
     private final int value;
@@ -55,7 +55,7 @@ private static final long serialVersionUID = 0L;
      * @return The enum associated with the given number.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
-    @java.lang.Deprecated
+    @Deprecated
     public static DataCase valueOf(int value) {
       return forNumber(value);
     }
@@ -90,17 +90,17 @@ private static final long serialVersionUID = 0L;
    * <code>string denylist_tag = 1;</code>
    * @return The denylistTag.
    */
-  public java.lang.String getDenylistTag() {
-    java.lang.Object ref = "";
+  public String getDenylistTag() {
+    Object ref = "";
     if (dataCase_ == 1) {
       ref = data_;
     }
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
+    if (ref instanceof String) {
+      return (String) ref;
     } else {
       com.google.protobuf.ByteString bs = 
           (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
+      String s = bs.toStringUtf8();
       if (dataCase_ == 1) {
         data_ = s;
       }
@@ -113,14 +113,14 @@ private static final long serialVersionUID = 0L;
    */
   public com.google.protobuf.ByteString
       getDenylistTagBytes() {
-    java.lang.Object ref = "";
+    Object ref = "";
     if (dataCase_ == 1) {
       ref = data_;
     }
-    if (ref instanceof java.lang.String) {
+    if (ref instanceof String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+              (String) ref);
       if (dataCase_ == 1) {
         data_ = b;
       }
@@ -131,7 +131,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
-  @java.lang.Override
+  @Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -141,7 +141,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (dataCase_ == 1) {
@@ -150,7 +150,7 @@ private static final long serialVersionUID = 0L;
     getUnknownFields().writeTo(output);
   }
 
-  @java.lang.Override
+  @Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -164,15 +164,15 @@ private static final long serialVersionUID = 0L;
     return size;
   }
 
-  @java.lang.Override
-  public boolean equals(final java.lang.Object obj) {
+  @Override
+  public boolean equals(final Object obj) {
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.helium.grpc.invalid_details)) {
+    if (!(obj instanceof invalid_details)) {
       return super.equals(obj);
     }
-    com.helium.grpc.invalid_details other = (com.helium.grpc.invalid_details) obj;
+    invalid_details other = (invalid_details) obj;
 
     if (!getDataCase().equals(other.getDataCase())) return false;
     switch (dataCase_) {
@@ -187,7 +187,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public int hashCode() {
     if (memoizedHashCode != 0) {
       return memoizedHashCode;
@@ -207,69 +207,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.helium.grpc.invalid_details parseFrom(
+  public static invalid_details parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.invalid_details parseFrom(
+  public static invalid_details parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.invalid_details parseFrom(
+  public static invalid_details parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.invalid_details parseFrom(
+  public static invalid_details parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.invalid_details parseFrom(byte[] data)
+  public static invalid_details parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.invalid_details parseFrom(
+  public static invalid_details parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.invalid_details parseFrom(java.io.InputStream input)
+  public static invalid_details parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.invalid_details parseFrom(
+  public static invalid_details parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.invalid_details parseDelimitedFrom(java.io.InputStream input)
+  public static invalid_details parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.invalid_details parseDelimitedFrom(
+  public static invalid_details parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.invalid_details parseFrom(
+  public static invalid_details parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.invalid_details parseFrom(
+  public static invalid_details parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -277,23 +277,23 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  @java.lang.Override
+  @Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.helium.grpc.invalid_details prototype) {
+  public static Builder newBuilder(invalid_details prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
-  @java.lang.Override
+  @Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
   }
 
-  @java.lang.Override
+  @Override
   protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
@@ -303,18 +303,18 @@ private static final long serialVersionUID = 0L;
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:helium.poc_lora.invalid_details)
-      com.helium.grpc.invalid_detailsOrBuilder {
+      invalid_detailsOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_invalid_details_descriptor;
+      return PocLoRa.internal_static_helium_poc_lora_invalid_details_descriptor;
     }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+    @Override
+    protected FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_invalid_details_fieldAccessorTable
+      return PocLoRa.internal_static_helium_poc_lora_invalid_details_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.helium.grpc.invalid_details.class, com.helium.grpc.invalid_details.Builder.class);
+              invalid_details.class, Builder.class);
     }
 
     // Construct using com.helium.grpc.invalid_details.newBuilder()
@@ -323,11 +323,11 @@ private static final long serialVersionUID = 0L;
     }
 
     private Builder(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        BuilderParent parent) {
       super(parent);
 
     }
-    @java.lang.Override
+    @Override
     public Builder clear() {
       super.clear();
       bitField0_ = 0;
@@ -336,56 +336,56 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_invalid_details_descriptor;
+      return PocLoRa.internal_static_helium_poc_lora_invalid_details_descriptor;
     }
 
-    @java.lang.Override
-    public com.helium.grpc.invalid_details getDefaultInstanceForType() {
-      return com.helium.grpc.invalid_details.getDefaultInstance();
+    @Override
+    public invalid_details getDefaultInstanceForType() {
+      return invalid_details.getDefaultInstance();
     }
 
-    @java.lang.Override
-    public com.helium.grpc.invalid_details build() {
-      com.helium.grpc.invalid_details result = buildPartial();
+    @Override
+    public invalid_details build() {
+      invalid_details result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    @java.lang.Override
-    public com.helium.grpc.invalid_details buildPartial() {
-      com.helium.grpc.invalid_details result = new com.helium.grpc.invalid_details(this);
+    @Override
+    public invalid_details buildPartial() {
+      invalid_details result = new invalid_details(this);
       if (bitField0_ != 0) { buildPartial0(result); }
       buildPartialOneofs(result);
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(com.helium.grpc.invalid_details result) {
+    private void buildPartial0(invalid_details result) {
       int from_bitField0_ = bitField0_;
     }
 
-    private void buildPartialOneofs(com.helium.grpc.invalid_details result) {
+    private void buildPartialOneofs(invalid_details result) {
       result.dataCase_ = dataCase_;
       result.data_ = this.data_;
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.helium.grpc.invalid_details) {
-        return mergeFrom((com.helium.grpc.invalid_details)other);
+      if (other instanceof invalid_details) {
+        return mergeFrom((invalid_details)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.helium.grpc.invalid_details other) {
-      if (other == com.helium.grpc.invalid_details.getDefaultInstance()) return this;
+    public Builder mergeFrom(invalid_details other) {
+      if (other == invalid_details.getDefaultInstance()) return this;
       switch (other.getDataCase()) {
         case DENYLIST_TAG: {
           dataCase_ = 1;
@@ -402,18 +402,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public final boolean isInitialized() {
       return true;
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
+        throw new NullPointerException();
       }
       try {
         boolean done = false;
@@ -424,7 +424,7 @@ private static final long serialVersionUID = 0L;
               done = true;
               break;
             case 10: {
-              java.lang.String s = input.readStringRequireUtf8();
+              String s = input.readStringRequireUtf8();
               dataCase_ = 1;
               data_ = s;
               break;
@@ -445,7 +445,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     private int dataCase_ = 0;
-    private java.lang.Object data_;
+    private Object data_;
     public DataCase
         getDataCase() {
       return DataCase.forNumber(
@@ -465,7 +465,7 @@ private static final long serialVersionUID = 0L;
      * <code>string denylist_tag = 1;</code>
      * @return Whether the denylistTag field is set.
      */
-    @java.lang.Override
+    @Override
     public boolean hasDenylistTag() {
       return dataCase_ == 1;
     }
@@ -473,39 +473,39 @@ private static final long serialVersionUID = 0L;
      * <code>string denylist_tag = 1;</code>
      * @return The denylistTag.
      */
-    @java.lang.Override
-    public java.lang.String getDenylistTag() {
-      java.lang.Object ref = "";
+    @Override
+    public String getDenylistTag() {
+      Object ref = "";
       if (dataCase_ == 1) {
         ref = data_;
       }
-      if (!(ref instanceof java.lang.String)) {
+      if (!(ref instanceof String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
+        String s = bs.toStringUtf8();
         if (dataCase_ == 1) {
           data_ = s;
         }
         return s;
       } else {
-        return (java.lang.String) ref;
+        return (String) ref;
       }
     }
     /**
      * <code>string denylist_tag = 1;</code>
      * @return The bytes for denylistTag.
      */
-    @java.lang.Override
+    @Override
     public com.google.protobuf.ByteString
         getDenylistTagBytes() {
-      java.lang.Object ref = "";
+      Object ref = "";
       if (dataCase_ == 1) {
         ref = data_;
       }
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+                (String) ref);
         if (dataCase_ == 1) {
           data_ = b;
         }
@@ -520,7 +520,7 @@ private static final long serialVersionUID = 0L;
      * @return This builder for chaining.
      */
     public Builder setDenylistTag(
-        java.lang.String value) {
+        String value) {
       if (value == null) { throw new NullPointerException(); }
       dataCase_ = 1;
       data_ = value;
@@ -553,13 +553,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
-    @java.lang.Override
+    @Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
-    @java.lang.Override
+    @Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -570,18 +570,18 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:helium.poc_lora.invalid_details)
-  private static final com.helium.grpc.invalid_details DEFAULT_INSTANCE;
+  private static final invalid_details DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.helium.grpc.invalid_details();
+    DEFAULT_INSTANCE = new invalid_details();
   }
 
-  public static com.helium.grpc.invalid_details getDefaultInstance() {
+  public static invalid_details getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
   private static final com.google.protobuf.Parser<invalid_details>
       PARSER = new com.google.protobuf.AbstractParser<invalid_details>() {
-    @java.lang.Override
+    @Override
     public invalid_details parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -605,13 +605,13 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
-  @java.lang.Override
+  @Override
   public com.google.protobuf.Parser<invalid_details> getParserForType() {
     return PARSER;
   }
 
-  @java.lang.Override
-  public com.helium.grpc.invalid_details getDefaultInstanceForType() {
+  @Override
+  public invalid_details getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

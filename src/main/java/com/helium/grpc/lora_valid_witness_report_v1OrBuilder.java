@@ -3,7 +3,7 @@
 
 package com.helium.grpc;
 
-@java.lang.Deprecated public interface lora_valid_witness_report_v1OrBuilder extends
+@Deprecated public interface lora_valid_witness_report_v1OrBuilder extends
     // @@protoc_insertion_point(interface_extends:helium.poc_lora.lora_valid_witness_report_v1)
     com.google.protobuf.MessageOrBuilder {
 
@@ -25,7 +25,7 @@ package com.helium.grpc;
    * <code>string location = 2;</code>
    * @return The location.
    */
-  java.lang.String getLocation();
+  String getLocation();
   /**
    * <pre>
    * string representation of the gateways u64 hex location
@@ -57,11 +57,11 @@ package com.helium.grpc;
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 4;</code>
    * @return The report.
    */
-  com.helium.grpc.lora_witness_report_req_v1 getReport();
+  lora_witness_report_req_v1 getReport();
   /**
    * <code>.helium.poc_lora.lora_witness_report_req_v1 report = 4;</code>
    */
-  com.helium.grpc.lora_witness_report_req_v1OrBuilder getReportOrBuilder();
+  lora_witness_report_req_v1OrBuilder getReportOrBuilder();
 
   /**
    * <pre>

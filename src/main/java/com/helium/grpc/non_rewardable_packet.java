@@ -19,33 +19,33 @@ private static final long serialVersionUID = 0L;
     reason_ = 0;
   }
 
-  @java.lang.Override
+  @Override
   @SuppressWarnings({"unused"})
-  protected java.lang.Object newInstance(
+  protected Object newInstance(
       UnusedPrivateParameter unused) {
     return new non_rewardable_packet();
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_non_rewardable_packet_descriptor;
+    return PocLoRa.internal_static_helium_poc_lora_non_rewardable_packet_descriptor;
   }
 
-  @java.lang.Override
-  protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+  @Override
+  protected FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_non_rewardable_packet_fieldAccessorTable
+    return PocLoRa.internal_static_helium_poc_lora_non_rewardable_packet_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.helium.grpc.non_rewardable_packet.class, com.helium.grpc.non_rewardable_packet.Builder.class);
+            non_rewardable_packet.class, Builder.class);
   }
 
   public static final int PACKET_FIELD_NUMBER = 1;
-  private helium.packet_verifier.PacketVerifier.valid_packet packet_;
+  private com.helium.grpc.valid_packet packet_;
   /**
    * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
    * @return Whether the packet field is set.
    */
-  @java.lang.Override
+  @Override
   public boolean hasPacket() {
     return packet_ != null;
   }
@@ -53,16 +53,16 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
    * @return The packet.
    */
-  @java.lang.Override
-  public helium.packet_verifier.PacketVerifier.valid_packet getPacket() {
-    return packet_ == null ? helium.packet_verifier.PacketVerifier.valid_packet.getDefaultInstance() : packet_;
+  @Override
+  public com.helium.grpc.valid_packet getPacket() {
+    return packet_ == null ? com.helium.grpc.valid_packet.getDefaultInstance() : packet_;
   }
   /**
    * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
    */
-  @java.lang.Override
-  public helium.packet_verifier.PacketVerifier.valid_packetOrBuilder getPacketOrBuilder() {
-    return packet_ == null ? helium.packet_verifier.PacketVerifier.valid_packet.getDefaultInstance() : packet_;
+  @Override
+  public com.helium.grpc.valid_packetOrBuilder getPacketOrBuilder() {
+    return packet_ == null ? com.helium.grpc.valid_packet.getDefaultInstance() : packet_;
   }
 
   public static final int REASON_FIELD_NUMBER = 2;
@@ -71,16 +71,16 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.poc_lora.non_rewardable_packet_reason reason = 2;</code>
    * @return The enum numeric value on the wire for reason.
    */
-  @java.lang.Override public int getReasonValue() {
+  @Override public int getReasonValue() {
     return reason_;
   }
   /**
    * <code>.helium.poc_lora.non_rewardable_packet_reason reason = 2;</code>
    * @return The reason.
    */
-  @java.lang.Override public com.helium.grpc.non_rewardable_packet_reason getReason() {
-    com.helium.grpc.non_rewardable_packet_reason result = com.helium.grpc.non_rewardable_packet_reason.forNumber(reason_);
-    return result == null ? com.helium.grpc.non_rewardable_packet_reason.UNRECOGNIZED : result;
+  @Override public non_rewardable_packet_reason getReason() {
+    non_rewardable_packet_reason result = non_rewardable_packet_reason.forNumber(reason_);
+    return result == null ? non_rewardable_packet_reason.UNRECOGNIZED : result;
   }
 
   public static final int TIMESTAMP_FIELD_NUMBER = 3;
@@ -93,13 +93,13 @@ private static final long serialVersionUID = 0L;
    * <code>uint64 timestamp = 3;</code>
    * @return The timestamp.
    */
-  @java.lang.Override
+  @Override
   public long getTimestamp() {
     return timestamp_;
   }
 
   private byte memoizedIsInitialized = -1;
-  @java.lang.Override
+  @Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -109,13 +109,13 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (packet_ != null) {
       output.writeMessage(1, getPacket());
     }
-    if (reason_ != com.helium.grpc.non_rewardable_packet_reason.gateway_not_found_for_packet.getNumber()) {
+    if (reason_ != non_rewardable_packet_reason.gateway_not_found_for_packet.getNumber()) {
       output.writeEnum(2, reason_);
     }
     if (timestamp_ != 0L) {
@@ -124,7 +124,7 @@ private static final long serialVersionUID = 0L;
     getUnknownFields().writeTo(output);
   }
 
-  @java.lang.Override
+  @Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -134,7 +134,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, getPacket());
     }
-    if (reason_ != com.helium.grpc.non_rewardable_packet_reason.gateway_not_found_for_packet.getNumber()) {
+    if (reason_ != non_rewardable_packet_reason.gateway_not_found_for_packet.getNumber()) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(2, reason_);
     }
@@ -147,15 +147,15 @@ private static final long serialVersionUID = 0L;
     return size;
   }
 
-  @java.lang.Override
-  public boolean equals(final java.lang.Object obj) {
+  @Override
+  public boolean equals(final Object obj) {
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.helium.grpc.non_rewardable_packet)) {
+    if (!(obj instanceof non_rewardable_packet)) {
       return super.equals(obj);
     }
-    com.helium.grpc.non_rewardable_packet other = (com.helium.grpc.non_rewardable_packet) obj;
+    non_rewardable_packet other = (non_rewardable_packet) obj;
 
     if (hasPacket() != other.hasPacket()) return false;
     if (hasPacket()) {
@@ -169,7 +169,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public int hashCode() {
     if (memoizedHashCode != 0) {
       return memoizedHashCode;
@@ -190,69 +190,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.helium.grpc.non_rewardable_packet parseFrom(
+  public static non_rewardable_packet parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.non_rewardable_packet parseFrom(
+  public static non_rewardable_packet parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.non_rewardable_packet parseFrom(
+  public static non_rewardable_packet parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.non_rewardable_packet parseFrom(
+  public static non_rewardable_packet parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.non_rewardable_packet parseFrom(byte[] data)
+  public static non_rewardable_packet parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.non_rewardable_packet parseFrom(
+  public static non_rewardable_packet parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.non_rewardable_packet parseFrom(java.io.InputStream input)
+  public static non_rewardable_packet parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.non_rewardable_packet parseFrom(
+  public static non_rewardable_packet parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.non_rewardable_packet parseDelimitedFrom(java.io.InputStream input)
+  public static non_rewardable_packet parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.non_rewardable_packet parseDelimitedFrom(
+  public static non_rewardable_packet parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.non_rewardable_packet parseFrom(
+  public static non_rewardable_packet parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.non_rewardable_packet parseFrom(
+  public static non_rewardable_packet parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -260,23 +260,23 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  @java.lang.Override
+  @Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.helium.grpc.non_rewardable_packet prototype) {
+  public static Builder newBuilder(non_rewardable_packet prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
-  @java.lang.Override
+  @Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
   }
 
-  @java.lang.Override
+  @Override
   protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
@@ -286,18 +286,18 @@ private static final long serialVersionUID = 0L;
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:helium.poc_lora.non_rewardable_packet)
-      com.helium.grpc.non_rewardable_packetOrBuilder {
+      non_rewardable_packetOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_non_rewardable_packet_descriptor;
+      return PocLoRa.internal_static_helium_poc_lora_non_rewardable_packet_descriptor;
     }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+    @Override
+    protected FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_non_rewardable_packet_fieldAccessorTable
+      return PocLoRa.internal_static_helium_poc_lora_non_rewardable_packet_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.helium.grpc.non_rewardable_packet.class, com.helium.grpc.non_rewardable_packet.Builder.class);
+              non_rewardable_packet.class, Builder.class);
     }
 
     // Construct using com.helium.grpc.non_rewardable_packet.newBuilder()
@@ -306,11 +306,11 @@ private static final long serialVersionUID = 0L;
     }
 
     private Builder(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        BuilderParent parent) {
       super(parent);
 
     }
-    @java.lang.Override
+    @Override
     public Builder clear() {
       super.clear();
       bitField0_ = 0;
@@ -324,35 +324,35 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_non_rewardable_packet_descriptor;
+      return PocLoRa.internal_static_helium_poc_lora_non_rewardable_packet_descriptor;
     }
 
-    @java.lang.Override
-    public com.helium.grpc.non_rewardable_packet getDefaultInstanceForType() {
-      return com.helium.grpc.non_rewardable_packet.getDefaultInstance();
+    @Override
+    public non_rewardable_packet getDefaultInstanceForType() {
+      return non_rewardable_packet.getDefaultInstance();
     }
 
-    @java.lang.Override
-    public com.helium.grpc.non_rewardable_packet build() {
-      com.helium.grpc.non_rewardable_packet result = buildPartial();
+    @Override
+    public non_rewardable_packet build() {
+      non_rewardable_packet result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    @java.lang.Override
-    public com.helium.grpc.non_rewardable_packet buildPartial() {
-      com.helium.grpc.non_rewardable_packet result = new com.helium.grpc.non_rewardable_packet(this);
+    @Override
+    public non_rewardable_packet buildPartial() {
+      non_rewardable_packet result = new non_rewardable_packet(this);
       if (bitField0_ != 0) { buildPartial0(result); }
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(com.helium.grpc.non_rewardable_packet result) {
+    private void buildPartial0(non_rewardable_packet result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.packet_ = packetBuilder_ == null
@@ -367,18 +367,18 @@ private static final long serialVersionUID = 0L;
       }
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.helium.grpc.non_rewardable_packet) {
-        return mergeFrom((com.helium.grpc.non_rewardable_packet)other);
+      if (other instanceof non_rewardable_packet) {
+        return mergeFrom((non_rewardable_packet)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.helium.grpc.non_rewardable_packet other) {
-      if (other == com.helium.grpc.non_rewardable_packet.getDefaultInstance()) return this;
+    public Builder mergeFrom(non_rewardable_packet other) {
+      if (other == non_rewardable_packet.getDefaultInstance()) return this;
       if (other.hasPacket()) {
         mergePacket(other.getPacket());
       }
@@ -393,18 +393,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public final boolean isInitialized() {
       return true;
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
+        throw new NullPointerException();
       }
       try {
         boolean done = false;
@@ -448,9 +448,9 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private helium.packet_verifier.PacketVerifier.valid_packet packet_;
+    private com.helium.grpc.valid_packet packet_;
     private com.google.protobuf.SingleFieldBuilderV3<
-        helium.packet_verifier.PacketVerifier.valid_packet, helium.packet_verifier.PacketVerifier.valid_packet.Builder, helium.packet_verifier.PacketVerifier.valid_packetOrBuilder> packetBuilder_;
+        com.helium.grpc.valid_packet, com.helium.grpc.valid_packet.Builder, com.helium.grpc.valid_packetOrBuilder> packetBuilder_;
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      * @return Whether the packet field is set.
@@ -462,9 +462,9 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      * @return The packet.
      */
-    public helium.packet_verifier.PacketVerifier.valid_packet getPacket() {
+    public com.helium.grpc.valid_packet getPacket() {
       if (packetBuilder_ == null) {
-        return packet_ == null ? helium.packet_verifier.PacketVerifier.valid_packet.getDefaultInstance() : packet_;
+        return packet_ == null ? com.helium.grpc.valid_packet.getDefaultInstance() : packet_;
       } else {
         return packetBuilder_.getMessage();
       }
@@ -472,7 +472,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
-    public Builder setPacket(helium.packet_verifier.PacketVerifier.valid_packet value) {
+    public Builder setPacket(com.helium.grpc.valid_packet value) {
       if (packetBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -489,7 +489,7 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
     public Builder setPacket(
-        helium.packet_verifier.PacketVerifier.valid_packet.Builder builderForValue) {
+        com.helium.grpc.valid_packet.Builder builderForValue) {
       if (packetBuilder_ == null) {
         packet_ = builderForValue.build();
       } else {
@@ -502,11 +502,11 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
-    public Builder mergePacket(helium.packet_verifier.PacketVerifier.valid_packet value) {
+    public Builder mergePacket(com.helium.grpc.valid_packet value) {
       if (packetBuilder_ == null) {
         if (((bitField0_ & 0x00000001) != 0) &&
           packet_ != null &&
-          packet_ != helium.packet_verifier.PacketVerifier.valid_packet.getDefaultInstance()) {
+          packet_ != com.helium.grpc.valid_packet.getDefaultInstance()) {
           getPacketBuilder().mergeFrom(value);
         } else {
           packet_ = value;
@@ -534,7 +534,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
-    public helium.packet_verifier.PacketVerifier.valid_packet.Builder getPacketBuilder() {
+    public com.helium.grpc.valid_packet.Builder getPacketBuilder() {
       bitField0_ |= 0x00000001;
       onChanged();
       return getPacketFieldBuilder().getBuilder();
@@ -542,23 +542,23 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
-    public helium.packet_verifier.PacketVerifier.valid_packetOrBuilder getPacketOrBuilder() {
+    public com.helium.grpc.valid_packetOrBuilder getPacketOrBuilder() {
       if (packetBuilder_ != null) {
         return packetBuilder_.getMessageOrBuilder();
       } else {
         return packet_ == null ?
-            helium.packet_verifier.PacketVerifier.valid_packet.getDefaultInstance() : packet_;
+            com.helium.grpc.valid_packet.getDefaultInstance() : packet_;
       }
     }
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        helium.packet_verifier.PacketVerifier.valid_packet, helium.packet_verifier.PacketVerifier.valid_packet.Builder, helium.packet_verifier.PacketVerifier.valid_packetOrBuilder> 
+        com.helium.grpc.valid_packet, com.helium.grpc.valid_packet.Builder, com.helium.grpc.valid_packetOrBuilder> 
         getPacketFieldBuilder() {
       if (packetBuilder_ == null) {
         packetBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            helium.packet_verifier.PacketVerifier.valid_packet, helium.packet_verifier.PacketVerifier.valid_packet.Builder, helium.packet_verifier.PacketVerifier.valid_packetOrBuilder>(
+            com.helium.grpc.valid_packet, com.helium.grpc.valid_packet.Builder, com.helium.grpc.valid_packetOrBuilder>(
                 getPacket(),
                 getParentForChildren(),
                 isClean());
@@ -572,7 +572,7 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.non_rewardable_packet_reason reason = 2;</code>
      * @return The enum numeric value on the wire for reason.
      */
-    @java.lang.Override public int getReasonValue() {
+    @Override public int getReasonValue() {
       return reason_;
     }
     /**
@@ -590,17 +590,17 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.poc_lora.non_rewardable_packet_reason reason = 2;</code>
      * @return The reason.
      */
-    @java.lang.Override
-    public com.helium.grpc.non_rewardable_packet_reason getReason() {
-      com.helium.grpc.non_rewardable_packet_reason result = com.helium.grpc.non_rewardable_packet_reason.forNumber(reason_);
-      return result == null ? com.helium.grpc.non_rewardable_packet_reason.UNRECOGNIZED : result;
+    @Override
+    public non_rewardable_packet_reason getReason() {
+      non_rewardable_packet_reason result = non_rewardable_packet_reason.forNumber(reason_);
+      return result == null ? non_rewardable_packet_reason.UNRECOGNIZED : result;
     }
     /**
      * <code>.helium.poc_lora.non_rewardable_packet_reason reason = 2;</code>
      * @param value The reason to set.
      * @return This builder for chaining.
      */
-    public Builder setReason(com.helium.grpc.non_rewardable_packet_reason value) {
+    public Builder setReason(non_rewardable_packet_reason value) {
       if (value == null) {
         throw new NullPointerException();
       }
@@ -629,7 +629,7 @@ private static final long serialVersionUID = 0L;
      * <code>uint64 timestamp = 3;</code>
      * @return The timestamp.
      */
-    @java.lang.Override
+    @Override
     public long getTimestamp() {
       return timestamp_;
     }
@@ -663,13 +663,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
-    @java.lang.Override
+    @Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
-    @java.lang.Override
+    @Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -680,18 +680,18 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:helium.poc_lora.non_rewardable_packet)
-  private static final com.helium.grpc.non_rewardable_packet DEFAULT_INSTANCE;
+  private static final non_rewardable_packet DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.helium.grpc.non_rewardable_packet();
+    DEFAULT_INSTANCE = new non_rewardable_packet();
   }
 
-  public static com.helium.grpc.non_rewardable_packet getDefaultInstance() {
+  public static non_rewardable_packet getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
   private static final com.google.protobuf.Parser<non_rewardable_packet>
       PARSER = new com.google.protobuf.AbstractParser<non_rewardable_packet>() {
-    @java.lang.Override
+    @Override
     public non_rewardable_packet parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -715,13 +715,13 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
-  @java.lang.Override
+  @Override
   public com.google.protobuf.Parser<non_rewardable_packet> getParserForType() {
     return PARSER;
   }
 
-  @java.lang.Override
-  public com.helium.grpc.non_rewardable_packet getDefaultInstanceForType() {
+  @Override
+  public non_rewardable_packet getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

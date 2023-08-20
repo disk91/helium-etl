@@ -23,7 +23,7 @@ public enum non_rewardable_packet_reason
 
   public final int getNumber() {
     if (this == UNRECOGNIZED) {
-      throw new java.lang.IllegalArgumentException(
+      throw new IllegalArgumentException(
           "Can't get the number of an unknown enum value.");
     }
     return value;
@@ -34,7 +34,7 @@ public enum non_rewardable_packet_reason
    * @return The enum associated with the given numeric wire value.
    * @deprecated Use {@link #forNumber(int)} instead.
    */
-  @java.lang.Deprecated
+  @Deprecated
   public static non_rewardable_packet_reason valueOf(int value) {
     return forNumber(value);
   }
@@ -65,7 +65,7 @@ public enum non_rewardable_packet_reason
   public final com.google.protobuf.Descriptors.EnumValueDescriptor
       getValueDescriptor() {
     if (this == UNRECOGNIZED) {
-      throw new java.lang.IllegalStateException(
+      throw new IllegalStateException(
           "Can't get the descriptor of an unrecognized enum value.");
     }
     return getDescriptor().getValues().get(ordinal());
@@ -76,7 +76,7 @@ public enum non_rewardable_packet_reason
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return com.helium.grpc.PocLoRa.getDescriptor().getEnumTypes().get(3);
+    return PocLoRa.getDescriptor().getEnumTypes().get(3);
   }
 
   private static final non_rewardable_packet_reason[] VALUES = values();
@@ -84,7 +84,7 @@ public enum non_rewardable_packet_reason
   public static non_rewardable_packet_reason valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
-      throw new java.lang.IllegalArgumentException(
+      throw new IllegalArgumentException(
         "EnumValueDescriptor is not for this type.");
     }
     if (desc.getIndex() == -1) {

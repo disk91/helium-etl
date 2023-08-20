@@ -25,7 +25,7 @@ public interface lora_valid_beacon_report_v1OrBuilder extends
    * <code>string location = 2;</code>
    * @return The location.
    */
-  java.lang.String getLocation();
+  String getLocation();
   /**
    * <pre>
    * string representation of the gateways u64 hex location
@@ -57,11 +57,11 @@ public interface lora_valid_beacon_report_v1OrBuilder extends
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 4;</code>
    * @return The report.
    */
-  com.helium.grpc.lora_beacon_report_req_v1 getReport();
+  lora_beacon_report_req_v1 getReport();
   /**
    * <code>.helium.poc_lora.lora_beacon_report_req_v1 report = 4;</code>
    */
-  com.helium.grpc.lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
+  lora_beacon_report_req_v1OrBuilder getReportOrBuilder();
 
   /**
    * <pre>

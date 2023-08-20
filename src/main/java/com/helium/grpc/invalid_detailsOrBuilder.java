@@ -16,7 +16,7 @@ public interface invalid_detailsOrBuilder extends
    * <code>string denylist_tag = 1;</code>
    * @return The denylistTag.
    */
-  java.lang.String getDenylistTag();
+  String getDenylistTag();
   /**
    * <code>string denylist_tag = 1;</code>
    * @return The bytes for denylistTag.
@@ -24,5 +24,5 @@ public interface invalid_detailsOrBuilder extends
   com.google.protobuf.ByteString
       getDenylistTagBytes();
 
-  com.helium.grpc.invalid_details.DataCase getDataCase();
+  invalid_details.DataCase getDataCase();
 }
