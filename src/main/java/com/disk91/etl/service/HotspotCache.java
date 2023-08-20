@@ -744,6 +744,10 @@ public class HotspotCache {
                         beaconner.updatePosition(beacon.getReceivedTimestamp(), pos.lat, pos.lng, elevation, gain,hexScale);
                         log.debug("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
                     }
+                    // temp log for monitoring
+                    if ( beaconner.getPosHistory() != null && beaconner.getPosHistory().size() > 10 ) {
+                        log.info("We have Hotspot "+beaconner.getHotspotId()+" with more than 10 positions in history");
+                    }
                 }
             }
         }
