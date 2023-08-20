@@ -727,7 +727,7 @@ public class HotspotCache {
         double gain = beacon.getGain() / 10.0;
         boolean forcePosUdate = false;
         if (   beaconner.getPosition() == null
-            || hexScale != beaconner.getPosition().getHexScale()
+            || Math.abs(hexScale - beaconner.getPosition().getHexScale()) > 0.1
             || elevation != beaconner.getPosition().getAlt()
             || gain != beaconner.getPosition().getGain()
         ) forcePosUdate = true;
