@@ -3,6 +3,7 @@ package com.disk91.etl.data.object;
 import com.disk91.etl.data.object.sub.*;
 import com.disk91.etl.data.object.sub.Witness;
 import fr.ingeniousthings.tools.ClonnableObject;
+import fr.ingeniousthings.tools.Gps;
 import fr.ingeniousthings.tools.Now;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
@@ -134,10 +135,13 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         } else {
             this.position = new LatLng();
         }
+        if ( Gps.distance(this.position.getLat(),lat, this.position.getLng(), lng, 0, 0) > 1000 ) {
+            // this is a new position, city/country can have changed
+            this.position.setCity("");
+            this.position.setCountry("");
+        }
         this.position.setLat(lat);
         this.position.setLng(lng);
-        this.position.setCity("");
-        this.position.setCountry("");
         this.position.setAlt(alt);
         this.position.setGain(gain);
         this.position.setHexScale(hexScale);
