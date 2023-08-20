@@ -169,7 +169,9 @@ public class AwsService {
         } else if ( fileName.startsWith("solana-migration-bad-data") ) {
            // log.info("Found solana_migration bad data file "+fileName);
         } else if ( fileName.startsWith("reward_manifest") ) {
-           // log.info("Found reward manifest file "+fileName);
+            // log.info("Found reward manifest file "+fileName);
+        } else if ( fileName.startsWith("non_rewardable") ) {
+            // log.info("Found non rewardable packets "+fileName);
         } else {
             log.warn("Unknown type of file discovered "+fileName);
         }
