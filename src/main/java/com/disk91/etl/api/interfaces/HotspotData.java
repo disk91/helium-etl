@@ -140,6 +140,18 @@ public class HotspotData {
     )
     private Hotspot.HotspotBrand brand;
 
+    @Schema(
+        description = "True when the hotspot is in denyList",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private boolean inDenyList;
+
+    @Schema(
+        description = "History of denyList in & out",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private List<DenyHistory> denyHistories;
+
 
     // ---------------------------------------------------------
     // clone
@@ -156,6 +168,8 @@ public class HotspotData {
         setSumRewardWitness(h.getSumRewardWitness());
         setSumRewardDc(h.getSumRewardDc());
         setOffsetReward(h.getOffsetReward());
+        setInDenyList(h.isInDenyList());
+
         if ( h.getOwner() != null ) {
             setOwner(h.getOwner().clone());
         } else setOwner(new Owner());
@@ -216,6 +230,14 @@ public class HotspotData {
             }
         }
         setRewardHistories(rhs);
+
+        List<DenyHistory> dhs =  new ArrayList<>();
+        if ( h.getDenyHistories() != null ) {
+            for ( DenyHistory dh : h.getDenyHistories() ) {
+                dhs.add(dh.clone());
+            }
+        }
+        setDenyHistories(dhs);
 
     }
 
@@ -381,5 +403,21 @@ public class HotspotData {
 
     public void setBrand(Hotspot.HotspotBrand brand) {
         this.brand = brand;
+    }
+
+    public boolean isInDenyList() {
+        return inDenyList;
+    }
+
+    public void setInDenyList(boolean inDenyList) {
+        this.inDenyList = inDenyList;
+    }
+
+    public List<DenyHistory> getDenyHistories() {
+        return denyHistories;
+    }
+
+    public void setDenyHistories(List<DenyHistory> denyHistories) {
+        this.denyHistories = denyHistories;
     }
 }

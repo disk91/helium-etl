@@ -82,6 +82,9 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     };
     protected HotspotBrand brand = HotspotBrand.UNKNOWN;
 
+    protected double beaconDist = 0.0;
+    protected double witnessDist = 0.0;
+
     // ---------------------------------------------------------
     // Synchronous update
 
@@ -206,6 +209,11 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             if (_w.getHs().equals(hsId)) {
                 // found it... update it
                 _w.addWitness( tm, signal, snr, lat, lng, selected );
+                // update TX overage radius when we have enough beacon for that hostpot
+                if ( _w.getCountWitnesses() > 50 ) {
+                    double d = Gps.distance(_w.getLat(),lat,_w.getLng(),lng,0,0);
+                    if ( d > this.beaconDist ) this.beaconDist = d;
+                }
                 found = true;
                 break;
             }
@@ -228,6 +236,11 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             if (_w.getHs().equals(hsId) ) {
                 // found it... update it
                 _w.addWitness(tm,signal,snr,lat,lng, selected);
+                // update TX overage radius when we have enough beacon for that hostpot
+                if ( _w.getCountWitnesses() > 50 ) {
+                    double d = Gps.distance(_w.getLat(),lat,_w.getLng(),lng,0,0);
+                    if ( d > this.witnessDist ) this.witnessDist = d;
+                }
                 found = true;
                 break;
             }
@@ -301,6 +314,8 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         c.setBrand(brand);
         c.setInDenyList(inDenyList);
         c.setLastDataReward(lastDataReward);
+        c.setBeaconDist(beaconDist);
+        c.setWitnessDist(witnessDist);
 
         List<Owner> oh = new ArrayList<>();
         for ( Owner o : ownerHistory ) {
@@ -553,5 +568,21 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setLastDataReward(long lastDataReward) {
         this.lastDataReward = lastDataReward;
+    }
+
+    public double getBeaconDist() {
+        return beaconDist;
+    }
+
+    public void setBeaconDist(double beaconDist) {
+        this.beaconDist = beaconDist;
+    }
+
+    public double getWitnessDist() {
+        return witnessDist;
+    }
+
+    public void setWitnessDist(double witnessDist) {
+        this.witnessDist = witnessDist;
     }
 }

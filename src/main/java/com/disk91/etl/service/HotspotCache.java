@@ -1,6 +1,7 @@
 package com.disk91.etl.service;
 
 import com.disk91.etl.EtlConfig;
+import com.disk91.etl.data.itf.WalletHotspotList;
 import com.disk91.etl.data.object.Beacon;
 import com.disk91.etl.data.object.Hotspot;
 import com.disk91.etl.data.object.Param;
@@ -308,6 +309,8 @@ public class HotspotCache {
                 hs.setLastBeacon(0);
                 hs.setLastWitness(0);
                 hs.setVersion(1);
+                hs.setWitnessDist(0.0);
+                hs.setBeaconDist(0.0);
                 hs = hotspotsRepository.save(hs);   // to get the Id provided, will be simple to manage later
             } else {
                 // previous versions
@@ -1078,10 +1081,9 @@ public class HotspotCache {
                         p.setAlt(hd.getElevation()); // in meter
                         p.setLastDatePosition(Now.APRIL_19_2023);
                         if (h.getPosition() != null
-                                && ((Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng())
-                                && Gps.distance(h.getPosition().getLat(), p.getLat(), h.getPosition().getLng(), p.getLng(), 0, 0) < 500)
-                                || (!Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng()))
-                        )
+                                && (  !Gps.isAValidCoordinate(h.getPosition().getLat(), h.getPosition().getLng())
+                                    || Gps.distance(h.getPosition().getLat(), p.getLat(), h.getPosition().getLng(), p.getLng(), 0, 0) < 500
+                                   )
                         ) {
                             // less than 500 m assuming same position, more details on this one
                             // or the previous coordinate was invalid
@@ -1132,6 +1134,37 @@ public class HotspotCache {
         }
     }
 
+    // =====================================
+    // Find hotspots per owner
+    // =====================================
+
+    @Autowired
+    protected SolanaAPiService solanaAPiService;
+    public void getAndUpdateHotspotsPerOwner(String owner) {
+        try {
+            WalletHotspotList w = solanaAPiService.getHotspotList(owner);
+            String hntOwner = HeliumHelper.pubAddressToName(HeliumHelper.solanaToPubAddress(w.getWalletId()));
+            // we have a list, let see if the Hotspots are up-to-date
+            for ( String hId : w.getHotspotsECCId() ) {
+                Hotspot h = this.getHotspotSync(hId,true);
+                if ( h.getOwner() == null || h.getOwner().getSolOwner().compareToIgnoreCase(w.getWalletId()) != 0 ) {
+                    // new or different owner
+                    Owner o = new Owner();
+                    o.setTimeMs(Now.NowUtcMs());
+                    o.setSolOwner(w.getWalletId());
+                    o.setHntOwner(hntOwner);
+
+                    log.info("new owner HNT : "+o.getHntOwner()+" SOL : "+o.getSolOwner());
+                    log.info("Todo : update the owner");
+                } else {
+                    // unchanged
+                    log.info("Owner unchanged");
+                }
+            }
+        } catch (ITNotFoundException | ITParseException x) {
+            log.debug("Failed to get the wallet information");
+        }
+    }
 
 
 }

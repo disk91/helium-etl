@@ -13,6 +13,7 @@ services:
     environment:
       - AWS_ACCESS_KEY=
       - AWS_SECRET_KEY=
+      - SOLANA_APIKEY=
     mem_limit: 64000m
     memswap_limit: 64000m
     mem_reservation: 64000m

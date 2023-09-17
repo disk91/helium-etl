@@ -74,7 +74,7 @@ public interface lora_witness_report_req_v1OrBuilder extends
    * <code>.helium.data_rate datarate = 10;</code>
    * @return The datarate.
    */
-  com.helium.grpc.data_rate getDatarate();
+  data_rate getDatarate();
 
   /**
    * <code>bytes signature = 11;</code>

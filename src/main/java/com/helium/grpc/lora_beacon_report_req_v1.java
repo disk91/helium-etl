@@ -131,9 +131,9 @@ private static final long serialVersionUID = 0L;
    * <code>.helium.data_rate datarate = 8;</code>
    * @return The datarate.
    */
-  @Override public com.helium.grpc.data_rate getDatarate() {
-    com.helium.grpc.data_rate result = com.helium.grpc.data_rate.forNumber(datarate_);
-    return result == null ? com.helium.grpc.data_rate.UNRECOGNIZED : result;
+  @Override public data_rate getDatarate() {
+    data_rate result = data_rate.forNumber(datarate_);
+    return result == null ? data_rate.UNRECOGNIZED : result;
   }
 
   public static final int TX_POWER_FIELD_NUMBER = 9;
@@ -221,7 +221,7 @@ private static final long serialVersionUID = 0L;
     if (channel_ != 0) {
       output.writeInt32(7, channel_);
     }
-    if (datarate_ != com.helium.grpc.data_rate.SF12BW125.getNumber()) {
+    if (datarate_ != data_rate.SF12BW125.getNumber()) {
       output.writeEnum(8, datarate_);
     }
     if (txPower_ != 0) {
@@ -269,7 +269,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(7, channel_);
     }
-    if (datarate_ != com.helium.grpc.data_rate.SF12BW125.getNumber()) {
+    if (datarate_ != data_rate.SF12BW125.getNumber()) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(8, datarate_);
     }
@@ -943,16 +943,16 @@ private static final long serialVersionUID = 0L;
      * @return The datarate.
      */
     @Override
-    public com.helium.grpc.data_rate getDatarate() {
-      com.helium.grpc.data_rate result = com.helium.grpc.data_rate.forNumber(datarate_);
-      return result == null ? com.helium.grpc.data_rate.UNRECOGNIZED : result;
+    public data_rate getDatarate() {
+      data_rate result = data_rate.forNumber(datarate_);
+      return result == null ? data_rate.UNRECOGNIZED : result;
     }
     /**
      * <code>.helium.data_rate datarate = 8;</code>
      * @param value The datarate to set.
      * @return This builder for chaining.
      */
-    public Builder setDatarate(com.helium.grpc.data_rate value) {
+    public Builder setDatarate(data_rate value) {
       if (value == null) {
         throw new NullPointerException();
       }

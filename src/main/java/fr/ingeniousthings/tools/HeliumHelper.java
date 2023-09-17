@@ -37,6 +37,21 @@ public class HeliumHelper {
         } else return "";
     }
 
+    public static byte[] solanaToPubAddress(String name) {
+        try {
+            if (name.length() > 0) {
+                byte[] decoded = Base58.decode(name, true);
+                byte[] r = new byte[decoded.length+1];
+                r[0] = 0x01;    // ?
+                System.arraycopy(decoded,0,r,1,decoded.length);
+                return r;
+            }
+        } catch (ITParseException x) {
+            return null;
+        }
+        return null;
+    }
+
     public static byte[] nameToPubAddress(String name) {
         try {
             if (name.length() > 0) {

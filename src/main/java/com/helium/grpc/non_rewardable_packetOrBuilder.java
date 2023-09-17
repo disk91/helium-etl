@@ -16,11 +16,11 @@ public interface non_rewardable_packetOrBuilder extends
    * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
    * @return The packet.
    */
-  com.helium.grpc.valid_packet getPacket();
+  valid_packet getPacket();
   /**
    * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
    */
-  com.helium.grpc.valid_packetOrBuilder getPacketOrBuilder();
+  valid_packetOrBuilder getPacketOrBuilder();
 
   /**
    * <code>.helium.poc_lora.non_rewardable_packet_reason reason = 2;</code>

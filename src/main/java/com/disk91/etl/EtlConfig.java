@@ -77,6 +77,31 @@ public class EtlConfig {
     }
 
     // ====================================
+    // Solana API key
+    // ====================================
+
+    @Value("${solana.api.url}")
+    private String solanaApiUrl;
+
+    @Value("${solana.api.apikey:}")
+    private String solanaApiKey;
+
+    @Value("${solana.api.credit.per.minute:10}")
+    private int solanaApiCreditPerMinute;
+
+    public String getSolanaApiUrl() {
+        return solanaApiUrl;
+    }
+
+    public String getSolanaApiKey() {
+        return solanaApiKey;
+    }
+
+    public int getSolanaApiCreditPerMinute() {
+        return solanaApiCreditPerMinute;
+    }
+
+// ====================================
     // Internal settings
     // ====================================
 

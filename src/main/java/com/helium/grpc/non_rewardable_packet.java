@@ -40,7 +40,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int PACKET_FIELD_NUMBER = 1;
-  private com.helium.grpc.valid_packet packet_;
+  private valid_packet packet_;
   /**
    * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
    * @return Whether the packet field is set.
@@ -54,15 +54,15 @@ private static final long serialVersionUID = 0L;
    * @return The packet.
    */
   @Override
-  public com.helium.grpc.valid_packet getPacket() {
-    return packet_ == null ? com.helium.grpc.valid_packet.getDefaultInstance() : packet_;
+  public valid_packet getPacket() {
+    return packet_ == null ? valid_packet.getDefaultInstance() : packet_;
   }
   /**
    * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
    */
   @Override
-  public com.helium.grpc.valid_packetOrBuilder getPacketOrBuilder() {
-    return packet_ == null ? com.helium.grpc.valid_packet.getDefaultInstance() : packet_;
+  public valid_packetOrBuilder getPacketOrBuilder() {
+    return packet_ == null ? valid_packet.getDefaultInstance() : packet_;
   }
 
   public static final int REASON_FIELD_NUMBER = 2;
@@ -448,9 +448,9 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private com.helium.grpc.valid_packet packet_;
+    private valid_packet packet_;
     private com.google.protobuf.SingleFieldBuilderV3<
-        com.helium.grpc.valid_packet, com.helium.grpc.valid_packet.Builder, com.helium.grpc.valid_packetOrBuilder> packetBuilder_;
+        valid_packet, valid_packet.Builder, valid_packetOrBuilder> packetBuilder_;
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      * @return Whether the packet field is set.
@@ -462,9 +462,9 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      * @return The packet.
      */
-    public com.helium.grpc.valid_packet getPacket() {
+    public valid_packet getPacket() {
       if (packetBuilder_ == null) {
-        return packet_ == null ? com.helium.grpc.valid_packet.getDefaultInstance() : packet_;
+        return packet_ == null ? valid_packet.getDefaultInstance() : packet_;
       } else {
         return packetBuilder_.getMessage();
       }
@@ -472,7 +472,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
-    public Builder setPacket(com.helium.grpc.valid_packet value) {
+    public Builder setPacket(valid_packet value) {
       if (packetBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -489,7 +489,7 @@ private static final long serialVersionUID = 0L;
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
     public Builder setPacket(
-        com.helium.grpc.valid_packet.Builder builderForValue) {
+        valid_packet.Builder builderForValue) {
       if (packetBuilder_ == null) {
         packet_ = builderForValue.build();
       } else {
@@ -502,11 +502,11 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
-    public Builder mergePacket(com.helium.grpc.valid_packet value) {
+    public Builder mergePacket(valid_packet value) {
       if (packetBuilder_ == null) {
         if (((bitField0_ & 0x00000001) != 0) &&
           packet_ != null &&
-          packet_ != com.helium.grpc.valid_packet.getDefaultInstance()) {
+          packet_ != valid_packet.getDefaultInstance()) {
           getPacketBuilder().mergeFrom(value);
         } else {
           packet_ = value;
@@ -534,7 +534,7 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
-    public com.helium.grpc.valid_packet.Builder getPacketBuilder() {
+    public valid_packet.Builder getPacketBuilder() {
       bitField0_ |= 0x00000001;
       onChanged();
       return getPacketFieldBuilder().getBuilder();
@@ -542,23 +542,23 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
-    public com.helium.grpc.valid_packetOrBuilder getPacketOrBuilder() {
+    public valid_packetOrBuilder getPacketOrBuilder() {
       if (packetBuilder_ != null) {
         return packetBuilder_.getMessageOrBuilder();
       } else {
         return packet_ == null ?
-            com.helium.grpc.valid_packet.getDefaultInstance() : packet_;
+            valid_packet.getDefaultInstance() : packet_;
       }
     }
     /**
      * <code>.helium.packet_verifier.valid_packet packet = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        com.helium.grpc.valid_packet, com.helium.grpc.valid_packet.Builder, com.helium.grpc.valid_packetOrBuilder> 
+        valid_packet, valid_packet.Builder, valid_packetOrBuilder>
         getPacketFieldBuilder() {
       if (packetBuilder_ == null) {
         packetBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            com.helium.grpc.valid_packet, com.helium.grpc.valid_packet.Builder, com.helium.grpc.valid_packetOrBuilder>(
+            valid_packet, valid_packet.Builder, valid_packetOrBuilder>(
                 getPacket(),
                 getParentForChildren(),
                 isClean());

@@ -214,7 +214,7 @@ public final class PocLoRa {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           PocLoRa.getDescriptor(),
-          com.helium.grpc.PacketVerifier.getDescriptor(),
+          PacketVerifier.getDescriptor(),
         });
     internal_static_helium_poc_lora_non_rewardable_packet_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -319,7 +319,7 @@ public final class PocLoRa {
         internal_static_helium_poc_lora_iot_reward_share_descriptor,
         new String[] { "StartPeriod", "EndPeriod", "GatewayReward", "OperationalReward", "Reward", });
     PocLoRa.getDescriptor();
-    com.helium.grpc.PacketVerifier.getDescriptor();
+    PacketVerifier.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)
