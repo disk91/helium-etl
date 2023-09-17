@@ -71,6 +71,11 @@ helium.legacy.api.user=
 helium.legacy.api.pass=
 helium.legacy.api.credits=0
 
+# solana API for data enrichement and account retrival
+solana.api.url=https://api.shyft.to
+solana.api.apikey=${SOLANA_APIKEY}
+solana.api.credit.per.minute=10
+
 # Aws S3
 aws.access.key=${AWS_ACCESS_KEY}
 aws.secret.key=${AWS_SECRET_KEY}
