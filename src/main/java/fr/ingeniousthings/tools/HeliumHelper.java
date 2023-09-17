@@ -29,6 +29,9 @@ public class HeliumHelper {
         return pubAddressToName(pubAddr.toByteArray());
     }
 
+    /**
+     * Convert a public address as a byte [] into a solana address
+     */
     public static String solanaAddress( byte [] pubAddr ) {
         if ( pubAddr.length > 0 ) {
             byte[] r = new byte[pubAddr.length-1];
@@ -37,12 +40,15 @@ public class HeliumHelper {
         } else return "";
     }
 
+    /**
+     * Convert a Solana Base58 address into a public address as a byte []
+     */
     public static byte[] solanaToPubAddress(String name) {
         try {
             if (name.length() > 0) {
-                byte[] decoded = Base58.decode(name, true);
+                byte[] decoded = Base58.decode(name, false);
                 byte[] r = new byte[decoded.length+1];
-                r[0] = 0x01;    // ?
+                r[0] = 0x01; 
                 System.arraycopy(decoded,0,r,1,decoded.length);
                 return r;
             }
