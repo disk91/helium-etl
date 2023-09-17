@@ -48,7 +48,7 @@ public class HeliumHelper {
             if (name.length() > 0) {
                 byte[] decoded = Base58.decode(name, false);
                 byte[] r = new byte[decoded.length+1];
-                r[0] = 0x01; 
+                r[0] = 0x01;
                 System.arraycopy(decoded,0,r,1,decoded.length);
                 return r;
             }

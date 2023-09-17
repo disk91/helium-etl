@@ -1046,21 +1046,7 @@ public class HotspotCache {
                         Date d = Date.from(i);
                         long addedMs = d.getTime();
 
-                        Owner o = new Owner();
-                        o.setHntOwner(hd.getOwner());
-                        o.setTimeMs(addedMs);
-                        byte[] _p = HeliumHelper.nameToPubAddress(hd.getOwner());
-                        o.setSolOwner(HeliumHelper.solanaAddress(_p));
-
-                        if (h.getOwner() != null && h.getOwner().getSolOwner().length() > 2) {
-                            // already have an owner
-                            if (h.getOwner().getSolOwner().compareTo(o.getSolOwner()) != 0) {
-                                if (h.getOwnerHistory() == null) h.setOwnerHistory(new ArrayList<>());
-                                h.getOwnerHistory().add(o);
-                            }
-                        } else {
-                            h.setOwner(o);
-                        }
+                        h.updateOwner(null,hd.getOwner(),addedMs);
                         h.setOffsetReward(tot);
 
                         // Update insertion
@@ -1149,16 +1135,8 @@ public class HotspotCache {
                 Hotspot h = this.getHotspotSync(hId,true);
                 if ( h.getOwner() == null || h.getOwner().getSolOwner().compareToIgnoreCase(w.getWalletId()) != 0 ) {
                     // new or different owner
-                    Owner o = new Owner();
-                    o.setTimeMs(Now.NowUtcMs());
-                    o.setSolOwner(w.getWalletId());
-                    o.setHntOwner(hntOwner);
-
-                    log.info("new owner HNT : "+o.getHntOwner()+" SOL : "+o.getSolOwner());
-                    log.info("Todo : update the owner");
-                } else {
-                    // unchanged
-                    log.info("Owner unchanged");
+                    h.updateOwner(w.getWalletId(),null,0);
+                    this.updateHotspot(h);
                 }
             }
         } catch (ITNotFoundException | ITParseException x) {

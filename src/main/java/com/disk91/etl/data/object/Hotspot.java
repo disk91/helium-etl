@@ -4,6 +4,7 @@ import com.disk91.etl.data.object.sub.*;
 import com.disk91.etl.data.object.sub.Witness;
 import fr.ingeniousthings.tools.ClonnableObject;
 import fr.ingeniousthings.tools.Gps;
+import fr.ingeniousthings.tools.HeliumHelper;
 import fr.ingeniousthings.tools.Now;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
@@ -87,6 +88,31 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     // ---------------------------------------------------------
     // Synchronous update
+
+    synchronized public void updateOwner(String solOwner, String hntOwner, long time) {
+        if ( solOwner == null && hntOwner == null ) return;
+        if ( solOwner == null ) {
+            // compute from hntOwner
+            solOwner = HeliumHelper.solanaAddress(HeliumHelper.nameToPubAddress(hntOwner));
+        } else if (hntOwner == null ) {
+            hntOwner = HeliumHelper.pubAddressToName(HeliumHelper.solanaToPubAddress(solOwner));
+        }
+        if (this.owner != null && this.owner.getSolOwner().length() > 2) {
+            if (this.owner.getSolOwner().compareTo(solOwner) != 0) {
+                // different owner - save the previous one
+                if (this.ownerHistory == null) this.ownerHistory = new ArrayList<>();
+                this.ownerHistory.add(this.owner);
+            } else {
+                // same owner
+                return;
+            }
+        }
+        this.owner = new Owner();
+        this.owner.setHntOwner(hntOwner);
+        this.owner.setSolOwner(solOwner);
+        if ( time == 0 ) time = Now.NowUtcMs();
+        this.owner.setTimeMs(time);
+    }
 
     synchronized public void updateReward(long tm, long beacon, long witness, long dcs) {
         this.lastReward = tm;
