@@ -1,11 +1,9 @@
 package com.disk91.etl.service;
 
 import com.disk91.etl.EtlConfig;
+import com.disk91.etl.api.interfaces.HotspotIdent;
 import com.disk91.etl.data.itf.WalletHotspotList;
-import com.disk91.etl.data.object.Beacon;
-import com.disk91.etl.data.object.Hotspot;
-import com.disk91.etl.data.object.Param;
-import com.disk91.etl.data.object.Reward;
+import com.disk91.etl.data.object.*;
 import com.disk91.etl.data.object.sub.Owner;
 import com.disk91.etl.data.repository.*;
 import com.disk91.etl.helium.legacy.model.MakerElement;
@@ -22,7 +20,9 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -1121,15 +1121,73 @@ public class HotspotCache {
     }
 
     // =====================================
+    // Index Hotspot for easier way to search
+    // =====================================
+
+    @Autowired
+    protected HotspotsIndexRepository hotspotsIndexRepository;
+
+    @Autowired
+    protected HotspotsSpecial hotspotsSpecial;
+
+    @Scheduled(fixedDelay = 30_000, initialDelay = 30_000)
+    private void index() {
+        log.debug("Running index");
+        if (!this.serviceEnable || this.stopRequested) return;
+        int processed = 0;
+        int loops = 0;
+        long tRef = Now.NowUtcMs()-(10*Now.ONE_FULL_DAY);
+
+        PageRequest page = PageRequest.of(0,50);
+        List<Hotspot> hs = hotspotsRepository.findFirst50HotspotToBeIndexed(tRef,page);
+        while ( processed < 250 && loops < 50 ) {
+            // last page ...
+            if ( hs.size() < 50 ) processed = 250;
+
+            log.info("Process "+hs.get(0).getAnimalName()+" pos "+processed);
+            for (Hotspot _h : hs) {
+                // make sure we use the cache version
+                Hotspot h = this.getHotspotSync(_h.getHotspotId(), true);
+                if (h.getLastIndexed() < tRef) {
+                    processed++;
+                    // confirmed to be updated
+                    h.setLastIndexed(Now.NowUtcMs());
+                    this.updateHotspot(h);
+                    // work on index
+                    HotspotIndex hi = hotspotsIndexRepository.findOneHotspotIndexByHotspotId(_h.getHotspotId());
+                    if (hi == null) {
+                        hi = new HotspotIndex();
+                        hi.init(h);
+                        hotspotsIndexRepository.save(hi);
+                    } else {
+                        if (
+                            (h.getOwner() != null && hi.getSolOwner().compareToIgnoreCase(h.getOwner().getSolOwner()) != 0)
+                                || (h.getPosition() != null && (hi.getPosition().getX() != h.getPosition().getLng() || hi.getPosition().getY() != h.getPosition().getLat()))
+                        ) {
+                            hi.init(h);
+                            hotspotsIndexRepository.save(hi);
+                        }
+                    }
+                }
+            }
+            loops++;
+            // load next page ramdomly
+            hs = hotspotsSpecial.get50RandomDocuments();
+        }
+    }
+
+
+    // =====================================
     // Find hotspots per owner
     // =====================================
 
     @Autowired
     protected SolanaAPiService solanaAPiService;
-    public void getAndUpdateHotspotsPerOwner(String owner) {
+    public List<HotspotIdent> getAndUpdateHotspotsPerOwner(String owner)
+    throws ITNotFoundException {
+        ArrayList<HotspotIdent> ret = new ArrayList<>();
         try {
             WalletHotspotList w = solanaAPiService.getHotspotList(owner);
-            String hntOwner = HeliumHelper.pubAddressToName(HeliumHelper.solanaToPubAddress(w.getWalletId()));
             // we have a list, let see if the Hotspots are up-to-date
             for ( String hId : w.getHotspotsECCId() ) {
                 Hotspot h = this.getHotspotSync(hId,true);
@@ -1138,11 +1196,40 @@ public class HotspotCache {
                     h.updateOwner(w.getWalletId(),null,0);
                     this.updateHotspot(h);
                 }
+                HotspotIdent hi = new HotspotIdent();
+                hi.init(h);
+                ret.add(hi);
             }
+            return ret;
         } catch (ITNotFoundException | ITParseException x) {
             log.debug("Failed to get the wallet information");
+            throw new ITNotFoundException();
         }
     }
+
+    // -----------------------------
+    // Search hotspot by animal name
+    // -----------------------------
+
+    public List<HotspotIdent> getHotspotsByAnimal(String name) {
+
+        name = name.replace(' ', '-');
+        PageRequest pageRequest = PageRequest.of(0,10);
+
+        ArrayList<HotspotIdent> ret = new ArrayList<>();
+        List<HotspotIndex> his = hotspotsIndexRepository.findHotspotIndexByAnimalNameLike(name, pageRequest);
+        if ( his.size() == 0 ) {
+            his = hotspotsIndexRepository.findHotspotIndexByAnimalNameStarts(name,pageRequest);
+        }
+        for ( HotspotIndex hi : his ) {
+            HotspotIdent id = new HotspotIdent();
+            id.init(hi);
+            ret.add(id);
+        }
+
+        return ret;
+    }
+
 
 
 }

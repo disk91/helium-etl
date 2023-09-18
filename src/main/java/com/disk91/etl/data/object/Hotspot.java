@@ -20,6 +20,7 @@ import java.util.List;
 @CompoundIndexes({
         @CompoundIndex(name = "hotspotId", def = "{'hotspotId' : 'hashed'}"),
         @CompoundIndex(name = "animalName", def = "{'animalName' : 'hashed'}"),
+        @CompoundIndex(name = "lastIndexed", def = "{'lastIndexed' : 1}"),
         @CompoundIndex(name = "hotspotId_Id", def = "{'hotspotId' : 1, 'id' : 1}")
 })
 @Sharded(shardKey = { "hotspotId", "id" }, shardingStrategy = ShardingStrategy.RANGE)
@@ -43,6 +44,8 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     private List<DenyHistory> denyHistories;
 
     private int version;
+
+    private long lastIndexed = 0;
 
     private long firstSeen = 0;
 
@@ -610,5 +613,13 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setWitnessDist(double witnessDist) {
         this.witnessDist = witnessDist;
+    }
+
+    public long getLastIndexed() {
+        return lastIndexed;
+    }
+
+    public void setLastIndexed(long lastIndexed) {
+        this.lastIndexed = lastIndexed;
     }
 }

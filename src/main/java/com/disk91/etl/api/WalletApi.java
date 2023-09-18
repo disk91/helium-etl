@@ -2,11 +2,15 @@ package com.disk91.etl.api;
 
 import com.disk91.etl.api.interfaces.ActionResult;
 import com.disk91.etl.api.interfaces.HotspotData;
+import com.disk91.etl.api.interfaces.HotspotIdent;
+import com.disk91.etl.data.itf.WalletHotspotList;
 import com.disk91.etl.data.object.Hotspot;
+import com.disk91.etl.data.object.Reward;
 import com.disk91.etl.service.HotspotCache;
 import fr.ingeniousthings.tools.ITNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @Tag( name = "wallet api", description = "wallet api" )
 @CrossOrigin
@@ -35,7 +40,8 @@ public class WalletApi {
     @Operation(summary = "Get Wallet hotspots",
         description = "Get wallet hotspots",
         responses = {
-            @ApiResponse(responseCode = "200", description= "Done", content = @Content(schema = @Schema(implementation = ActionResult.class))),
+            @ApiResponse(responseCode = "200", description= "Done",
+                content = @Content(array = @ArraySchema(schema = @Schema( implementation = HotspotIdent.class)))),
             @ApiResponse(responseCode = "204", description= "No content", content = @Content(schema = @Schema(implementation = ActionResult.class)))
         }
     )
@@ -47,14 +53,12 @@ public class WalletApi {
         @Parameter(required = true, name = "walletId", description = "Base58 solana wallet Id")
         @PathVariable String walletId
     ) {
-      //  try {
-
-            hotspotCache.getAndUpdateHotspotsPerOwner(walletId);
-
-            return new ResponseEntity<>(ActionResult.NODATA(), HttpStatus.OK);
-      //  } catch (ITNotFoundException x) {
-      //      return new ResponseEntity<>(ActionResult.NODATA(), HttpStatus.NO_CONTENT);
-      //  }
+        try {
+            List<HotspotIdent> w = hotspotCache.getAndUpdateHotspotsPerOwner(walletId);
+            return new ResponseEntity<>(w, HttpStatus.OK);
+        } catch (ITNotFoundException x) {
+            return new ResponseEntity<>(ActionResult.NODATA(), HttpStatus.NO_CONTENT);
+        }
     }
 
 }

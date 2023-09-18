@@ -19,12 +19,8 @@
  */
 package com.disk91.etl.api;
 
-import com.disk91.etl.api.interfaces.ActionResult;
-import com.disk91.etl.api.interfaces.HotspotData;
-import com.disk91.etl.api.interfaces.HotspotPosition;
-import com.disk91.etl.api.interfaces.HotspotStat;
+import com.disk91.etl.api.interfaces.*;
 import com.disk91.etl.data.object.Hotspot;
-import com.disk91.etl.data.object.Param;
 import com.disk91.etl.data.object.Reward;
 import com.disk91.etl.service.*;
 import fr.ingeniousthings.tools.ITNotFoundException;
@@ -36,7 +32,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +103,26 @@ public class HotspotApi {
             return new ResponseEntity<>(ActionResult.NODATA(), HttpStatus.NO_CONTENT);
         }
     }
+
+    @Operation(summary = "Find Hotspot by animal name",
+        description = "Search hotspot with animal name",
+        responses = {
+            @ApiResponse(responseCode = "200", description= "Done",
+                content = @Content(array = @ArraySchema(schema = @Schema( implementation = HotspotIdent.class))))
+        }
+    )
+    @RequestMapping(value="/search/{animal}/",
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        method= RequestMethod.GET)
+    public ResponseEntity<?> getHotspotByAnimal(
+        HttpServletRequest request,
+        @Parameter(required = true, name = "animal", description = "animal name with - between words")
+        @PathVariable String animal
+    ) {
+         List<HotspotIdent> r = hotspotCache.getHotspotsByAnimal(animal);
+         return new ResponseEntity<>(r, HttpStatus.OK);
+    }
+
 
 
     @Autowired

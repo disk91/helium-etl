@@ -4,6 +4,7 @@ import com.disk91.etl.EtlConfig;
 import com.disk91.etl.data.itf.SolanaNftListRespItf;
 import com.disk91.etl.data.itf.WalletHotspotList;
 import com.disk91.etl.data.itf.sub.SolanaNft;
+import com.disk91.etl.data.object.sub.Owner;
 import fr.ingeniousthings.tools.ITNotFoundException;
 import fr.ingeniousthings.tools.ITParseException;
 import org.slf4j.Logger;
