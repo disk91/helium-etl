@@ -1144,7 +1144,7 @@ public class HotspotCache {
             // last page ...
             if ( hs.size() < 50 ) processed = 250;
 
-            log.info("Process "+hs.get(0).getAnimalName()+" pos "+processed);
+            log.debug("Process "+hs.get(0).getAnimalName()+" pos "+processed);
             for (Hotspot _h : hs) {
                 // make sure we use the cache version
                 Hotspot h = this.getHotspotSync(_h.getHotspotId(), true);
