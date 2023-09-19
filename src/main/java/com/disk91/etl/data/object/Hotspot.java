@@ -6,15 +6,17 @@ import fr.ingeniousthings.tools.ClonnableObject;
 import fr.ingeniousthings.tools.Gps;
 import fr.ingeniousthings.tools.HeliumHelper;
 import fr.ingeniousthings.tools.Now;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Sharded;
 import org.springframework.data.mongodb.core.mapping.ShardingStrategy;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Document(collection = "etl_hotspots")
 @CompoundIndexes({
@@ -25,6 +27,9 @@ import java.util.List;
 })
 @Sharded(shardKey = { "hotspotId", "id" }, shardingStrategy = ShardingStrategy.RANGE)
 public class Hotspot implements ClonnableObject<Hotspot> {
+
+    @Transient
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Id
     private String id;
@@ -161,9 +166,62 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
 
     synchronized public void updatePosition(long timestamp, double lat, double lng, double alt, double gain, double hexScale) {
+        int sizeLimit = 15;
         if ( this.position != null ) {
             this.position.setLastDatePosition(timestamp);
-            this.getPosHistory().add(this.position.clone());
+            // limit the position & info update to the last position change and the last value updates
+            if ( posHistory.size() < sizeLimit ) {
+                this.getPosHistory().add(this.position.clone());
+            } else {
+                // sort List by date
+                this.posHistory.sort(new Comparator<LatLng>() {
+                    @Override
+                    public int compare(LatLng p1, LatLng p2) {
+                        return (int) (p1.getLastDatePosition() - p2.getLastDatePosition());
+                    }
+                });
+                // to Remove
+                ArrayList<LatLng> newList = new ArrayList<>();
+                int toRem = posHistory.size() - (sizeLimit-1);
+                if ( toRem > 0 ) {
+                    LatLng previous = null;
+                    for ( LatLng p : this.posHistory ) {
+                        if ( previous == null ) {
+                            // keep the first
+                            newList.add(p);
+                        } else {
+                            if ( Gps.distance(p.getLat(),previous.getLat(), p.getLng(), previous.getLng(), 0, 0) > 1000 ) {
+                                // keep all the Hotspot movements
+                                newList.add(p);
+                            } else {
+                                // remove the other old modification
+                                // then keep the most recent up to table limit
+                                if ( toRem == 0 ) {
+                                    newList.add(p);
+                                } else {
+                                    // skip that one
+                                    toRem--;
+                                }
+                            }
+                        }
+                        previous = p;
+                    }
+                    // During debug keep it unmodified
+                    //
+                    log.info("#### old history");
+                    int i = 0;
+                    for ( LatLng p : this.posHistory ) {
+                        log.info("> "+i+" "+p.getLastDatePosition()+" lat: "+p.getLat()+" lng: "+p.getLng()+" hs: "+p.getHexScale()+" h: "+p.getAlt()+" g: "+p.getGain());
+                        i++;
+                    }
+                    i = 0;
+                    for ( LatLng p : newList ) {
+                        log.info("# "+i+" "+p.getLastDatePosition()+" lat: "+p.getLat()+" lng: "+p.getLng()+" hs: "+p.getHexScale()+" h: "+p.getAlt()+" g: "+p.getGain());
+                        i++;
+                    }
+                    // this.posHistory = newList;
+                }
+            }
         } else {
             this.position = new LatLng();
         }
@@ -177,6 +235,19 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         this.position.setAlt(alt);
         this.position.setGain(gain);
         this.position.setHexScale(hexScale);
+        // try to enrich position with past data (mostly to fix a previous change that make them lost in the history)
+        if ( this.position.getCity().length() == 0 ) {
+            for (LatLng p : this.posHistory) {
+                if ( p.getCity().length() > 0 ) {
+                    if ( Gps.distance(this.position.getLat(),p.getLat(), this.position.getLng(), p.getLng(), 0, 0) < 1000 ) {
+                        this.position.setCity(p.getCity());
+                        this.position.setCountry(p.getCountry());
+                        break;
+                    }
+                }
+            }
+        }
+
     }
 
     synchronized public void updateDeny(long timestamp, boolean isDenied) {
