@@ -124,6 +124,31 @@ public class HotspotApi {
     }
 
 
+    @Operation(summary = "Find Hotspot by geography - max 200",
+        description = "Search hotspot by geography - max 200",
+        responses = {
+            @ApiResponse(responseCode = "200", description= "Done",
+                content = @Content(array = @ArraySchema(schema = @Schema( implementation = HotspotIdent.class))))
+        }
+    )
+    @RequestMapping(value="/search/{latN}/{latS}/{lonW}/{lonE}/",
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        method= RequestMethod.GET)
+    public ResponseEntity<?> getHotspotByPosition(
+        HttpServletRequest request,
+        @Parameter(required = true, name = "latN", description = "latitude north")
+        @PathVariable double latN,
+        @Parameter(required = true, name = "latS", description = "latitude south")
+        @PathVariable double latS,
+        @Parameter(required = true, name = "lonW", description = "longitude west")
+        @PathVariable double lonW,
+        @Parameter(required = true, name = "lonE", description = "longitude est")
+        @PathVariable double lonE
+    ) {
+        List<HotspotIdent> r = hotspotCache.getHotspotsByGeo(latN, lonW,latS, lonE);
+        return new ResponseEntity<>(r, HttpStatus.OK);
+    }
+
 
     @Autowired
     protected RewardService rewardService;

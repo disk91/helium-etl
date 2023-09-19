@@ -1230,6 +1230,25 @@ public class HotspotCache {
         return ret;
     }
 
+    public List<HotspotIdent> getHotspotsByGeo(double latNW, double lonNW, double latSE, double lonSE) {
+        // make sure we are on the right coodinates
+        double latN = Math.max(latNW, latSE);
+        double latS = Math.min(latNW, latSE);
+        double lonW = Math.min(lonNW, lonSE);
+        double lonE = Math.max(lonNW, lonSE);
+
+        ArrayList<HotspotIdent> ret = new ArrayList<>();
+        PageRequest pageRequest = PageRequest.of(0,200); // Max 200
+        List<HotspotIndex> his = hotspotsIndexRepository.findByPositionNearbyBox(lonW,latS,lonE,latN, pageRequest);
+        for ( HotspotIndex hi : his ) {
+            HotspotIdent id = new HotspotIdent();
+            id.init(hi);
+            ret.add(id);
+        }
+
+        return ret;
+
+    }
 
 
 }

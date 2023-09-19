@@ -19,4 +19,7 @@ public interface HotspotsIndexRepository extends MongoRepository<HotspotIndex, S
     @Query("{ animalName : { $regex : '^?0' } }")
     public List<HotspotIndex>  findHotspotIndexByAnimalNameStarts(String search, Pageable p);
 
+    @Query("{ 'position' : { '$geoWithin' : { '$box' : [ [?0, ?1], [?2, ?3] ] } } }")
+    public List<HotspotIndex> findByPositionNearbyBox(double bottomLeftLongitude, double bottomLeftLatitude, double topRightLongitude, double topRightLatitude, Pageable p);
+
 }
