@@ -72,7 +72,7 @@ helium.legacy.api.pass=
 helium.legacy.api.credits=0
 
 # hotspot indexing -> fill the
-helium.hotspot.indexing.enable=false;
+helium.hotspot.indexing.enable=false
 
 # solana API for data enrichement and account retrival
 solana.api.url=https://api.shyft.to
