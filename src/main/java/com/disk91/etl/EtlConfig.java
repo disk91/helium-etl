@@ -77,6 +77,17 @@ public class EtlConfig {
     }
 
     // ====================================
+    // Index creation
+    // ====================================
+
+    @Value("${helium.hotspot.indexing.enable:false}")
+    private boolean heliumHotspotIndexingEnable;
+
+    public boolean isHeliumHotspotIndexingEnable() {
+        return heliumHotspotIndexingEnable;
+    }
+
+    // ====================================
     // Solana API key
     // ====================================
 
@@ -101,7 +112,7 @@ public class EtlConfig {
         return solanaApiCreditPerMinute;
     }
 
-// ====================================
+    // ====================================
     // Internal settings
     // ====================================
 

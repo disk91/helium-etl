@@ -1132,6 +1132,7 @@ public class HotspotCache {
 
     @Scheduled(fixedDelay = 120_000, initialDelay = 30_000)
     private void index() {
+        if ( ! etlConfig.isHeliumHotspotIndexingEnable() ) return;     // no indexing
         log.debug("Running index");
         if (!this.serviceEnable || this.stopRequested) return;
         int processed = 0;
@@ -1195,6 +1196,13 @@ public class HotspotCache {
                     // new or different owner
                     h.updateOwner(w.getWalletId(),null,0);
                     this.updateHotspot(h);
+                    // also update the Index
+                    HotspotIndex hi = hotspotsIndexRepository.findOneHotspotIndexByHotspotId(hId);
+                    if ( hi != null ) {
+                        hi.setHntOwner(h.getOwner().getHntOwner());
+                        hi.setSolOwner(h.getOwner().getSolOwner());
+                        hotspotsIndexRepository.save(hi);
+                    }
                 }
                 HotspotIdent hi = new HotspotIdent();
                 hi.init(h);
