@@ -27,6 +27,9 @@ server {
     ssl_certificate_key /etc/nginx/ssl/live/etl.foo.bar/privkey.pem;
 
     location ~ ^(/hotspot/|/wallet/) {
+         #auth_basic "Restricted";
+         #auth_basic_user_file /etc/nginx/.htpasswd;
+
          proxy_pass http://backend;
          proxy_redirect  off;
          proxy_set_header        X-Real-IP $remote_addr;

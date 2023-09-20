@@ -43,6 +43,7 @@ services:
       - /etl/configuration/nginx/:/etc/nginx/conf.d/:ro
       - /etl/configuration/certbot/:/var/www/certbot/:ro
       - /etl/configuration/ssl/:/etc/nginx/ssl/:ro
+      - /etl/configuration/nginx/.htpasswd:/etc/nginx/.htpasswd
     profiles:
       - webserver
     networks:
