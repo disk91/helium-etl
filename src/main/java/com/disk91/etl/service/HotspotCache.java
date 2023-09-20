@@ -748,9 +748,9 @@ public class HotspotCache {
                         log.debug("Position change : " + pos.lat + " / " + pos.lng + " for " + hsBeaconerId);
                     }
                     // temp log for monitoring
-                    if ( beaconner.getPosHistory() != null && beaconner.getPosHistory().size() > 10 ) {
-                        log.info("We have Hotspot "+beaconner.getHotspotId()+" with more than 10 positions in history");
-                    }
+                    //if ( beaconner.getPosHistory() != null && beaconner.getPosHistory().size() > 10 ) {
+                    //    log.info("We have Hotspot "+beaconner.getHotspotId()+" with more than 10 positions in history");
+                    //}
                 }
             }
         }
@@ -1130,7 +1130,7 @@ public class HotspotCache {
     @Autowired
     protected HotspotsSpecial hotspotsSpecial;
 
-    @Scheduled(fixedDelay = 30_000, initialDelay = 30_000)
+    @Scheduled(fixedDelay = 120_000, initialDelay = 30_000)
     private void index() {
         log.debug("Running index");
         if (!this.serviceEnable || this.stopRequested) return;
@@ -1140,7 +1140,7 @@ public class HotspotCache {
 
         PageRequest page = PageRequest.of(0,50);
         List<Hotspot> hs = hotspotsRepository.findFirst50HotspotToBeIndexed(tRef,page);
-        while ( processed < 250 && loops < 50 ) {
+        while ( processed < 250 && loops < 10 ) {
             // last page ...
             if ( hs.size() < 50 ) processed = 250;
 

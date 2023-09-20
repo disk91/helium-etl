@@ -166,7 +166,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
 
     synchronized public void updatePosition(long timestamp, double lat, double lng, double alt, double gain, double hexScale) {
-        int sizeLimit = 15;
+        int sizeLimit = 10;
         if ( this.position != null ) {
             this.position.setLastDatePosition(timestamp);
             // limit the position & info update to the last position change and the last value updates
