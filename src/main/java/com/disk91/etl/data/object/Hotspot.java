@@ -166,14 +166,14 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
 
     synchronized public void updatePosition(long timestamp, double lat, double lng, double alt, double gain, double hexScale) {
-        int sizeLimit = 10;
+        int sizeLimit = 15;
         if ( this.position != null ) {
             this.position.setLastDatePosition(timestamp);
             // limit the position & info update to the last position change and the last value updates
             if ( posHistory.size() < sizeLimit ) {
                 this.getPosHistory().add(this.position.clone());
             } else {
-                // sort List by date
+                // sort List by date, this sort from oldest position to newest
                 this.posHistory.sort(new Comparator<LatLng>() {
                     @Override
                     public int compare(LatLng p1, LatLng p2) {
@@ -206,20 +206,9 @@ public class Hotspot implements ClonnableObject<Hotspot> {
                         }
                         previous = p;
                     }
-                    // During debug keep it unmodified
-                    //
-                    log.info("#### old history");
-                    int i = 0;
-                    for ( LatLng p : this.posHistory ) {
-                        log.info("> "+i+" "+p.getLastDatePosition()+" lat: "+p.getLat()+" lng: "+p.getLng()+" hs: "+p.getHexScale()+" h: "+p.getAlt()+" g: "+p.getGain());
-                        i++;
-                    }
-                    i = 0;
-                    for ( LatLng p : newList ) {
-                        log.info("# "+i+" "+p.getLastDatePosition()+" lat: "+p.getLat()+" lng: "+p.getLng()+" hs: "+p.getHexScale()+" h: "+p.getAlt()+" g: "+p.getGain());
-                        i++;
-                    }
-                    // this.posHistory = newList;
+                    // add the new position
+                    newList.add(this.position.clone());
+                    this.posHistory = newList;
                 }
             }
         } else {

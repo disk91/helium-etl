@@ -53,6 +53,7 @@ public class HotspotCache {
     protected int runningJobs;
     protected boolean serviceEnable; // false to stop the services
     protected boolean stopRequested = false; // true when a stop is requested
+    protected boolean pauseIndexing = false;
 
 
     private ObjectCache<String, Hotspot> heliumHotspotCache;
@@ -180,10 +181,18 @@ public class HotspotCache {
         }
     }
 
+    private boolean pauseCanceler=false;
+    // to prevent never ending pausing
+    public void forceResume() {
+        pauseCanceler = true;
+    }
+
     public void pauseService() {
         // flush pending write
         log.info("Flush Beacon & Witness pending");
         long s = Now.NowUtcMs();
+        this.pauseIndexing = true;
+        this.pauseCanceler = false;
         while ( inAsyncWrite == true  && (Now.NowUtcMs() - s) < 120_000 );
         bulkInsertRewards();
         flushInsertWitness();
@@ -197,6 +206,7 @@ public class HotspotCache {
         log.info("Commit hotspot cache");
         long updated;
         do {
+            log.info("Currently unsaved objects: "+heliumHotspotCache.getUnsaved());
             updated = heliumHotspotCache.commit(true,20_000);
             if ( updated > 0 ) {
                 // wait for async process to start
@@ -208,7 +218,7 @@ public class HotspotCache {
                     Now.sleep(1000);
                 }
             }
-        } while ( updated >= 20_000 );
+        } while ( updated >= 20_000 && ! this.pauseCanceler);
         modifications = 0;
 
         log.info("Flush top lines");
@@ -217,6 +227,7 @@ public class HotspotCache {
     }
 
     public void resumeService() {
+        this.pauseIndexing = false;
         this.serviceEnable = true;
     }
 
@@ -225,7 +236,7 @@ public class HotspotCache {
         log.info("Flush Beacon & Witness pending");
         this.stopRequested = true;
         long s = Now.NowUtcMs();
-        while ( inAsyncWrite == true  && (Now.NowUtcMs() - s) < 120_000 );
+        while ( inAsyncWrite && (Now.NowUtcMs() - s) < 120_000 );
         bulkInsertRewards();
         flushInsertWitness();
         flushInsertBeacon();
@@ -1134,7 +1145,7 @@ public class HotspotCache {
     private void index() {
         if ( ! etlConfig.isHeliumHotspotIndexingEnable() ) return;     // no indexing
         log.debug("Running index");
-        if (!this.serviceEnable || this.stopRequested) return;
+        if (!this.serviceEnable || this.stopRequested || this.pauseIndexing ) return;
         int processed = 0;
         int loops = 0;
         long tRef = Now.NowUtcMs()-(10*Now.ONE_FULL_DAY);

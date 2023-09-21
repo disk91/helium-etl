@@ -498,6 +498,14 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
     }
 
 
+    public long getUnsaved() {
+        long unSaved=0;
+        for (CachedObject<K,T> c : this.cache.values() ) {
+            if (c.isUnsaved()) unSaved++;
+        }
+        return unSaved;
+    }
+
     // Some logs
     public void log() {
         long toUpdate=0;

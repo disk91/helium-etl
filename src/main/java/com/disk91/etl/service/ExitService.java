@@ -80,7 +80,10 @@ public class ExitService implements Lifecycle {
 
 
     public synchronized void onCallResume() {
-        if ( !this.inPause ) return;
+        if ( !this.inPause ) {
+            hotspotCache.forceResume();
+            return;
+        }
         log.info("### Start resume request");
         hotspotCache.resumeService();
         awsService.restartService();
