@@ -149,9 +149,9 @@ public class AwsService {
     public void stopService() {
         this.serviceEnable = false;
     }
-    public void restartService() { this.serviceEnable = true; }
+    public void restartService() { this.serviceEnable = true; this.firstFile = true; }
     public boolean hasStopped() {
-        return (this.serviceEnable == false && this.runningJobs == 0);
+        return (!this.serviceEnable && this.runningJobs == 0);
     }
 
 
@@ -822,7 +822,7 @@ public class AwsService {
                                 lastLog = Now.NowUtcMs();
                             }
                             // print process state on exit request
-                            if (serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
+                            if (!serviceEnable && (Now.NowUtcMs() - lastLog) > 5_000) {
                                 log.info("IoTPoc - exit in progress - " + (Math.floor((100 * current) / toProcess.size())) + "%");
                                 lastLog = Now.NowUtcMs();
                             }
@@ -855,7 +855,7 @@ public class AwsService {
                     paramRepository.save(iotPocFile);
 
                     hotspotCache.flushTopLines();
-                    if ( serviceEnable == false ) {
+                    if (!serviceEnable) {
                         // we had a request to quit and at this point we can make it
                         // clean
                         log.info("IoTPoc - exit ready");

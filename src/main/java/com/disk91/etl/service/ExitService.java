@@ -128,7 +128,7 @@ public class ExitService implements Lifecycle {
                 log.error("Exiting/Pausing ... Waiting for "+services+" services to stop for "+(Now.NowUtcMs()-s)/60_000+"m");
                 d+=10_000;
             }
-            if ( (Now.NowUtcMs() - s) > etlConfig.getExitTimeOutMinutes()*60_000 ) {
+            if ( (Now.NowUtcMs() - s) > etlConfig.getExitTimeOutMinutes()*60_000L ) {
                 log.error("Services not stopping, force stop");
                 break;
             }
