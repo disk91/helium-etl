@@ -353,6 +353,7 @@ public class HotspotCache {
                 }
                 // init from legacy
                 this.addForEnrichemnent(hs);
+                this.addForIndexing(hs);
             }
             if ( cache && hs != null ) {
                 heliumHotspotCache.put(hs,hotspotId,false);
@@ -1141,11 +1142,33 @@ public class HotspotCache {
     @Autowired
     protected HotspotsSpecial hotspotsSpecial;
 
+    protected ConcurrentLinkedQueue<Hotspot> asyncIndexing = null;
+
+    protected void addForIndexing(Hotspot h) {
+        if ( this.asyncIndexing != null && this.asyncIndexing.size() < 1000 ) this.asyncIndexing.add(h);
+    }
+
+
     @Scheduled(fixedDelay = 120_000, initialDelay = 30_000)
     private void index() {
         if ( ! etlConfig.isHeliumHotspotIndexingEnable() ) return;     // no indexing
         log.debug("Running index");
         if (!this.serviceEnable || this.stopRequested || this.pauseIndexing ) return;
+
+        // process the queue whatever
+        if ( asyncIndexing == null ) { this.asyncIndexing = new ConcurrentLinkedQueue<>(); return; }
+        while (this.asyncIndexing.size() > 0) {
+            if (!this.serviceEnable || this.stopRequested) return;
+            Hotspot h = this.asyncIndexing.poll();
+            if ( hotspotsIndexRepository.findOneHotspotIndexByHotspotId(h.getHotspotId()) == null ) {
+                // new one to add
+                HotspotIndex hi = new HotspotIndex();
+                hi.init(h);
+                hotspotsIndexRepository.save(hi);
+            }
+        }
+
+        // background update / verif...
         int processed = 0;
         int loops = 0;
         long tRef = Now.NowUtcMs()-(10*Now.ONE_FULL_DAY);
