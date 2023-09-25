@@ -58,7 +58,7 @@ services:
 
   ## Router - get the traffic request
   mongo-router01:
-    image: mongo:6.0.1
+    image: mongo:6.0.10
     container_name: mongo-router-01
     command: mongos --port 27017 --configdb rs-config-server/mongo-configsvr01:27017,mongo-configsvr02:27017,mongo-configsvr03:27017 --bind_ip_all
     healthcheck:
@@ -88,7 +88,7 @@ services:
     logging: *logs
 
   mongo-router02:
-    image: mongo:6.0.1
+    image: mongo:6.0.10
     container_name: mongo-router-02
     command: mongos --port 27017 --configdb rs-config-server/mongo-configsvr01:27017,mongo-configsvr02:27017,mongo-configsvr03:27017 --bind_ip_all
     healthcheck:
@@ -119,7 +119,7 @@ services:
 
   ## Config Servers - know the cluster configuration
   mongo-configsvr01:
-    image: mongo:6.0.1
+    image: mongo:6.0.10
     container_name: mongo-config-01
     command: mongod --port 27017 --configsvr --replSet rs-config-server
     volumes:
@@ -136,7 +136,7 @@ services:
     logging: *logs
 
   mongo-configsvr02:
-    image: mongo:6.0.1
+    image: mongo:6.0.10
     container_name: mongo-config-02
     command: mongod --port 27017 --configsvr --replSet rs-config-server
     volumes:
@@ -153,7 +153,7 @@ services:
     logging: *logs
 
   mongo-configsvr03:
-    image: mongo:6.0.1
+    image: mongo:6.0.10
     container_name: mongo-config-03
     command: mongod --port 27017 --configsvr --replSet rs-config-server
     volumes:
@@ -171,7 +171,7 @@ services:
 
   ## Shards
   mongo-shard01a:
-    image: mongo:6.0.1
+    image: mongo:6.0.10
     container_name: shard-01-node-a
     command: mongod --port 27017 --shardsvr --replSet rs-shard-01
     deploy:
@@ -193,7 +193,7 @@ services:
 
 
   mongo-shard02a:
-    image: mongo:6.0.1
+    image: mongo:6.0.10
     container_name: shard-02-node-a
     command: mongod --port 27017 --shardsvr --replSet rs-shard-02
     deploy:
@@ -214,7 +214,7 @@ services:
     logging: *logs
 
   mongo-shard03a:
-    image: mongo:6.0.1
+    image: mongo:6.0.10
     container_name: shard-03-node-a
     command: mongod --port 27017 --shardsvr --replSet rs-shard-03
     deploy:
