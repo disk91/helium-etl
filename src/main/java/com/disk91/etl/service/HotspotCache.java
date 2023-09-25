@@ -1145,7 +1145,7 @@ public class HotspotCache {
     protected ConcurrentLinkedQueue<Hotspot> asyncIndexing = null;
 
     protected void addForIndexing(Hotspot h) {
-        if ( this.asyncIndexing != null && this.asyncIndexing.size() < 1000 ) this.asyncIndexing.add(h);
+        if ( etlConfig.isHeliumHotspotIndexingEnable() && this.asyncIndexing != null && this.asyncIndexing.size() < 1000 ) this.asyncIndexing.add(h);
     }
 
 
