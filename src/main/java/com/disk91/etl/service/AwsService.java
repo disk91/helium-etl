@@ -2,6 +2,7 @@ package com.disk91.etl.service;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -939,7 +940,7 @@ public class AwsService {
 
 
     // Reward are once a day, so no need to search faster than on every 20 minutes
-    @Scheduled(fixedDelay = 1200_000, initialDelay = 13_000)
+    @Scheduled(fixedDelay = 3600_000, initialDelay = 13_000)
     protected void AwsRewardSync() {
         if ( ! hotspotCache.isReady() ) return;
         if ( ! readyToSync || !serviceEnable ) return;
@@ -1133,11 +1134,11 @@ public class AwsService {
         } catch (AmazonServiceException x) {
             prometeusService.addAwsFailure();
             log.error("AwsRewardSync - "+x.getMessage());
-            x.printStackTrace();
+           // x.printStackTrace();
         } catch (AmazonClientException x) {
             prometeusService.addAwsFailure();
             log.error("AwsRewardSync - "+x.getMessage());
-            x.printStackTrace();
+           // x.printStackTrace();
         } catch (Exception x) {
             prometeusService.addAwsFailure();
             log.error("Reward Batch Failure "+x.getMessage());
