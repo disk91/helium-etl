@@ -240,21 +240,21 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     }
 
     synchronized public void updateDeny(long timestamp, boolean isDenied) {
+        if ( this.denyHistories.size() > 25 ) {
+            // clean the previous list becoming too long
+            // unclear yet why the status is switching
+            ArrayList<DenyHistory> _denyHist = new ArrayList<>();
+            for ( int i = this.denyHistories.size()-24 ; i < this.denyHistories.size() ; i++ ) {
+                DenyHistory _dh = this.denyHistories.get(i);
+                _dh.setTimestamp(_dh.getTimestamp()/1_000_000); // convert to ms
+                _denyHist.add(_dh);
+            }
+            this.denyHistories = _denyHist;
+        }
         if ( this.inDenyList != isDenied ) {
             DenyHistory _d = new DenyHistory();
             _d.setTimestamp(timestamp/1_000_000); // back to ms
             _d.setWasInDenyList(this.inDenyList);
-            if ( this.denyHistories.size() > 25 ) {
-                // clean the previous list becoming too long
-                // unclear yet why the status is switching
-                ArrayList<DenyHistory> _denyHist = new ArrayList<>();
-                for ( int i = this.denyHistories.size()-24 ; i < this.denyHistories.size() ; i++ ) {
-                    DenyHistory _dh = this.denyHistories.get(i);
-                    _dh.setTimestamp(_d.getTimestamp()/1_000_000); // convert to ms
-                    _denyHist.add(_dh);
-                }
-                this.denyHistories = _denyHist;
-            }
             this.denyHistories.add(_d);
             // keep only the last 25 only
             if ( this.denyHistories.size() > 25 ) {
@@ -275,14 +275,15 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         boolean updated = false;
         this.setLastBeacon(tm);
         if ( ! newHist ) {
-            for (BeaconHistory bh : this.getBeaconHistory()) {
-                if (bh.getTimeRef() == hRef) {
+            for ( int i = this.getBeaconHistory().size()-1 ; i >= 0 ; --i) {
+                BeaconHistory bh = this.beaconHistory.get(i);
+                if ( bh.getTimeRef() == hRef )  {
                     // update
                     bh.setCountBeacon(bh.getCountBeacon() + 1);
                     updated = true;
                     break;
                 }
-                if (oldest > bh.getTimeRef()) oldest = bh.getTimeRef();
+                if ( bh.getTimeRef() < hRef ) break;
             }
         }
         if (!updated) {
@@ -290,19 +291,11 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             BeaconHistory bh = new BeaconHistory();
             bh.setTimeRef(hRef);
             bh.setCountBeacon(1);
+            this.getBeaconHistory().add(bh);
 
             // need to clean an older one ?
-            if (this.getBeaconHistory().size() > maxHistEntries) {
-                ArrayList<BeaconHistory> nl = new ArrayList<>();
-                nl.add(bh);
-                for (BeaconHistory _bh : this.getBeaconHistory()) {
-                    if (_bh.getTimeRef() != oldest) {
-                        nl.add(_bh);
-                    }
-                }
-                this.setBeaconHistory(nl);
-            } else {
-                this.getBeaconHistory().add(bh);
+            if (this.beaconHistory.size() > maxHistEntries) {
+                this.beaconHistory = this.beaconHistory.subList(this.beaconHistory.size()-maxHistEntries, this.beaconHistory.size());
             }
         }
     }
@@ -358,10 +351,10 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         }
 
         long hRef = Now.ThisHourUtc(tmMs);
-        long oldest = Now.NowUtcMs();
         boolean updated = false;
         if ( ! newHist ) {
-            for (WitnessHistory wh : this.getWitnessesHistory()) {
+            for ( int i = this.witnessesHistory.size()-1 ; i >= 0 ; --i) {
+                WitnessHistory wh = this.witnessesHistory.get(i);
                 if (wh.getTimeRef() == hRef) {
                     // update
                     wh.setCountWitnesses(wh.getCountWitnesses() + 1);
@@ -370,7 +363,6 @@ public class Hotspot implements ClonnableObject<Hotspot> {
                     updated = true;
                     break;
                 }
-                if (oldest > wh.getTimeRef()) oldest = wh.getTimeRef();
             }
         }
         if (!updated) {
@@ -379,19 +371,11 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             wh.setTimeRef(hRef);
             wh.setCountWitnesses(1);
             if ( selected ) wh.setSeletedWitness(1);
+            this.witnessesHistory.add(wh);
 
-            // need to clean an older one ?
-            if (this.getWitnessesHistory().size() > maxHistEntries ) {
-                ArrayList<WitnessHistory> nl = new ArrayList<>();
-                nl.add(wh);
-                for (WitnessHistory _wh : this.getWitnessesHistory()) {
-                    if (_wh.getTimeRef() != oldest) {
-                        nl.add(_wh);
-                    }
-                }
-                this.setWitnessesHistory(nl);
-            } else {
-                this.getWitnessesHistory().add(wh);
+            // need to clean the older one ?
+            if (this.witnessesHistory.size() > maxHistEntries) {
+                this.witnessesHistory = this.witnessesHistory.subList(this.witnessesHistory.size()-maxHistEntries, this.witnessesHistory.size());
             }
         }
     }

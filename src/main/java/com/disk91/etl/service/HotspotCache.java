@@ -811,7 +811,7 @@ public class HotspotCache {
             Hotspot witnessed = this.getHotspot(witnesserId, true);
 
             // check if removed from deny list
-            if ( witnessed.isInDenyList() ) {
+            if ( witnessed.isInDenyList() || /*temp @TODO remove */ witnessed.getDenyHistories().size() > 25 ) {
                 log.debug("Found a hotspot to remove from deny list "+witnessed.getHotspotId());
                 witnessed.updateDeny(v.getReport().getTimestamp(),false);
             }
@@ -871,10 +871,10 @@ public class HotspotCache {
             Hotspot witnessed = this.getHotspot(witnesserId, true);
 
             // if the reason is related to denied list
-            if ( v.hasInvalidDetails() && v.getInvalidDetails() != null ) {
-                if ( v.getInvalidDetails().hasDenylistTag() && ! witnessed.isInDenyList() ) {
-                    log.debug("Found a hotspot to add in deny list "+witnessed.getHotspotId());
-                    witnessed.updateDeny(v.getReport().getTimestamp(),true);
+            if ( v.hasInvalidDetails() ) {
+                if ( v.getInvalidDetails().hasDenylistTag() ) {
+                   if ( ! witnessed.isInDenyList() ) log.debug("Found a hotspot to add in deny list "+witnessed.getHotspotId());
+                   witnessed.updateDeny(v.getReport().getTimestamp(),true);
                 }
             }
 
