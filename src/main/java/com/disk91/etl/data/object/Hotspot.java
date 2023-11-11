@@ -242,9 +242,24 @@ public class Hotspot implements ClonnableObject<Hotspot> {
     synchronized public void updateDeny(long timestamp, boolean isDenied) {
         if ( this.inDenyList != isDenied ) {
             DenyHistory _d = new DenyHistory();
-            _d.setTimestamp(timestamp);
+            _d.setTimestamp(timestamp/1_000_000); // back to ms
             _d.setWasInDenyList(this.inDenyList);
-            this.getDenyHistories().add(_d);
+            if ( this.denyHistories.size() > 25 ) {
+                // clean the previous list becoming too long
+                // unclear yet why the status is switching
+                ArrayList<DenyHistory> _denyHist = new ArrayList<>();
+                for ( int i = this.denyHistories.size()-24 ; i < this.denyHistories.size() ; i++ ) {
+                    DenyHistory _dh = this.denyHistories.get(i);
+                    _dh.setTimestamp(_d.getTimestamp()/1_000_000); // convert to ms
+                    _denyHist.add(_dh);
+                }
+                this.denyHistories = _denyHist;
+            }
+            this.denyHistories.add(_d);
+            // keep only the last 25 only
+            if ( this.denyHistories.size() > 25 ) {
+                this.denyHistories = this.denyHistories.subList(this.denyHistories.size()-25, this.denyHistories.size());
+            }
             this.inDenyList = isDenied;
         }
     }
