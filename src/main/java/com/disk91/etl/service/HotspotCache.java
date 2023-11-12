@@ -811,10 +811,12 @@ public class HotspotCache {
             Hotspot witnessed = this.getHotspot(witnesserId, true);
 
             // check if removed from deny list
-            if ( witnessed.isInDenyList() || /*temp @TODO remove */ witnessed.getDenyHistories().size() > 25 ) {
+            if ( witnessed.isInDenyList() ) {
                 log.debug("Found a hotspot to remove from deny list "+witnessed.getHotspotId());
                 witnessed.updateDeny(v.getReport().getTimestamp(),false);
             }
+            // @TODO - to remove : just to remove the long deny history
+            witnessed.updateDeny(v.getReport().getTimestamp(),false);
 
             beaconner.addBeaconed(
                     witnesserId,
