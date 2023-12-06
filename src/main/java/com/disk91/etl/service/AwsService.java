@@ -2,6 +2,7 @@ package com.disk91.etl.service;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -130,6 +131,12 @@ public class AwsService {
                         }
                     })
                     .withRegion(Regions.US_WEST_2)
+                    .withClientConfiguration( new ClientConfiguration()
+                        .withMaxErrorRetry(3)
+                        .withMaxConnections(10)
+                        .withConnectionTimeout(60_000)
+                        .withSocketTimeout(600_000)
+                    )
                     .build();
             if ( this.s3Client != null ) {
                 this.readyToSync = true;
