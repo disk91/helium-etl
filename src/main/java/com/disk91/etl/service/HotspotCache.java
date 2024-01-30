@@ -274,11 +274,13 @@ public class HotspotCache {
     protected HotspotsRepository hotspotsRepository;
 
     // non blocking read only interface to hotspots
-    public Hotspot getOneHotspot(String hotspotId) throws ITNotFoundException {
+    public Hotspot getOneHotspot(String hotspotId, boolean allowDB) throws ITNotFoundException {
         Hotspot hs = heliumHotspotCache.get(hotspotId);
         if ( hs == null ) {
-            // try db
-            hs = hotspotsRepository.findOneHotspotByHotspotId(hotspotId);
+            if ( allowDB ) {
+                // try db
+                hs = hotspotsRepository.findOneHotspotByHotspotId(hotspotId);
+            }
             if (hs == null) {
                 throw new ITNotFoundException();
             }
@@ -517,7 +519,8 @@ public class HotspotCache {
                         etlConfig.getHotspotWitnessHistoryEntries(),
                         (beaconner != null)?beaconner.getPosition().getLat():0.0,
                         (beaconner != null)?beaconner.getPosition().getLng():0.0,
-                        true
+                        true,
+                        0       // undefined
                 );
                 // mark as updated
                 this.updateHotspot(h);
@@ -803,6 +806,11 @@ public class HotspotCache {
         }
         */
 
+        // Search for first arrival
+        long firstArrival = Now.NowUtcMs();
+        for ( lora_verified_witness_report_v1 v : p.getSelectedWitnessesList() ) {
+            if ( v.getReceivedTimestamp() < firstArrival ) firstArrival = v.getReceivedTimestamp();
+        }
 
         // Update the Witness information
         for ( lora_verified_witness_report_v1 v : p.getSelectedWitnessesList() ) {
@@ -815,8 +823,6 @@ public class HotspotCache {
                 log.debug("Found a hotspot to remove from deny list "+witnessed.getHotspotId());
                 witnessed.updateDeny(v.getReport().getTimestamp(),false);
             }
-            // @TODO - to remove : just to remove the long deny history
-            witnessed.updateDeny(v.getReport().getTimestamp(),false);
 
             beaconner.addBeaconed(
                     witnesserId,
@@ -837,7 +843,8 @@ public class HotspotCache {
                     etlConfig.getHotspotWitnessHistoryEntries(),
                     (beaconner != null)?beaconner.getPosition().getLat():0.0,
                     (beaconner != null)?beaconner.getPosition().getLng():0.0,
-                    true
+                    true,
+                    v.getReceivedTimestamp() - firstArrival
             );
             // mark as updated
             this.updateHotspot(witnessed);
@@ -899,7 +906,8 @@ public class HotspotCache {
                     etlConfig.getHotspotWitnessHistoryEntries(),
                     (beaconner != null)?beaconner.getPosition().getLat():0.0,
                     (beaconner != null)?beaconner.getPosition().getLng():0.0,
-                    false
+                    false,
+                    v.getReceivedTimestamp() - firstArrival
             );
             // mark as updated
             this.updateHotspot(witnessed);

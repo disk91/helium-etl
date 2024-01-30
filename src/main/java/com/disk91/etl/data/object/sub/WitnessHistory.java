@@ -9,13 +9,20 @@ public class WitnessHistory  implements ClonnableObject<WitnessHistory> {
 
     private int seletedWitness = 0;     // number of witness selected during this period of time
 
+    private int totLateMs = 0;      // distance in ms from the first hotspot responding to poc, give an idea of the cpu/network response time
+
     // ---------
+
+    public void addTotLateMs(long deltaMs) {
+        this.totLateMs += deltaMs;
+    }
 
     public WitnessHistory clone() {
         WitnessHistory c = new WitnessHistory();
         c.setTimeRef(timeRef);
         c.setCountWitnesses(countWitnesses);
         c.setSeletedWitness(seletedWitness);
+        c.setTotLateMs(totLateMs);
         return c;
     }
 
@@ -45,5 +52,13 @@ public class WitnessHistory  implements ClonnableObject<WitnessHistory> {
 
     public void setSeletedWitness(int seletedWitness) {
         this.seletedWitness = seletedWitness;
+    }
+
+    public int getTotLateMs() {
+        return totLateMs;
+    }
+
+    public void setTotLateMs(int totLateMs) {
+        this.totLateMs = totLateMs;
     }
 }

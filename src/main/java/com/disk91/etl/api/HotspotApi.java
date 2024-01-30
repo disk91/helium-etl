@@ -70,7 +70,7 @@ public class HotspotApi {
             @PathVariable String hotspotId
     ) {
         try {
-            Hotspot hs = hotspotCache.getOneHotspot(hotspotId);
+            Hotspot hs = hotspotCache.getOneHotspot(hotspotId,true);
             HotspotData r = new HotspotData();
             r.initFrom(hs);
             return new ResponseEntity<>(r, HttpStatus.OK);
@@ -78,6 +78,33 @@ public class HotspotApi {
             return new ResponseEntity<>(ActionResult.NODATA(), HttpStatus.NO_CONTENT);
         }
     }
+
+    @Operation(summary = "Get Hotspot state",
+        description = "Get Hotspot state information, only from cache",
+        responses = {
+            @ApiResponse(responseCode = "200", description= "Done", content = @Content(schema = @Schema(implementation = HotspotState.class))),
+            @ApiResponse(responseCode = "204", description= "No content", content = @Content(schema = @Schema(implementation = ActionResult.class)))
+        }
+    )
+    @RequestMapping(value="/{hotspotId}/state",
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        method= RequestMethod.GET)
+    public ResponseEntity<?> getHotspotState(
+        HttpServletRequest request,
+        @Parameter(required = true, name = "hotspotId", description = "Base58 hotspot public key encoded")
+        @PathVariable String hotspotId
+    ) {
+        try {
+            Hotspot hs = hotspotCache.getOneHotspot(hotspotId,false);
+            HotspotState r = new HotspotState();
+            r.initFrom(hs);
+            return new ResponseEntity<>(r, HttpStatus.OK);
+        } catch (ITNotFoundException x) {
+            return new ResponseEntity<>(ActionResult.NODATA(), HttpStatus.NO_CONTENT);
+        }
+    }
+
+
 
     @Operation(summary = "Get Hotspot details",
             description = "Get Hotspot radio & reward data",
@@ -95,7 +122,7 @@ public class HotspotApi {
             @PathVariable String hotspotId
     ) {
         try {
-            Hotspot hs = hotspotCache.getOneHotspot(hotspotId);
+            Hotspot hs = hotspotCache.getOneHotspot(hotspotId,true);
             HotspotPosition r = new HotspotPosition();
             r.initFrom(hs);
             return new ResponseEntity<>(r, HttpStatus.OK);

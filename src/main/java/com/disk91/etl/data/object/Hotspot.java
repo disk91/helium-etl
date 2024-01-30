@@ -324,7 +324,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         }
     }
 
-    synchronized public void addWitness(String hsId, long tm, double signal, double snr, int maxHistEntries, double lat, double lng, boolean selected){
+    synchronized public void addWitness(String hsId, long tm, double signal, double snr, int maxHistEntries, double lat, double lng, boolean selected, long respLate){
         long tmMs = tm / 1_000_000; // from nano to ms
         boolean newHist =  ( (tmMs - this.getLastWitness() ) > Now.ONE_HOUR ); // can't exist in history
         this.setLastWitness(tmMs);
@@ -358,6 +358,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
                 if (wh.getTimeRef() == hRef) {
                     // update
                     wh.setCountWitnesses(wh.getCountWitnesses() + 1);
+                    wh.addTotLateMs(respLate);
                     // selected
                     if ( selected ) wh.setSeletedWitness(wh.getSeletedWitness() + 1);
                     updated = true;
