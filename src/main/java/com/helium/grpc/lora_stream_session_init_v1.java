@@ -5,99 +5,86 @@
 package com.helium.grpc;
 
 /**
- * Protobuf type {@code helium.poc_lora.gateway_reward}
+ * Protobuf type {@code helium.poc_lora.lora_stream_session_init_v1}
  */
-public final class gateway_reward extends
+public final class lora_stream_session_init_v1 extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:helium.poc_lora.gateway_reward)
-    gateway_rewardOrBuilder {
+    // @@protoc_insertion_point(message_implements:helium.poc_lora.lora_stream_session_init_v1)
+    lora_stream_session_init_v1OrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use gateway_reward.newBuilder() to construct.
-  private gateway_reward(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use lora_stream_session_init_v1.newBuilder() to construct.
+  private lora_stream_session_init_v1(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private gateway_reward() {
-    hotspotKey_ = com.google.protobuf.ByteString.EMPTY;
+  private lora_stream_session_init_v1() {
+    pubKey_ = com.google.protobuf.ByteString.EMPTY;
+    nonce_ = com.google.protobuf.ByteString.EMPTY;
+    sessionKey_ = com.google.protobuf.ByteString.EMPTY;
+    signature_ = com.google.protobuf.ByteString.EMPTY;
   }
 
   @java.lang.Override
   @SuppressWarnings({"unused"})
   protected java.lang.Object newInstance(
       UnusedPrivateParameter unused) {
-    return new gateway_reward();
+    return new lora_stream_session_init_v1();
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_gateway_reward_descriptor;
+    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_stream_session_init_v1_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_gateway_reward_fieldAccessorTable
+    return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_stream_session_init_v1_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.helium.grpc.gateway_reward.class, com.helium.grpc.gateway_reward.Builder.class);
+            com.helium.grpc.lora_stream_session_init_v1.class, com.helium.grpc.lora_stream_session_init_v1.Builder.class);
   }
 
-  public static final int HOTSPOT_KEY_FIELD_NUMBER = 1;
-  private com.google.protobuf.ByteString hotspotKey_ = com.google.protobuf.ByteString.EMPTY;
+  public static final int PUB_KEY_FIELD_NUMBER = 1;
+  private com.google.protobuf.ByteString pubKey_ = com.google.protobuf.ByteString.EMPTY;
   /**
-   * <pre>
-   *&#47; Public key of the hotspot
-   * </pre>
-   *
-   * <code>bytes hotspot_key = 1;</code>
-   * @return The hotspotKey.
+   * <code>bytes pub_key = 1;</code>
+   * @return The pubKey.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString getHotspotKey() {
-    return hotspotKey_;
+  public com.google.protobuf.ByteString getPubKey() {
+    return pubKey_;
   }
 
-  public static final int BEACON_AMOUNT_FIELD_NUMBER = 2;
-  private long beaconAmount_ = 0L;
+  public static final int NONCE_FIELD_NUMBER = 2;
+  private com.google.protobuf.ByteString nonce_ = com.google.protobuf.ByteString.EMPTY;
   /**
-   * <pre>
-   *&#47; Amount in iot bones credited to the hotspot for beaconing
-   * </pre>
-   *
-   * <code>uint64 beacon_amount = 2;</code>
-   * @return The beaconAmount.
+   * <code>bytes nonce = 2;</code>
+   * @return The nonce.
    */
   @java.lang.Override
-  public long getBeaconAmount() {
-    return beaconAmount_;
+  public com.google.protobuf.ByteString getNonce() {
+    return nonce_;
   }
 
-  public static final int WITNESS_AMOUNT_FIELD_NUMBER = 3;
-  private long witnessAmount_ = 0L;
+  public static final int SESSION_KEY_FIELD_NUMBER = 3;
+  private com.google.protobuf.ByteString sessionKey_ = com.google.protobuf.ByteString.EMPTY;
   /**
-   * <pre>
-   *&#47; Amount in iot bones credited to the hotspot for witnessing
-   * </pre>
-   *
-   * <code>uint64 witness_amount = 3;</code>
-   * @return The witnessAmount.
+   * <code>bytes session_key = 3;</code>
+   * @return The sessionKey.
    */
   @java.lang.Override
-  public long getWitnessAmount() {
-    return witnessAmount_;
+  public com.google.protobuf.ByteString getSessionKey() {
+    return sessionKey_;
   }
 
-  public static final int DC_TRANSFER_AMOUNT_FIELD_NUMBER = 4;
-  private long dcTransferAmount_ = 0L;
+  public static final int SIGNATURE_FIELD_NUMBER = 4;
+  private com.google.protobuf.ByteString signature_ = com.google.protobuf.ByteString.EMPTY;
   /**
-   * <pre>
-   *&#47; Amount in iot bones credited to the hotspot for data transfer
-   * </pre>
-   *
-   * <code>uint64 dc_transfer_amount = 4;</code>
-   * @return The dcTransferAmount.
+   * <code>bytes signature = 4;</code>
+   * @return The signature.
    */
   @java.lang.Override
-  public long getDcTransferAmount() {
-    return dcTransferAmount_;
+  public com.google.protobuf.ByteString getSignature() {
+    return signature_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -114,17 +101,17 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (!hotspotKey_.isEmpty()) {
-      output.writeBytes(1, hotspotKey_);
+    if (!pubKey_.isEmpty()) {
+      output.writeBytes(1, pubKey_);
     }
-    if (beaconAmount_ != 0L) {
-      output.writeUInt64(2, beaconAmount_);
+    if (!nonce_.isEmpty()) {
+      output.writeBytes(2, nonce_);
     }
-    if (witnessAmount_ != 0L) {
-      output.writeUInt64(3, witnessAmount_);
+    if (!sessionKey_.isEmpty()) {
+      output.writeBytes(3, sessionKey_);
     }
-    if (dcTransferAmount_ != 0L) {
-      output.writeUInt64(4, dcTransferAmount_);
+    if (!signature_.isEmpty()) {
+      output.writeBytes(4, signature_);
     }
     getUnknownFields().writeTo(output);
   }
@@ -135,21 +122,21 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    if (!hotspotKey_.isEmpty()) {
+    if (!pubKey_.isEmpty()) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBytesSize(1, hotspotKey_);
+        .computeBytesSize(1, pubKey_);
     }
-    if (beaconAmount_ != 0L) {
+    if (!nonce_.isEmpty()) {
       size += com.google.protobuf.CodedOutputStream
-        .computeUInt64Size(2, beaconAmount_);
+        .computeBytesSize(2, nonce_);
     }
-    if (witnessAmount_ != 0L) {
+    if (!sessionKey_.isEmpty()) {
       size += com.google.protobuf.CodedOutputStream
-        .computeUInt64Size(3, witnessAmount_);
+        .computeBytesSize(3, sessionKey_);
     }
-    if (dcTransferAmount_ != 0L) {
+    if (!signature_.isEmpty()) {
       size += com.google.protobuf.CodedOutputStream
-        .computeUInt64Size(4, dcTransferAmount_);
+        .computeBytesSize(4, signature_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -161,19 +148,19 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.helium.grpc.gateway_reward)) {
+    if (!(obj instanceof com.helium.grpc.lora_stream_session_init_v1)) {
       return super.equals(obj);
     }
-    com.helium.grpc.gateway_reward other = (com.helium.grpc.gateway_reward) obj;
+    com.helium.grpc.lora_stream_session_init_v1 other = (com.helium.grpc.lora_stream_session_init_v1) obj;
 
-    if (!getHotspotKey()
-        .equals(other.getHotspotKey())) return false;
-    if (getBeaconAmount()
-        != other.getBeaconAmount()) return false;
-    if (getWitnessAmount()
-        != other.getWitnessAmount()) return false;
-    if (getDcTransferAmount()
-        != other.getDcTransferAmount()) return false;
+    if (!getPubKey()
+        .equals(other.getPubKey())) return false;
+    if (!getNonce()
+        .equals(other.getNonce())) return false;
+    if (!getSessionKey()
+        .equals(other.getSessionKey())) return false;
+    if (!getSignature()
+        .equals(other.getSignature())) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -185,60 +172,57 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    hash = (37 * hash) + HOTSPOT_KEY_FIELD_NUMBER;
-    hash = (53 * hash) + getHotspotKey().hashCode();
-    hash = (37 * hash) + BEACON_AMOUNT_FIELD_NUMBER;
-    hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-        getBeaconAmount());
-    hash = (37 * hash) + WITNESS_AMOUNT_FIELD_NUMBER;
-    hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-        getWitnessAmount());
-    hash = (37 * hash) + DC_TRANSFER_AMOUNT_FIELD_NUMBER;
-    hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-        getDcTransferAmount());
+    hash = (37 * hash) + PUB_KEY_FIELD_NUMBER;
+    hash = (53 * hash) + getPubKey().hashCode();
+    hash = (37 * hash) + NONCE_FIELD_NUMBER;
+    hash = (53 * hash) + getNonce().hashCode();
+    hash = (37 * hash) + SESSION_KEY_FIELD_NUMBER;
+    hash = (53 * hash) + getSessionKey().hashCode();
+    hash = (37 * hash) + SIGNATURE_FIELD_NUMBER;
+    hash = (53 * hash) + getSignature().hashCode();
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static com.helium.grpc.gateway_reward parseFrom(
+  public static com.helium.grpc.lora_stream_session_init_v1 parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.gateway_reward parseFrom(
+  public static com.helium.grpc.lora_stream_session_init_v1 parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.gateway_reward parseFrom(
+  public static com.helium.grpc.lora_stream_session_init_v1 parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.gateway_reward parseFrom(
+  public static com.helium.grpc.lora_stream_session_init_v1 parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.gateway_reward parseFrom(byte[] data)
+  public static com.helium.grpc.lora_stream_session_init_v1 parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.helium.grpc.gateway_reward parseFrom(
+  public static com.helium.grpc.lora_stream_session_init_v1 parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.helium.grpc.gateway_reward parseFrom(java.io.InputStream input)
+  public static com.helium.grpc.lora_stream_session_init_v1 parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.gateway_reward parseFrom(
+  public static com.helium.grpc.lora_stream_session_init_v1 parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -246,26 +230,26 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  public static com.helium.grpc.gateway_reward parseDelimitedFrom(java.io.InputStream input)
+  public static com.helium.grpc.lora_stream_session_init_v1 parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
 
-  public static com.helium.grpc.gateway_reward parseDelimitedFrom(
+  public static com.helium.grpc.lora_stream_session_init_v1 parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.helium.grpc.gateway_reward parseFrom(
+  public static com.helium.grpc.lora_stream_session_init_v1 parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.helium.grpc.gateway_reward parseFrom(
+  public static com.helium.grpc.lora_stream_session_init_v1 parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -278,7 +262,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.helium.grpc.gateway_reward prototype) {
+  public static Builder newBuilder(com.helium.grpc.lora_stream_session_init_v1 prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   @java.lang.Override
@@ -294,26 +278,26 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code helium.poc_lora.gateway_reward}
+   * Protobuf type {@code helium.poc_lora.lora_stream_session_init_v1}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:helium.poc_lora.gateway_reward)
-      com.helium.grpc.gateway_rewardOrBuilder {
+      // @@protoc_insertion_point(builder_implements:helium.poc_lora.lora_stream_session_init_v1)
+      com.helium.grpc.lora_stream_session_init_v1OrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_gateway_reward_descriptor;
+      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_stream_session_init_v1_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_gateway_reward_fieldAccessorTable
+      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_stream_session_init_v1_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.helium.grpc.gateway_reward.class, com.helium.grpc.gateway_reward.Builder.class);
+              com.helium.grpc.lora_stream_session_init_v1.class, com.helium.grpc.lora_stream_session_init_v1.Builder.class);
     }
 
-    // Construct using com.helium.grpc.gateway_reward.newBuilder()
+    // Construct using com.helium.grpc.lora_stream_session_init_v1.newBuilder()
     private Builder() {
 
     }
@@ -327,27 +311,27 @@ private static final long serialVersionUID = 0L;
     public Builder clear() {
       super.clear();
       bitField0_ = 0;
-      hotspotKey_ = com.google.protobuf.ByteString.EMPTY;
-      beaconAmount_ = 0L;
-      witnessAmount_ = 0L;
-      dcTransferAmount_ = 0L;
+      pubKey_ = com.google.protobuf.ByteString.EMPTY;
+      nonce_ = com.google.protobuf.ByteString.EMPTY;
+      sessionKey_ = com.google.protobuf.ByteString.EMPTY;
+      signature_ = com.google.protobuf.ByteString.EMPTY;
       return this;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_gateway_reward_descriptor;
+      return com.helium.grpc.PocLoRa.internal_static_helium_poc_lora_lora_stream_session_init_v1_descriptor;
     }
 
     @java.lang.Override
-    public com.helium.grpc.gateway_reward getDefaultInstanceForType() {
-      return com.helium.grpc.gateway_reward.getDefaultInstance();
+    public com.helium.grpc.lora_stream_session_init_v1 getDefaultInstanceForType() {
+      return com.helium.grpc.lora_stream_session_init_v1.getDefaultInstance();
     }
 
     @java.lang.Override
-    public com.helium.grpc.gateway_reward build() {
-      com.helium.grpc.gateway_reward result = buildPartial();
+    public com.helium.grpc.lora_stream_session_init_v1 build() {
+      com.helium.grpc.lora_stream_session_init_v1 result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -355,26 +339,26 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.helium.grpc.gateway_reward buildPartial() {
-      com.helium.grpc.gateway_reward result = new com.helium.grpc.gateway_reward(this);
+    public com.helium.grpc.lora_stream_session_init_v1 buildPartial() {
+      com.helium.grpc.lora_stream_session_init_v1 result = new com.helium.grpc.lora_stream_session_init_v1(this);
       if (bitField0_ != 0) { buildPartial0(result); }
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(com.helium.grpc.gateway_reward result) {
+    private void buildPartial0(com.helium.grpc.lora_stream_session_init_v1 result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
-        result.hotspotKey_ = hotspotKey_;
+        result.pubKey_ = pubKey_;
       }
       if (((from_bitField0_ & 0x00000002) != 0)) {
-        result.beaconAmount_ = beaconAmount_;
+        result.nonce_ = nonce_;
       }
       if (((from_bitField0_ & 0x00000004) != 0)) {
-        result.witnessAmount_ = witnessAmount_;
+        result.sessionKey_ = sessionKey_;
       }
       if (((from_bitField0_ & 0x00000008) != 0)) {
-        result.dcTransferAmount_ = dcTransferAmount_;
+        result.signature_ = signature_;
       }
     }
 
@@ -412,27 +396,27 @@ private static final long serialVersionUID = 0L;
     }
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.helium.grpc.gateway_reward) {
-        return mergeFrom((com.helium.grpc.gateway_reward)other);
+      if (other instanceof com.helium.grpc.lora_stream_session_init_v1) {
+        return mergeFrom((com.helium.grpc.lora_stream_session_init_v1)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.helium.grpc.gateway_reward other) {
-      if (other == com.helium.grpc.gateway_reward.getDefaultInstance()) return this;
-      if (other.getHotspotKey() != com.google.protobuf.ByteString.EMPTY) {
-        setHotspotKey(other.getHotspotKey());
+    public Builder mergeFrom(com.helium.grpc.lora_stream_session_init_v1 other) {
+      if (other == com.helium.grpc.lora_stream_session_init_v1.getDefaultInstance()) return this;
+      if (other.getPubKey() != com.google.protobuf.ByteString.EMPTY) {
+        setPubKey(other.getPubKey());
       }
-      if (other.getBeaconAmount() != 0L) {
-        setBeaconAmount(other.getBeaconAmount());
+      if (other.getNonce() != com.google.protobuf.ByteString.EMPTY) {
+        setNonce(other.getNonce());
       }
-      if (other.getWitnessAmount() != 0L) {
-        setWitnessAmount(other.getWitnessAmount());
+      if (other.getSessionKey() != com.google.protobuf.ByteString.EMPTY) {
+        setSessionKey(other.getSessionKey());
       }
-      if (other.getDcTransferAmount() != 0L) {
-        setDcTransferAmount(other.getDcTransferAmount());
+      if (other.getSignature() != com.google.protobuf.ByteString.EMPTY) {
+        setSignature(other.getSignature());
       }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
@@ -461,25 +445,25 @@ private static final long serialVersionUID = 0L;
               done = true;
               break;
             case 10: {
-              hotspotKey_ = input.readBytes();
+              pubKey_ = input.readBytes();
               bitField0_ |= 0x00000001;
               break;
             } // case 10
-            case 16: {
-              beaconAmount_ = input.readUInt64();
+            case 18: {
+              nonce_ = input.readBytes();
               bitField0_ |= 0x00000002;
               break;
-            } // case 16
-            case 24: {
-              witnessAmount_ = input.readUInt64();
+            } // case 18
+            case 26: {
+              sessionKey_ = input.readBytes();
               bitField0_ |= 0x00000004;
               break;
-            } // case 24
-            case 32: {
-              dcTransferAmount_ = input.readUInt64();
+            } // case 26
+            case 34: {
+              signature_ = input.readBytes();
               bitField0_ |= 0x00000008;
               break;
-            } // case 32
+            } // case 34
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -497,178 +481,130 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private com.google.protobuf.ByteString hotspotKey_ = com.google.protobuf.ByteString.EMPTY;
+    private com.google.protobuf.ByteString pubKey_ = com.google.protobuf.ByteString.EMPTY;
     /**
-     * <pre>
-     *&#47; Public key of the hotspot
-     * </pre>
-     *
-     * <code>bytes hotspot_key = 1;</code>
-     * @return The hotspotKey.
+     * <code>bytes pub_key = 1;</code>
+     * @return The pubKey.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString getHotspotKey() {
-      return hotspotKey_;
+    public com.google.protobuf.ByteString getPubKey() {
+      return pubKey_;
     }
     /**
-     * <pre>
-     *&#47; Public key of the hotspot
-     * </pre>
-     *
-     * <code>bytes hotspot_key = 1;</code>
-     * @param value The hotspotKey to set.
+     * <code>bytes pub_key = 1;</code>
+     * @param value The pubKey to set.
      * @return This builder for chaining.
      */
-    public Builder setHotspotKey(com.google.protobuf.ByteString value) {
+    public Builder setPubKey(com.google.protobuf.ByteString value) {
       if (value == null) { throw new NullPointerException(); }
-      hotspotKey_ = value;
+      pubKey_ = value;
       bitField0_ |= 0x00000001;
       onChanged();
       return this;
     }
     /**
-     * <pre>
-     *&#47; Public key of the hotspot
-     * </pre>
-     *
-     * <code>bytes hotspot_key = 1;</code>
+     * <code>bytes pub_key = 1;</code>
      * @return This builder for chaining.
      */
-    public Builder clearHotspotKey() {
+    public Builder clearPubKey() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      hotspotKey_ = getDefaultInstance().getHotspotKey();
+      pubKey_ = getDefaultInstance().getPubKey();
       onChanged();
       return this;
     }
 
-    private long beaconAmount_ ;
+    private com.google.protobuf.ByteString nonce_ = com.google.protobuf.ByteString.EMPTY;
     /**
-     * <pre>
-     *&#47; Amount in iot bones credited to the hotspot for beaconing
-     * </pre>
-     *
-     * <code>uint64 beacon_amount = 2;</code>
-     * @return The beaconAmount.
+     * <code>bytes nonce = 2;</code>
+     * @return The nonce.
      */
     @java.lang.Override
-    public long getBeaconAmount() {
-      return beaconAmount_;
+    public com.google.protobuf.ByteString getNonce() {
+      return nonce_;
     }
     /**
-     * <pre>
-     *&#47; Amount in iot bones credited to the hotspot for beaconing
-     * </pre>
-     *
-     * <code>uint64 beacon_amount = 2;</code>
-     * @param value The beaconAmount to set.
+     * <code>bytes nonce = 2;</code>
+     * @param value The nonce to set.
      * @return This builder for chaining.
      */
-    public Builder setBeaconAmount(long value) {
-
-      beaconAmount_ = value;
+    public Builder setNonce(com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      nonce_ = value;
       bitField0_ |= 0x00000002;
       onChanged();
       return this;
     }
     /**
-     * <pre>
-     *&#47; Amount in iot bones credited to the hotspot for beaconing
-     * </pre>
-     *
-     * <code>uint64 beacon_amount = 2;</code>
+     * <code>bytes nonce = 2;</code>
      * @return This builder for chaining.
      */
-    public Builder clearBeaconAmount() {
+    public Builder clearNonce() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      beaconAmount_ = 0L;
+      nonce_ = getDefaultInstance().getNonce();
       onChanged();
       return this;
     }
 
-    private long witnessAmount_ ;
+    private com.google.protobuf.ByteString sessionKey_ = com.google.protobuf.ByteString.EMPTY;
     /**
-     * <pre>
-     *&#47; Amount in iot bones credited to the hotspot for witnessing
-     * </pre>
-     *
-     * <code>uint64 witness_amount = 3;</code>
-     * @return The witnessAmount.
+     * <code>bytes session_key = 3;</code>
+     * @return The sessionKey.
      */
     @java.lang.Override
-    public long getWitnessAmount() {
-      return witnessAmount_;
+    public com.google.protobuf.ByteString getSessionKey() {
+      return sessionKey_;
     }
     /**
-     * <pre>
-     *&#47; Amount in iot bones credited to the hotspot for witnessing
-     * </pre>
-     *
-     * <code>uint64 witness_amount = 3;</code>
-     * @param value The witnessAmount to set.
+     * <code>bytes session_key = 3;</code>
+     * @param value The sessionKey to set.
      * @return This builder for chaining.
      */
-    public Builder setWitnessAmount(long value) {
-
-      witnessAmount_ = value;
+    public Builder setSessionKey(com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      sessionKey_ = value;
       bitField0_ |= 0x00000004;
       onChanged();
       return this;
     }
     /**
-     * <pre>
-     *&#47; Amount in iot bones credited to the hotspot for witnessing
-     * </pre>
-     *
-     * <code>uint64 witness_amount = 3;</code>
+     * <code>bytes session_key = 3;</code>
      * @return This builder for chaining.
      */
-    public Builder clearWitnessAmount() {
+    public Builder clearSessionKey() {
       bitField0_ = (bitField0_ & ~0x00000004);
-      witnessAmount_ = 0L;
+      sessionKey_ = getDefaultInstance().getSessionKey();
       onChanged();
       return this;
     }
 
-    private long dcTransferAmount_ ;
+    private com.google.protobuf.ByteString signature_ = com.google.protobuf.ByteString.EMPTY;
     /**
-     * <pre>
-     *&#47; Amount in iot bones credited to the hotspot for data transfer
-     * </pre>
-     *
-     * <code>uint64 dc_transfer_amount = 4;</code>
-     * @return The dcTransferAmount.
+     * <code>bytes signature = 4;</code>
+     * @return The signature.
      */
     @java.lang.Override
-    public long getDcTransferAmount() {
-      return dcTransferAmount_;
+    public com.google.protobuf.ByteString getSignature() {
+      return signature_;
     }
     /**
-     * <pre>
-     *&#47; Amount in iot bones credited to the hotspot for data transfer
-     * </pre>
-     *
-     * <code>uint64 dc_transfer_amount = 4;</code>
-     * @param value The dcTransferAmount to set.
+     * <code>bytes signature = 4;</code>
+     * @param value The signature to set.
      * @return This builder for chaining.
      */
-    public Builder setDcTransferAmount(long value) {
-
-      dcTransferAmount_ = value;
+    public Builder setSignature(com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      signature_ = value;
       bitField0_ |= 0x00000008;
       onChanged();
       return this;
     }
     /**
-     * <pre>
-     *&#47; Amount in iot bones credited to the hotspot for data transfer
-     * </pre>
-     *
-     * <code>uint64 dc_transfer_amount = 4;</code>
+     * <code>bytes signature = 4;</code>
      * @return This builder for chaining.
      */
-    public Builder clearDcTransferAmount() {
+    public Builder clearSignature() {
       bitField0_ = (bitField0_ & ~0x00000008);
-      dcTransferAmount_ = 0L;
+      signature_ = getDefaultInstance().getSignature();
       onChanged();
       return this;
     }
@@ -685,23 +621,23 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:helium.poc_lora.gateway_reward)
+    // @@protoc_insertion_point(builder_scope:helium.poc_lora.lora_stream_session_init_v1)
   }
 
-  // @@protoc_insertion_point(class_scope:helium.poc_lora.gateway_reward)
-  private static final com.helium.grpc.gateway_reward DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:helium.poc_lora.lora_stream_session_init_v1)
+  private static final com.helium.grpc.lora_stream_session_init_v1 DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.helium.grpc.gateway_reward();
+    DEFAULT_INSTANCE = new com.helium.grpc.lora_stream_session_init_v1();
   }
 
-  public static com.helium.grpc.gateway_reward getDefaultInstance() {
+  public static com.helium.grpc.lora_stream_session_init_v1 getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<gateway_reward>
-      PARSER = new com.google.protobuf.AbstractParser<gateway_reward>() {
+  private static final com.google.protobuf.Parser<lora_stream_session_init_v1>
+      PARSER = new com.google.protobuf.AbstractParser<lora_stream_session_init_v1>() {
     @java.lang.Override
-    public gateway_reward parsePartialFrom(
+    public lora_stream_session_init_v1 parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -720,17 +656,17 @@ private static final long serialVersionUID = 0L;
     }
   };
 
-  public static com.google.protobuf.Parser<gateway_reward> parser() {
+  public static com.google.protobuf.Parser<lora_stream_session_init_v1> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<gateway_reward> getParserForType() {
+  public com.google.protobuf.Parser<lora_stream_session_init_v1> getParserForType() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.helium.grpc.gateway_reward getDefaultInstanceForType() {
+  public com.helium.grpc.lora_stream_session_init_v1 getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

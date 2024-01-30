@@ -5,21 +5,45 @@
 package com.helium.grpc;
 
 /**
- * Protobuf enum {@code helium.poc_lora.non_rewardable_packet_reason}
+ * Protobuf enum {@code helium.poc_lora.unallocated_reward_type}
  */
-public enum non_rewardable_packet_reason
+public enum unallocated_reward_type
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>gateway_not_found_for_packet = 0;</code>
+   * <code>unallocated_reward_type_poc = 0;</code>
    */
-  gateway_not_found_for_packet(0),
+  unallocated_reward_type_poc(0),
+  /**
+   * <code>unallocated_reward_type_operation = 1;</code>
+   */
+  unallocated_reward_type_operation(1),
+  /**
+   * <code>unallocated_reward_type_oracle = 2;</code>
+   */
+  unallocated_reward_type_oracle(2),
+  /**
+   * <code>unallocated_reward_type_data = 3;</code>
+   */
+  unallocated_reward_type_data(3),
   UNRECOGNIZED(-1),
   ;
 
   /**
-   * <code>gateway_not_found_for_packet = 0;</code>
+   * <code>unallocated_reward_type_poc = 0;</code>
    */
-  public static final int gateway_not_found_for_packet_VALUE = 0;
+  public static final int unallocated_reward_type_poc_VALUE = 0;
+  /**
+   * <code>unallocated_reward_type_operation = 1;</code>
+   */
+  public static final int unallocated_reward_type_operation_VALUE = 1;
+  /**
+   * <code>unallocated_reward_type_oracle = 2;</code>
+   */
+  public static final int unallocated_reward_type_oracle_VALUE = 2;
+  /**
+   * <code>unallocated_reward_type_data = 3;</code>
+   */
+  public static final int unallocated_reward_type_data_VALUE = 3;
 
 
   public final int getNumber() {
@@ -36,7 +60,7 @@ public enum non_rewardable_packet_reason
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
-  public static non_rewardable_packet_reason valueOf(int value) {
+  public static unallocated_reward_type valueOf(int value) {
     return forNumber(value);
   }
 
@@ -44,22 +68,25 @@ public enum non_rewardable_packet_reason
    * @param value The numeric wire value of the corresponding enum entry.
    * @return The enum associated with the given numeric wire value.
    */
-  public static non_rewardable_packet_reason forNumber(int value) {
+  public static unallocated_reward_type forNumber(int value) {
     switch (value) {
-      case 0: return gateway_not_found_for_packet;
+      case 0: return unallocated_reward_type_poc;
+      case 1: return unallocated_reward_type_operation;
+      case 2: return unallocated_reward_type_oracle;
+      case 3: return unallocated_reward_type_data;
       default: return null;
     }
   }
 
-  public static com.google.protobuf.Internal.EnumLiteMap<non_rewardable_packet_reason>
+  public static com.google.protobuf.Internal.EnumLiteMap<unallocated_reward_type>
       internalGetValueMap() {
     return internalValueMap;
   }
   private static final com.google.protobuf.Internal.EnumLiteMap<
-      non_rewardable_packet_reason> internalValueMap =
-        new com.google.protobuf.Internal.EnumLiteMap<non_rewardable_packet_reason>() {
-          public non_rewardable_packet_reason findValueByNumber(int number) {
-            return non_rewardable_packet_reason.forNumber(number);
+      unallocated_reward_type> internalValueMap =
+        new com.google.protobuf.Internal.EnumLiteMap<unallocated_reward_type>() {
+          public unallocated_reward_type findValueByNumber(int number) {
+            return unallocated_reward_type.forNumber(number);
           }
         };
 
@@ -77,12 +104,12 @@ public enum non_rewardable_packet_reason
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return com.helium.grpc.PocLoRa.getDescriptor().getEnumTypes().get(3);
+    return com.helium.grpc.PocLoRa.getDescriptor().getEnumTypes().get(4);
   }
 
-  private static final non_rewardable_packet_reason[] VALUES = values();
+  private static final unallocated_reward_type[] VALUES = values();
 
-  public static non_rewardable_packet_reason valueOf(
+  public static unallocated_reward_type valueOf(
       com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
     if (desc.getType() != getDescriptor()) {
       throw new java.lang.IllegalArgumentException(
@@ -96,10 +123,10 @@ public enum non_rewardable_packet_reason
 
   private final int value;
 
-  private non_rewardable_packet_reason(int value) {
+  private unallocated_reward_type(int value) {
     this.value = value;
   }
 
-  // @@protoc_insertion_point(enum_scope:helium.poc_lora.non_rewardable_packet_reason)
+  // @@protoc_insertion_point(enum_scope:helium.poc_lora.unallocated_reward_type)
 }
 
