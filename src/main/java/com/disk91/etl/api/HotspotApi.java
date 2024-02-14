@@ -106,8 +106,8 @@ public class HotspotApi {
 
 
 
-    @Operation(summary = "Get Hotspot details",
-            description = "Get Hotspot radio & reward data",
+    @Operation(summary = "Get Hotspot position",
+            description = "Get Hotspot position data",
             responses = {
                     @ApiResponse(responseCode = "200", description= "Done", content = @Content(schema = @Schema(implementation = HotspotPosition.class))),
                     @ApiResponse(responseCode = "204", description= "No content", content = @Content(schema = @Schema(implementation = ActionResult.class)))
