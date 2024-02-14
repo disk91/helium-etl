@@ -2,6 +2,7 @@ package com.disk91.etl.data.repository;
 
 import com.disk91.etl.data.object.HotspotIndex;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -14,12 +15,21 @@ public interface HotspotsIndexRepository extends MongoRepository<HotspotIndex, S
     public HotspotIndex findOneHotspotIndexByHotspotId(String hsId);
 
     @Query("{ $text : { $search : ?0 } }")
-    public List<HotspotIndex>  findHotspotIndexByAnimalNameLike(String search, Pageable p);
+    public Slice<HotspotIndex>  findHotspotIndexByAnimalNameLike(String search, Pageable p);
 
     @Query("{ animalName : { $regex : '^?0' } }")
-    public List<HotspotIndex>  findHotspotIndexByAnimalNameStarts(String search, Pageable p);
+    public Slice<HotspotIndex>  findHotspotIndexByAnimalNameStarts(String search, Pageable p);
 
-    @Query("{ 'position' : { '$geoWithin' : { '$box' : [ [?0, ?1], [?2, ?3] ] } } }")
+    @Query("{ $text : { $search : ?0 }, animalName : { $regex : '^?0' } }")
+    public Slice<HotspotIndex> findHotspotIndexByAnimalNameLikeStarts(String search, Pageable p);
+
+    @Query("{ 'position' : { '$geoWithin' : { '$geometry' : {" +
+        " type: \"Polygon\", " +
+        " coordinates: " +
+        " [ [" +
+        "    [?0, ?1], [?0, ?3], [?2, ?3], [?2, ?1], [?0, ?1]" +
+        " ] ]" +
+        "} } }")
     public List<HotspotIndex> findByPositionNearbyBox(double bottomLeftLongitude, double bottomLeftLatitude, double topRightLongitude, double topRightLatitude, Pageable p);
 
 }

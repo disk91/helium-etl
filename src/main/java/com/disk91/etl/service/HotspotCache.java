@@ -1266,19 +1266,25 @@ public class HotspotCache {
     public List<HotspotIdent> getHotspotsByAnimal(String name) {
 
         name = name.replace(' ', '-');
+        if ( ! name.matches("^[a-zA-Z\\-]+$") ) return new ArrayList<>();
+
         PageRequest pageRequest = PageRequest.of(0,10);
 
         ArrayList<HotspotIdent> ret = new ArrayList<>();
-        List<HotspotIndex> his = hotspotsIndexRepository.findHotspotIndexByAnimalNameLike(name, pageRequest);
-        if ( his.size() == 0 ) {
-            his = hotspotsIndexRepository.findHotspotIndexByAnimalNameStarts(name,pageRequest);
+        List<HotspotIndex> his = hotspotsIndexRepository.findHotspotIndexByAnimalNameLikeStarts(name, pageRequest).getContent();
+        if (his.isEmpty() && name.length() > 5) {
+            // it's possible the term is not on hostpot name start but elsewhere
+            his = hotspotsIndexRepository.findHotspotIndexByAnimalNameLike(name,pageRequest).getContent();
+        }
+        if (his.isEmpty() && name.length() < 10 ) {
+            // it's possible we don't have a word in the search term, look for letter list
+            his = hotspotsIndexRepository.findHotspotIndexByAnimalNameStarts(name,pageRequest).getContent();
         }
         for ( HotspotIndex hi : his ) {
             HotspotIdent id = new HotspotIdent();
             id.init(hi);
             ret.add(id);
         }
-
         return ret;
     }
 
