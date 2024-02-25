@@ -25,6 +25,7 @@ import com.disk91.etl.data.object.Reward;
 import com.disk91.etl.service.*;
 import fr.ingeniousthings.tools.ITNotFoundException;
 import fr.ingeniousthings.tools.ITParseException;
+import fr.ingeniousthings.tools.Now;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -94,13 +95,19 @@ public class HotspotApi {
         @Parameter(required = true, name = "hotspotId", description = "Base58 hotspot public key encoded")
         @PathVariable String hotspotId
     ) {
+        long s = Now.NowUtcMs();
         try {
-            Hotspot hs = hotspotCache.getOneHotspot(hotspotId,false);
+            Hotspot hs = hotspotCache.getOneHotspotFaster(hotspotId);
             HotspotState r = new HotspotState();
             r.initFrom(hs);
             return new ResponseEntity<>(r, HttpStatus.OK);
         } catch (ITNotFoundException x) {
             return new ResponseEntity<>(ActionResult.NODATA(), HttpStatus.NO_CONTENT);
+        } finally {
+            s = Now.NowUtcMs() - s;
+            if ( s > 1_000 ) {
+                log.warn("getHotspotState - Accessing cache for API requires more than 1s");
+            }
         }
     }
 

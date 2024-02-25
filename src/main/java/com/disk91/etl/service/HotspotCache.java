@@ -273,6 +273,13 @@ public class HotspotCache {
     @Autowired
     protected HotspotsRepository hotspotsRepository;
 
+    public Hotspot getOneHotspotFaster(String hotspotId) throws ITNotFoundException {
+        // Get a hotspot in cache only without any update and blocking dep for serving API
+        Hotspot hs = heliumHotspotCache.getImmediate(hotspotId);
+        if ( hs == null ) throw new ITNotFoundException();
+        return hs;
+    }
+
     // non blocking read only interface to hotspots
     public Hotspot getOneHotspot(String hotspotId, boolean allowDB) throws ITNotFoundException {
         Hotspot hs = heliumHotspotCache.get(hotspotId);
@@ -1297,7 +1304,7 @@ public class HotspotCache {
 
         ArrayList<HotspotIdent> ret = new ArrayList<>();
         PageRequest pageRequest = PageRequest.of(0,200); // Max 200
-        List<HotspotIndex> his = hotspotsIndexRepository.findByPositionNearbyBox(lonW,latS,lonE,latN, pageRequest);
+        List<HotspotIndex> his = hotspotsIndexRepository.findByPositionNearbyBox(lonW,latS,lonE,latN, pageRequest).getContent();
         for ( HotspotIndex hi : his ) {
             HotspotIdent id = new HotspotIdent();
             id.init(hi);

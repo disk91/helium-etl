@@ -184,6 +184,11 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
         return this.cache.keys();
     }
 
+    public T getImmediate(K key) {
+        CachedObject<K,T> c = this.cache.get(key);
+        return (c!=null)?c.getObj():null;
+    }
+
     public T get(K key) {
         long start = Now.NanoTime();
         CachedObject<K,T> c = this.cache.get(key);

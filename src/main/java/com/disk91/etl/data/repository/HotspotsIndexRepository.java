@@ -30,6 +30,6 @@ public interface HotspotsIndexRepository extends MongoRepository<HotspotIndex, S
         "    [?0, ?1], [?0, ?3], [?2, ?3], [?2, ?1], [?0, ?1]" +
         " ] ]" +
         "} } }")
-    public List<HotspotIndex> findByPositionNearbyBox(double bottomLeftLongitude, double bottomLeftLatitude, double topRightLongitude, double topRightLatitude, Pageable p);
+    public Slice<HotspotIndex> findByPositionNearbyBox(double bottomLeftLongitude, double bottomLeftLatitude, double topRightLongitude, double topRightLatitude, Pageable p);
 
 }
