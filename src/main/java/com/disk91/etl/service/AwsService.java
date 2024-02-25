@@ -132,10 +132,10 @@ public class AwsService {
                     })
                     .withRegion(Regions.US_WEST_2)
                     .withClientConfiguration( new ClientConfiguration()
-                        .withMaxErrorRetry(3)
+                        .withMaxErrorRetry(5)
                         .withMaxConnections(10)
-                        .withConnectionTimeout(60_000)
-                        .withSocketTimeout(600_000)
+                        .withConnectionTimeout(10_000)
+                        .withSocketTimeout(60_000)
                     )
                     .build();
             if ( this.s3Client != null ) {
@@ -738,7 +738,7 @@ public class AwsService {
                     boolean readOk = false;
                     retry = 0;
                     ArrayList<lora_poc_v1> toProcess = new ArrayList<>();
-                    while ( ! readOk && retry < 5 ) {
+                    while ( ! readOk && retry < 10 ) {
                         final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
                         or.setRequesterPays(true);
                         S3Object fileObject = this.s3Client.getObject(or);
@@ -796,8 +796,8 @@ public class AwsService {
                             if (stream != null ) stream.close();
                         }
                     }
-                    if ( retry == 5 ) {
-                        log.warn("Impossible to process file " + object.getKey()+ " skip it");
+                    if ( retry == 10 ) {
+                        log.error("[!!!] Impossible to process file " + object.getKey()+ " skip it");
                         continue;
                     }
 
@@ -1015,7 +1015,7 @@ public class AwsService {
                     boolean readOk = false;
                     retry = 0;
                     ArrayList<iot_reward_share> toProcess = new ArrayList<>();
-                    while ( ! readOk && retry < 5 ) {
+                    while ( ! readOk && retry < 10 ) {
 
                         final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
                         or.setRequesterPays(true);
@@ -1074,7 +1074,7 @@ public class AwsService {
                             if (stream != null) stream.close();
                         }
                     }
-                    if (retry == 5) {
+                    if (retry == 10) {
                         log.warn("Impossible to process file " + object.getKey() + " skip it");
                         continue;
                     }
