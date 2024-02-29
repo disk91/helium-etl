@@ -131,8 +131,6 @@ services:
       - mongo_net
     profiles:
       - mongo
-    ports:
-      - 27017:27017
     logging: *logs
 
   mongo-configsvr02:
@@ -148,8 +146,6 @@ services:
       - mongo_net
     profiles:
       - mongo
-    ports:
-      - 27017:27017
     logging: *logs
 
   mongo-configsvr03:
@@ -165,8 +161,6 @@ services:
       - mongo_net
     profiles:
       - mongo
-    ports:
-      - 27017:27017
     logging: *logs
 
   ## Shards
@@ -187,8 +181,6 @@ services:
       - mongo
     networks:
       - mongo_net
-    ports:
-      - 27017:27017
     logging: *logs
 
 
@@ -209,8 +201,6 @@ services:
       - mongo
     networks:
       - mongo_net
-    ports:
-      - 27017:27017
     logging: *logs
 
   mongo-shard03a:
@@ -230,8 +220,6 @@ services:
       - mongo
     networks:
       - mongo_net
-    ports:
-      - 27017:27017
     logging: *logs
 
   prometheus:
@@ -257,7 +245,7 @@ services:
     container_name: etl-node-exp
     command:
       - '--web.listen-address=127.0.0.1:9100'
-      - '--web.listen-address=172.20.0.1:9100'
+      - '--web.listen-address=172.97.0.1:9100'
       - '--web.listen-address=172.99.0.254:9100'
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
@@ -363,36 +351,33 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.20.0.0/16
-          ip_range: 172.20.0.0/24
-          gateway: 172.20.0.254
+        - subnet: 172.99.1.0/24
+          gateway: 172.99.1.254
   mongo_net:
     ipam:
       driver: default
       config:
-        - subnet: 172.98.0.0/16
-          ip_range: 172.98.0.0/24
-          gateway: 172.98.0.254
+        - subnet: 172.99.2.0/24
+          gateway: 172.99.2.254
           aux_addresses:
-            etl: 172.98.1.99
-            mongo_exporter: 172.98.1.98
-            mongo-router01: 172.98.1.1
-            mongo-router02: 172.98.1.2
-            mongo-configsvr01: 172.98.1.61
-            mongo-configsvr02: 172.98.1.62
-            mongo-configsvr03: 172.98.1.63
-            mongo-shard01a: 172.98.1.10
-            mongo-shard02a: 172.98.1.20
-            mongo-shard03a: 172.98.1.30
+            etl: 172.99.2.99
+            mongo_exporter: 172.99.2.98
+            mongo-router01: 172.99.2.1
+            mongo-router02: 172.99.2.2
+            mongo-configsvr01: 172.99.2.61
+            mongo-configsvr02: 172.99.2.62
+            mongo-configsvr03: 172.99.2.63
+            mongo-shard01a: 172.99.2.10
+            mongo-shard02a: 172.99.2.20
+            mongo-shard03a: 172.99.2.30
   monitoring_net:
     ipam:
       driver: default
       config:
-        - subnet: 172.99.0.0/16
-          ip_range: 172.99.0.0/24
-          gateway: 172.99.0.254
+        - subnet: 172.99.3.0/24
+          gateway: 172.99.3.254
           aux_addresses:
-            etl: 172.99.1.99
-            prometheus: 172.99.1.97
-            mongo_exporter: 172.99.1.96
-            grafana: 172.99.1.95
+            etl: 172.99.3.99
+            prometheus: 172.99.3.97
+            mongo_exporter: 172.99.3.96
+            grafana: 172.99.3.95
