@@ -245,8 +245,7 @@ services:
     container_name: etl-node-exp
     command:
       - '--web.listen-address=127.0.0.1:9100'
-      - '--web.listen-address=172.99.1.254:9100'
-      - '--web.listen-address=172.99.3.254:9100'
+      - '--web.listen-address=host.docker.internal:9100'
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
@@ -263,6 +262,8 @@ services:
       - "--collector.tcpstat"
     pid: host
     network_mode: host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     security_opt:
       - apparmor:unconfined
     restart: unless-stopped
