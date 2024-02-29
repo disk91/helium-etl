@@ -37,6 +37,9 @@ build: back
 
 install: setup back
 
+start-noetl:
+	$(DOCKER_COMP_CMD) --profile mongo --profile monitoring up -d
+
 start:
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring --profile webserver up -d
 
