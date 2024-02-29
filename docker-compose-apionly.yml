@@ -245,8 +245,8 @@ services:
     container_name: etl-node-exp
     command:
       - '--web.listen-address=127.0.0.1:9100'
-      - '--web.listen-address=172.97.0.1:9100'
-      - '--web.listen-address=172.99.0.254:9100'
+      - '--web.listen-address=172.99.1.1:9100'
+      - '--web.listen-address=172.99.3.254:9100'
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
