@@ -68,7 +68,7 @@ services:
       retries: 3
       start_period: 30s
     ports:
-      - 27120:27017
+      - 127.0.0.1:27120:27017
     restart: always
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
@@ -98,7 +98,7 @@ services:
       retries: 3
       start_period: 30s
     ports:
-      - 27121:27017
+      - 127.0.0.1:27121:27017
     restart: always
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
@@ -131,8 +131,6 @@ services:
       - mongo_net
     profiles:
       - mongo
-    ports:
-      - 27017:27017
     logging: *logs
 
   mongo-configsvr02:
@@ -148,8 +146,6 @@ services:
       - mongo_net
     profiles:
       - mongo
-    ports:
-      - 27017:27017
     logging: *logs
 
   mongo-configsvr03:
@@ -165,8 +161,6 @@ services:
       - mongo_net
     profiles:
       - mongo
-    ports:
-      - 27017:27017
     logging: *logs
 
   ## Shards
@@ -187,8 +181,6 @@ services:
       - mongo
     networks:
       - mongo_net
-    ports:
-      - 27017:27017
     logging: *logs
 
 
@@ -209,8 +201,6 @@ services:
       - mongo
     networks:
       - mongo_net
-    ports:
-      - 27017:27017
     logging: *logs
 
   mongo-shard03a:
@@ -230,8 +220,6 @@ services:
       - mongo
     networks:
       - mongo_net
-    ports:
-      - 27017:27017
     logging: *logs
 
   prometheus:
@@ -257,8 +245,7 @@ services:
     container_name: etl-node-exp
     command:
       - '--web.listen-address=127.0.0.1:9100'
-      - '--web.listen-address=172.17.0.1:9100'
-      - '--web.listen-address=172.99.1.254:9100'
+      - '--web.listen-address=host.docker.internal:9100'
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
@@ -275,6 +262,8 @@ services:
       - "--collector.tcpstat"
     pid: host
     network_mode: host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     security_opt:
       - apparmor:unconfined
     restart: unless-stopped
@@ -302,7 +291,7 @@ services:
       - "--collector.collstats"
       - "--compatible-mode"
     ports:
-      - 9216:9216
+      - 127.0.0.1:9216:9216
     environment:
       - MONGODB_URI=mongodb://mongo-shard01a:27017
     profiles:
@@ -332,7 +321,7 @@ services:
     networks:
       - monitoring_net
     ports:
-      - 8093:8093
+      - 127.0.0.1:8093:8093
     logging: *logs
 
   grafana:
@@ -361,14 +350,36 @@ services:
 
 networks:
   public_net:
-  mongo_net:
-    internal: true
-  monitoring_net:
-    internal: true
-    driver: bridge
     ipam:
       driver: default
       config:
-        - subnet: 172.99.0.0/16
-          ip_range: 172.99.1.0/24
+        - subnet: 172.99.1.0/24
           gateway: 172.99.1.254
+  mongo_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.99.2.0/24
+          gateway: 172.99.2.254
+          aux_addresses:
+            etl: 172.99.2.99
+            mongo_exporter: 172.99.2.98
+            mongo-router01: 172.99.2.1
+            mongo-router02: 172.99.2.2
+            mongo-configsvr01: 172.99.2.61
+            mongo-configsvr02: 172.99.2.62
+            mongo-configsvr03: 172.99.2.63
+            mongo-shard01a: 172.99.2.10
+            mongo-shard02a: 172.99.2.20
+            mongo-shard03a: 172.99.2.30
+  monitoring_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.99.3.0/24
+          gateway: 172.99.3.254
+          aux_addresses:
+            etl: 172.99.3.99
+            prometheus: 172.99.3.97
+            mongo_exporter: 172.99.3.96
+            grafana: 172.99.3.95
