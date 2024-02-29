@@ -68,7 +68,7 @@ services:
       retries: 3
       start_period: 30s
     ports:
-      - 27120:27017
+      - 127.0.0.1:27120:27017
     restart: always
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
@@ -98,7 +98,7 @@ services:
       retries: 3
       start_period: 30s
     ports:
-      - 27121:27017
+      - 127.0.0.1:27121:27017
     restart: always
     volumes:
       - /etl/configuration/mongo/scripts:/scripts
@@ -245,7 +245,7 @@ services:
     container_name: etl-node-exp
     command:
       - '--web.listen-address=127.0.0.1:9100'
-      - '--web.listen-address=172.99.1.1:9100'
+      - '--web.listen-address=172.99.1.254:9100'
       - '--web.listen-address=172.99.3.254:9100'
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
@@ -320,7 +320,7 @@ services:
     networks:
       - monitoring_net
     ports:
-      - 8093:8093
+      - 127.0.0.1:8093:8093
     logging: *logs
 
   grafana:
