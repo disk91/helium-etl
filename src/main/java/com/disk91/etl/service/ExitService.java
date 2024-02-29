@@ -10,7 +10,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 @Service
 public class ExitService implements Lifecycle {

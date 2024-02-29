@@ -2,7 +2,6 @@ package com.disk91.etl.helium.legacy.model;
 
 import com.disk91.etl.data.object.Hotspot;
 
-import javax.annotation.PostConstruct;
 import java.util.HashMap;
 
 public class MakerElement {

@@ -25,8 +25,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -35,7 +37,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 // voir pour cross-origin...
 
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled=true)
+@EnableMethodSecurity(prePostEnabled=true)
 @Configuration
 public class WebSecurityProfile {
 
@@ -48,31 +50,30 @@ public class WebSecurityProfile {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-        http.sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and().cors(cors -> cors.disable()).csrf(csrf -> csrf.disable())
-                .addFilterAfter(jwtAuthorizationFilter, BasicAuthenticationFilter.class)
-                .authenticationProvider(jwtAuthenticationProvider)
-                .authorizeHttpRequests((authz) -> authz
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(AbstractHttpConfigurer::disable)
+            .addFilterAfter(jwtAuthorizationFilter, BasicAuthenticationFilter.class)
+            .authenticationProvider(jwtAuthenticationProvider)
+            .authorizeHttpRequests((authz) -> authz
                         // Allow all OPTIONS
-                        .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Allow internal api
-                        .antMatchers("/").permitAll()
-                        .antMatchers("/internal/3.0/exit").permitAll()
-                        .antMatchers("/internal/3.0/health").permitAll()
-                        .antMatchers("/internal/3.0/pause").permitAll()
-                        .antMatchers("/internal/3.0/pause/status").permitAll()
-                        .antMatchers("/internal/3.0/resume").permitAll()
+                        .requestMatchers("/").permitAll()
+                        .requestMatchers("/internal/3.0/exit").permitAll()
+                        .requestMatchers("/internal/3.0/health").permitAll()
+                        .requestMatchers("/internal/3.0/pause").permitAll()
+                        .requestMatchers("/internal/3.0/pause/status").permitAll()
+                        .requestMatchers("/internal/3.0/resume").permitAll()
                         // Public Api
-                        .antMatchers("/hotspot/3.0/**").permitAll()
-                        .antMatchers("/wallet/3.0/**").permitAll()
+                        .requestMatchers("/hotspot/3.0/**").permitAll()
+                        .requestMatchers("/wallet/3.0/**").permitAll()
                         // swagger documentation
-                        .antMatchers("/swagger-doc/**").permitAll()
-                        .antMatchers("/v3/api-docs/**").permitAll()
-                        .antMatchers("/webjars/**").permitAll()
+                        .requestMatchers("/swagger-doc/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
                         // prometheus
-                        .antMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated())
         ;
         return http.build();

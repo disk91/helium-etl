@@ -20,7 +20,7 @@ public class PrometeusService {
     synchronized public void addAwsFailure() {
         this.awsFailureCounter++;
     }
-    protected Supplier<Number> getAwsFailure() {
+    private Supplier<Number> getAwsFailure() {
         return ()->awsFailureCounter;
     }
 
@@ -28,7 +28,7 @@ public class PrometeusService {
     synchronized public void addBeaconProcessed() {
         this.beaconProccessed++;
     }
-    protected Supplier<Number> getBeaconProcesses() {
+    private Supplier<Number> getBeaconProcesses() {
         return ()->beaconProccessed;
     }
 
@@ -36,7 +36,7 @@ public class PrometeusService {
     synchronized public void addBeaconProcessedTime(long ms) {
         this.beaconProcessingTime+=ms;
     }
-    protected Supplier<Number> getBeaconProcesseTimes() {
+    private Supplier<Number> getBeaconProcesseTimes() {
         return ()->beaconProcessingTime;
     }
 
@@ -45,7 +45,7 @@ public class PrometeusService {
     synchronized public void addIoTPocProcessed() {
         this.iotpocProccessed++;
     }
-    protected Supplier<Number> getIoTPocProcesses() {
+    private Supplier<Number> getIoTPocProcesses() {
         return ()->iotpocProccessed;
     }
 
@@ -53,7 +53,7 @@ public class PrometeusService {
     synchronized public void addIoTPocProcessedTime(long ms) {
         this.iotpocProcessingTime+=ms;
     }
-    protected Supplier<Number> getIoTPocProcesseTimes() {
+    private Supplier<Number> getIoTPocProcesseTimes() {
         return ()->iotpocProcessingTime;
     }
 
@@ -61,7 +61,7 @@ public class PrometeusService {
     synchronized public void addRewardProcessed() {
         this.rewardProccessed++;
     }
-    protected Supplier<Number> getRewardProcesses() {
+    private Supplier<Number> getRewardProcesses() {
         return ()->rewardProccessed;
     }
 
@@ -69,7 +69,7 @@ public class PrometeusService {
     synchronized public void addRewardProcessedTime(long ms) {
         this.rewardProcessingTime+=ms;
     }
-    protected Supplier<Number> getRewardProcesseTimes() {
+    private Supplier<Number> getRewardProcesseTimes() {
         return ()->rewardProcessingTime;
     }
 
@@ -78,7 +78,7 @@ public class PrometeusService {
     synchronized public void addWitnessProcessed() {
         this.witnessProccessed++;
     }
-    protected Supplier<Number> getWitnessProcesses() {
+    private Supplier<Number> getWitnessProcesses() {
         return ()->witnessProccessed;
     }
 
@@ -86,7 +86,7 @@ public class PrometeusService {
     synchronized public void addValidWitnessProcessed() {
         this.witnessValidProcessed++;
     }
-    protected Supplier<Number> getValidWitnessProcesses() {
+    private Supplier<Number> getValidWitnessProcesses() {
         return ()->witnessValidProcessed;
     }
 
@@ -95,7 +95,7 @@ public class PrometeusService {
     synchronized public void addWitnessProcessedTime(long ms) {
         this.witnessProcessingTime+=ms;
     }
-    protected Supplier<Number> getWitnessProcesseTimes() {
+    private Supplier<Number> getWitnessProcesseTimes() {
         return ()->witnessProcessingTime;
     }
 
@@ -103,7 +103,7 @@ public class PrometeusService {
     synchronized public void addFileProcessed() {
         this.fileProccessed++;
     }
-    protected Supplier<Number> getFileProcesses() {
+    private Supplier<Number> getFileProcesses() {
         return ()->fileProccessed;
     }
 
@@ -111,7 +111,7 @@ public class PrometeusService {
     synchronized public void addFileProcessedTime(long ms) {
         this.fileProcessingTime+=ms;
     }
-    protected Supplier<Number> getFileProcesseTimes() {
+    private Supplier<Number> getFileProcesseTimes() {
         return ()->fileProcessingTime;
     }
 
@@ -121,10 +121,10 @@ public class PrometeusService {
         this.lastFileBeaconDistance= Now.NowUtcMs()-ms;
         this.lastFileBeaconTimestamp=ms;
     }
-    protected Supplier<Number> getLastFileBeaconTimestamp() {
+    private Supplier<Number> getLastFileBeaconTimestamp() {
         return ()->lastFileBeaconTimestamp;
     }
-    protected Supplier<Number> getLastFileBeaconDistance() {
+    private Supplier<Number> getLastFileBeaconDistance() {
         return ()->lastFileBeaconDistance;
     }
 
@@ -134,10 +134,10 @@ public class PrometeusService {
         this.lastFileWitnessDistance= Now.NowUtcMs()-ms;
         this.lastFileWitnessTimestamp=ms;
     }
-    protected Supplier<Number> getLastFileWitnessTimestamp() {
+    private Supplier<Number> getLastFileWitnessTimestamp() {
         return ()->lastFileWitnessTimestamp;
     }
-    protected Supplier<Number> getLastFileWitnessDistance() {
+    private Supplier<Number> getLastFileWitnessDistance() {
         return ()->lastFileWitnessDistance;
     }
 
@@ -147,10 +147,10 @@ public class PrometeusService {
         this.lastFileIoTPocDistance= Now.NowUtcMs()-ms;
         this.lastFileIoTPocTimestamp=ms;
     }
-    protected Supplier<Number> getLastFileIoTPocTimestamp() {
+    private Supplier<Number> getLastFileIoTPocTimestamp() {
         return ()->lastFileIoTPocTimestamp;
     }
-    protected Supplier<Number> getLastFileIoTPocDistance() {
+    private Supplier<Number> getLastFileIoTPocDistance() {
         return ()->lastFileIoTPocDistance;
     }
 
@@ -160,10 +160,10 @@ public class PrometeusService {
         this.lastFileRewardDistance=Now.NowUtcMs()-ms;
         this.lastFileRewardTimestamp=ms;
     }
-    protected Supplier<Number> getLastFileRewardTimestamp() {
+    private Supplier<Number> getLastFileRewardTimestamp() {
         return ()->lastFileRewardTimestamp;
     }
-    protected Supplier<Number> getLastFileRewardDistance() {
+    private Supplier<Number> getLastFileRewardDistance() {
         return ()->lastFileRewardDistance;
     }
 
@@ -172,7 +172,7 @@ public class PrometeusService {
     synchronized public void changeHsModification(long modif) {
         this.pendingHotspotModifications=modif;
     }
-    protected Supplier<Number> getChangeHsModification() {
+    private Supplier<Number> getChangeHsModification() {
         return ()->pendingHotspotModifications;
     }
 
@@ -182,7 +182,7 @@ public class PrometeusService {
     public void setHourlyIoTRate(long newValue) {
         this.hourlyIotRate = newValue;
     }
-    protected Supplier<Number> getHourlyIotRate() { return ()->hourlyIotRate;}
+    private Supplier<Number> getHourlyIotRate() { return ()->hourlyIotRate;}
 
 
     // ---

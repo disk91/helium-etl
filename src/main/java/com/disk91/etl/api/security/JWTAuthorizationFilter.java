@@ -20,21 +20,25 @@
 
 package com.disk91.etl.api.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.GenericFilterBean;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
 @Service
-public class JWTAuthorizationFilter extends GenericFilterBean {
+public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -52,79 +56,22 @@ public class JWTAuthorizationFilter extends GenericFilterBean {
         }
     }
 
-    /*
-    @Autowired
-    private UserCacheService userCacheService;
-
-    @Autowired
-    private UserService userService;
-*/
     @Override
     @SuppressWarnings("unchecked")
-    public void doFilter(
-            ServletRequest request,
-            ServletResponse response,
-            FilterChain chain) throws IOException, ServletException {
+    public void doFilterInternal(
+        @NonNull HttpServletRequest httpRequest,
+        @NonNull HttpServletResponse response,
+        @NonNull FilterChain chain
+    ) throws IOException, ServletException {
 
         // Make sure the request contains a Bearer or it is not for us
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
         String authHeader = httpRequest.getHeader("authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             // refuse authentication
-            chain.doFilter(request, response);
+            chain.doFilter(httpRequest, response);
             return;
         }
-
-        /*
-        // Verify Bearer and return user or error
-        try {
-
-            SigningKeyResolver signingKeyResolver = new SigningKeyResolverAdapter() {
-
-                @Override
-                @SuppressWarnings("rawtypes")
-                public Key resolveSigningKey(JwsHeader header, Claims _claims) {
-                    // Examine header and claims
-                    String user = _claims.getSubject();
-                    UserCacheService.UserCacheElement u = userCacheService.getUserById(user);
-                    if ( u == null ) return null;
-                    return userService.generateKeyForUser(u.heliumUser);
-                }
-
-            };
-
-            Jws<Claims> jws = Jwts.parserBuilder()
-                    .setSigningKeyResolver(signingKeyResolver)
-                    .build()
-                    .parseClaimsJws(authHeader.replace("Bearer ",""));
-
-            Claims claims = jws.getBody();
-            ArrayList<String> roles = (ArrayList<String>) claims.get("roles");
-            ArrayList<MyGrantedAuthority> list = new ArrayList<>();
-            if (roles != null) {
-                for (String a : roles) {
-                    MyGrantedAuthority g = new MyGrantedAuthority(a);
-                    list.add(g);
-                }
-            }
-            String user = claims.getSubject();
-            UserCacheService.UserCacheElement u = userCacheService.getUserById(user);
-            if ( u != null && u.user.isActive() ) {
-                // accept the authentication
-                SecurityContextHolder
-                        .getContext()
-                        .setAuthentication(new UsernamePasswordAuthenticationToken(user, null, list));
-            }
-        } catch (ExpiredJwtException x) {
-        } catch (SignatureException x) {
-            // the signature of the JWT is invalid
-        } catch (IllegalArgumentException x) {
-            // corresponds to a non existing user inside the JWT
-            // so can find a signature to be verified
-        }
-        */
-
-        chain.doFilter(request, response);
+        chain.doFilter(httpRequest, response);
 
     }
 

@@ -29,7 +29,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -70,6 +70,7 @@ public class HotspotCache {
     protected long iotpocTopTs = 0;
 
     protected volatile Boolean inAsyncWrite = Boolean.valueOf(false);
+    private final Object asyncWrite = new Object();
 
     @Autowired
     protected HotspotCacheAsync hotspotCacheAsync;
@@ -1008,12 +1009,12 @@ public class HotspotCache {
 
     public int bulkInsertRewards() {
 
-        synchronized (inAsyncWrite) {
+        synchronized (asyncWrite) {
             if ( inAsyncWrite == true ) return 0;
             inAsyncWrite = true;
         }
         try {
-            if ( _rewardsDelayedInsert.size() > 0 ) {
+            if (!_rewardsDelayedInsert.isEmpty()) {
                 mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(false));
                 BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Reward.class);
                 for (Reward b : _rewardsDelayedInsert) {
@@ -1024,7 +1025,7 @@ public class HotspotCache {
             }
             return 0;
         } finally {
-            synchronized (inAsyncWrite) {
+            synchronized (asyncWrite) {
                 inAsyncWrite = false;
             }
         }

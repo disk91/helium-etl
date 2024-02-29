@@ -14,7 +14,7 @@ public class WitnessHistory  implements ClonnableObject<WitnessHistory> {
     // ---------
 
     public void addTotLateMs(long deltaMs) {
-        this.totLateMs += deltaMs;
+        this.totLateMs += (int)deltaMs;
     }
 
     public WitnessHistory clone() {

@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 import com.helium.grpc.lora_beacon_ingest_report_v1;
 import com.helium.grpc.lora_witness_ingest_report_v1;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;

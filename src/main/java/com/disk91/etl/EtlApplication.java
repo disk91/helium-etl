@@ -21,7 +21,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 @EnableScheduling
 @EnableAsync

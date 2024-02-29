@@ -20,13 +20,14 @@ public class HotspotCacheAsync {
     @Autowired
     protected HotspotsRepository hotspotsRepository;
 
-    protected volatile Integer running = Integer.valueOf(0);
+    protected volatile Integer running = 0;
+    private final Object syncRunning = new Object();
 
     protected volatile int total;
     protected volatile int processed;
 
     public boolean isRunning() {
-        synchronized (running) {
+        synchronized (syncRunning) {
             return (running>0);
         }
     }
@@ -41,7 +42,7 @@ public class HotspotCacheAsync {
 
     @Async
     public void processAsyncCacheCommit(List<Hotspot> list) {
-        synchronized (running) {
+        synchronized (syncRunning) {
             if (running == 1) {
                 log.error("Hotspot Async commit - try to reenter");
                 list.clear();
@@ -79,7 +80,7 @@ public class HotspotCacheAsync {
 
         list.clear();
         log.debug("Hotspot Async commit done");
-        synchronized (running) {
+        synchronized (syncRunning) {
             running = 0;
         }
     }
