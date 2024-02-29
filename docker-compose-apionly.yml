@@ -257,8 +257,8 @@ services:
     container_name: etl-node-exp
     command:
       - '--web.listen-address=127.0.0.1:9100'
-      - '--web.listen-address=172.17.0.1:9100'
-      - '--web.listen-address=172.99.1.254:9100'
+      - '--web.listen-address=172.20.0.1:9100'
+      - '--web.listen-address=172.99.0.254:9100'
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
@@ -358,17 +358,41 @@ services:
       - 127.0.0.1:8092:8092
     logging: *logs
 
-
 networks:
   public_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          ip_range: 172.20.0.0/24
+          gateway: 172.20.0.254
   mongo_net:
-    internal: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.98.0.0/16
+          ip_range: 172.98.0.0/24
+          gateway: 172.98.0.254
+          aux_addresses:
+            etl: 172.98.1.99
+            mongo_exporter: 172.98.1.98
+            mongo-router01: 172.98.1.1
+            mongo-router02: 172.98.1.2
+            mongo-configsvr01: 172.98.1.61
+            mongo-configsvr02: 172.98.1.62
+            mongo-configsvr03: 172.98.1.63
+            mongo-shard01a: 172.98.1.10
+            mongo-shard02a: 172.98.1.20
+            mongo-shard03a: 172.98.1.30
   monitoring_net:
-    internal: true
-    driver: bridge
     ipam:
       driver: default
       config:
         - subnet: 172.99.0.0/16
-          ip_range: 172.99.1.0/24
-          gateway: 172.99.1.254
+          ip_range: 172.99.0.0/24
+          gateway: 172.99.0.254
+          aux_addresses:
+            etl: 172.99.1.99
+            prometheus: 172.99.1.97
+            mongo_exporter: 172.99.1.96
+            grafana: 172.99.1.95
