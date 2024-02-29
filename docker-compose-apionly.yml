@@ -290,7 +290,7 @@ services:
       - "--collector.collstats"
       - "--compatible-mode"
     ports:
-      - 9216:9216
+      - 127.0.0.1:9216:9216
     environment:
       - MONGODB_URI=mongodb://mongo-shard01a:27017
     profiles:
