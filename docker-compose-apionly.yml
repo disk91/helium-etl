@@ -354,6 +354,11 @@ networks:
       config:
         - subnet: 172.99.1.0/24
           gateway: 172.99.1.254
+          aux_addresses:
+            etl: 172.99.1.99
+            prometheus: 172.99.1.97
+            grafana: 172.99.1.95
+            nginx: 172.99.1.94
   mongo_net:
     ipam:
       driver: default
