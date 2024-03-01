@@ -43,6 +43,10 @@ start-noetl:
 start:
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring --profile webserver up -d
 
+start-clean:
+	$(DOCKER_COMP_CMD) network prune
+	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring --profile webserver up --force-recreate -d
+
 stop-etl: .FORCE
 	$(DOCKER_CMD) stop -t 10800 etl
 
