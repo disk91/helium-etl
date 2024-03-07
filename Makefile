@@ -44,7 +44,7 @@ start:
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring --profile webserver up -d
 
 start-clean:
-	$(DOCKER_COMP_CMD) network prune
+	$(DOCKER_CMD) network prune
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring --profile webserver up --force-recreate -d
 
 stop-etl: .FORCE
