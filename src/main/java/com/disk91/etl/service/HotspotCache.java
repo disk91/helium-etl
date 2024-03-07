@@ -1293,6 +1293,36 @@ public class HotspotCache {
             id.init(hi);
             ret.add(id);
         }
+
+        // exact name potential, as the Index does not have all the hotspots have a look to the main table
+        // Would be better index to have a full coverage, for this the idea could be an API to request indexing on
+        // master ETL and a script to search missing on the api to not overload master
+        if ( name.matches("^[a-zA-Z]+[\\-][a-zA-Z]+[\\-][a-zA-Z]+$-") ) {
+            String ref = null;
+            boolean allSame = true;
+            for ( HotspotIndex hi : his ) {
+                if ( ref == null ) ref = hi.getAnimalName();
+                if ( ref.compareToIgnoreCase(hi.getAnimalName()) != 0 ) allSame = false;
+            }
+            if (allSame) {
+                // check out of index as index in not complete
+                List<Hotspot> hss = hotspotsRepository.findHotspotsByAnimalName(name);
+                if ( hss != null ) {
+                    for ( Hotspot hs : hss) {
+                        // is in the list already ?
+                        boolean inIndex = false;
+                        for ( HotspotIndex hi : his ) { if ( hi.getHotspotId().compareTo(hs.getHotspotId()) == 0 ) inIndex = true; }
+                        if ( !inIndex ) {
+                            addForIndexing(hs);
+                            HotspotIdent id = new HotspotIdent();
+                            id.init(hs);
+                            ret.add(id);
+                        }
+                    }
+                }
+            }
+        }
+
         return ret;
     }
 

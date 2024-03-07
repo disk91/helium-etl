@@ -13,6 +13,8 @@ public interface HotspotsRepository extends MongoRepository<Hotspot, String> {
 
     public Hotspot findOneHotspotByHotspotId(String hsId);
 
+    public List<Hotspot> findHotspotsByAnimalName(String animalName);
+
     @Query("{ $or : [ {lastIndexed:{$exists:false}}, {lastIndexed: { $lt : ?0 }}] } ")
     public List<Hotspot> findFirst50HotspotToBeIndexed(long timeRef, Pageable p);
 
