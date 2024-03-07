@@ -1298,7 +1298,6 @@ public class HotspotCache {
         // Would be better index to have a full coverage, for this the idea could be an API to request indexing on
         // master ETL and a script to search missing on the api to not overload master
         if ( name.matches("^[a-zA-Z]+-[a-zA-Z]+-[a-zA-Z]+$") ) {
-            log.info("match");
             String ref = null;
             boolean allSame = true;
             for ( HotspotIndex hi : his ) {
@@ -1306,12 +1305,10 @@ public class HotspotCache {
                 if ( ref.compareToIgnoreCase(hi.getAnimalName()) != 0 ) allSame = false;
             }
             if (allSame) {
-                log.info("all same");
                 // check out of index as index in not complete
                 List<Hotspot> hss = hotspotsRepository.findHotspotsByAnimalName(name);
                 if ( hss != null ) {
                     for ( Hotspot hs : hss) {
-                        log.info("found "+hs.getHotspotId());
                         // is in the list already ?
                         boolean inIndex = false;
                         for ( HotspotIndex hi : his ) { if ( hi.getHotspotId().compareTo(hs.getHotspotId()) == 0 ) inIndex = true; }
