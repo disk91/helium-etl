@@ -31,9 +31,9 @@ logging.level.=info
 logging.cache.fixedrate=3600000
 
 # caching control
-cache.hotspot.size=500000
-cache.beacon.size=200000
-cache.hotspot.commit=100000
+cache.hotspot.size=50000
+cache.beacon.size=20000
+cache.hotspot.commit=10000
 
 # History management
 hotspot.beacon.history.entries=300
