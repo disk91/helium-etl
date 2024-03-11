@@ -37,7 +37,7 @@ public class RewardService {
                 to+ Now.ONE_FULL_DAY,
                 PageRequest.of(0,100)
         );
-        log.info(">> process reward search "+(Now.NowUtcMs()-start)+" ms");
+        log.debug(">> process reward search "+(Now.NowUtcMs()-start)+" ms");
         ArrayList<Reward> rewards = new ArrayList<>();
         if ( rs != null ) {
             boolean quit = false;
