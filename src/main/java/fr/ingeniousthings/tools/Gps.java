@@ -24,6 +24,7 @@ public class Gps {
 
     public static boolean isAValidCoordinate(double lat, double lng) {
         if ( lat > -0.01 && lat < 0.01 && lng > -0.01 && lng < 0.01 ) return false;
+        if ( lat > 90.0 || lat < -90.0 || lng > 180.0 || lng < -180.0 ) return false;
         return true;
     }
 

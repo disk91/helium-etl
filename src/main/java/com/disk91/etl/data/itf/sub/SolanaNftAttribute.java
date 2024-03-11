@@ -8,7 +8,7 @@ public class SolanaNftAttribute {
         "ecc_compact": "11jaSQn",
         "rewardable": true
      */
-    protected String ecc_compact;
+    protected String ecc_compact = null;
 
     // ---
 

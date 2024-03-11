@@ -1333,6 +1333,8 @@ public class HotspotCache {
         double lonW = Math.min(lonNW, lonSE);
         double lonE = Math.max(lonNW, lonSE);
 
+        if ( !Gps.isAValidCoordinate(latN,lonW) || !Gps.isAValidCoordinate(latS,lonE) ) return new ArrayList<HotspotIdent>();
+
         ArrayList<HotspotIdent> ret = new ArrayList<>();
         PageRequest pageRequest = PageRequest.of(0,200); // Max 200
         List<HotspotIndex> his = hotspotsIndexRepository.findByPositionNearbyBox(lonW,latS,lonE,latN, pageRequest).getContent();

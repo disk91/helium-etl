@@ -95,7 +95,10 @@ public class SolanaAPiService {
                     WalletHotspotList whl = new WalletHotspotList();
                     whl.init(walletId);
                     for ( SolanaNft nft : response.getResult().getNfts() ) {
-                        whl.getHotspotsECCId().add(nft.getAttributes().getEcc_compact());
+                        if ( nft.getAttributes() != null && nft.getAttributes().getEcc_compact() != null && !nft.getAttributes().getEcc_compact().isEmpty() ) {
+                            // filter the NFT not related to Helium
+                            whl.getHotspotsECCId().add(nft.getAttributes().getEcc_compact());
+                        }
                     }
                     return whl;
                 } else {
