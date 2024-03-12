@@ -216,6 +216,25 @@ public class HotspotApi {
     }
 
 
+    @Operation(summary = "Get latest Hotspot rewards date",
+        description = "Get latest Hotspot rewards endPeriod date",
+        responses = {
+            @ApiResponse(responseCode = "200", description= "Done", content = @Content(schema = @Schema( implementation = LastRewardItf.class))),
+        }
+    )
+    @RequestMapping(value="/rewards_last/{hotspotId}/",
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        method= RequestMethod.GET)
+    public ResponseEntity<?> getHotspotLastRewards(
+        HttpServletRequest request,
+        @Parameter(required = true, name = "hotspotId", description = "Base58 hotspot public key encoded")
+        @PathVariable String hotspotId
+    ) {
+         LastRewardItf r = rewardService.getLastReward(hotspotId);
+         return new ResponseEntity<>(r, HttpStatus.OK);
+    }
+
+
     @Autowired
     protected MiscService miscService;
 

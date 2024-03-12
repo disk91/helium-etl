@@ -1,5 +1,6 @@
 package com.disk91.etl.service;
 
+import com.disk91.etl.api.interfaces.LastRewardItf;
 import com.disk91.etl.data.object.Reward;
 import com.disk91.etl.data.repository.RewardRepository;
 import fr.ingeniousthings.tools.ITNotFoundException;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -55,5 +57,19 @@ public class RewardService {
 
     }
 
+    public LastRewardItf getLastReward( String hsId ) {
+
+        PageRequest request = PageRequest.of(0,1, Sort.by("endPeriod").descending());
+
+        Slice<Reward> rs = rewardRepository.findRewardByHotspotId(hsId,request);
+        LastRewardItf lr = new LastRewardItf();
+        if ( rs.hasContent() ) {
+            lr.setLastReward(rs.getContent().get(0).getEndPeriod());
+        } else {
+            lr.setLastReward(0);
+        }
+        return lr;
+
+    }
 
 }
