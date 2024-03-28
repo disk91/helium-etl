@@ -18,6 +18,9 @@ import org.springframework.data.mongodb.core.mapping.ShardingStrategy;
 
 import java.util.*;
 
+import static com.disk91.etl.service.HotspotCache.WIT_ERROR_NONE;
+import static com.disk91.etl.service.HotspotCache.WIT_ERROR_TOO_LATE;
+
 @Document(collection = "etl_hotspots")
 @CompoundIndexes({
         @CompoundIndex(name = "hotspotId", def = "{'hotspotId' : 'hashed'}"),
@@ -93,6 +96,9 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     protected double beaconDist = 0.0;
     protected double witnessDist = 0.0;
+
+    protected List<Integer> lastErrorCause;
+
 
     // ---------------------------------------------------------
     // Synchronous update
@@ -324,7 +330,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         }
     }
 
-    synchronized public void addWitness(String hsId, long tm, double signal, double snr, int maxHistEntries, double lat, double lng, boolean selected, long respLate){
+    synchronized public void addWitness(String hsId, long tm, double signal, double snr, int maxHistEntries, double lat, double lng, boolean selected, long respLate, int unselectedReason){
         long tmMs = tm / 1_000_000; // from nano to ms
         boolean newHist =  ( (tmMs - this.getLastWitness() ) > Now.ONE_HOUR ); // can't exist in history
         this.setLastWitness(tmMs);
@@ -359,6 +365,9 @@ public class Hotspot implements ClonnableObject<Hotspot> {
                     // update
                     wh.setCountWitnesses(wh.getCountWitnesses() + 1);
                     wh.addTotLateMs(respLate);
+                    if ( unselectedReason != WIT_ERROR_NONE ) {
+                        wh.addCause(unselectedReason);
+                    }
                     // selected
                     if ( selected ) wh.setSeletedWitness(wh.getSeletedWitness() + 1);
                     updated = true;
@@ -378,6 +387,16 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             if (this.witnessesHistory.size() > maxHistEntries) {
                 this.witnessesHistory = this.witnessesHistory.subList(this.witnessesHistory.size()-maxHistEntries, this.witnessesHistory.size());
             }
+        }
+
+        // store the last errors seen when significant, late is a standard
+        if ( unselectedReason != WIT_ERROR_NONE && unselectedReason != WIT_ERROR_TOO_LATE) {
+            // add the cause in recent history
+            if ( lastErrorCause == null ) lastErrorCause = new ArrayList<>();
+            if ( lastErrorCause.size() >= 10 ) {
+                lastErrorCause = lastErrorCause.subList(lastErrorCause.size()-9, lastErrorCause.size());
+            }
+            lastErrorCause.add(unselectedReason);
         }
     }
 
@@ -453,6 +472,12 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             dhs.add(dh.clone());
         }
         c.setDenyHistories(dhs);
+
+        List<Integer> lec = new ArrayList<>();
+        for (Integer i : lastErrorCause) {
+            lec.add(i.intValue());
+        }
+        c.setLastErrorCause(lec);
 
         return c;
     }
@@ -681,5 +706,13 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setLastIndexed(long lastIndexed) {
         this.lastIndexed = lastIndexed;
+    }
+
+    public List<Integer> getLastErrorCause() {
+        return lastErrorCause;
+    }
+
+    public void setLastErrorCause(List<Integer> lastErrorCause) {
+        this.lastErrorCause = lastErrorCause;
     }
 }

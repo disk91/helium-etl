@@ -168,6 +168,20 @@ public class PrometeusService {
     }
 
 
+    private long lastFileMobileRewardTimestamp = 0;
+    private long lastFileMobileRewardDistance = 0;
+    synchronized public void changeFileMobileRewardTimestamp(long ms) {
+        this.lastFileMobileRewardDistance=Now.NowUtcMs()-ms;
+        this.lastFileMobileRewardTimestamp=ms;
+    }
+    private Supplier<Number> getLastFileMobileRewardTimestamp() {
+        return ()->lastFileMobileRewardTimestamp;
+    }
+    private Supplier<Number> getLastFileMobileRewardDistance() {
+        return ()->lastFileMobileRewardDistance;
+    }
+
+
     private long pendingHotspotModifications = 0;
     synchronized public void changeHsModification(long modif) {
         this.pendingHotspotModifications=modif;
@@ -272,6 +286,14 @@ public class PrometeusService {
         Gauge.builder("etl.file.reward.distance", getLastFileRewardDistance())
                 .description("Distance from now for the last processed file")
                 .register(registry);
+
+        Gauge.builder("etl.file.mobile.reward.time", getLastFileRewardTimestamp())
+            .description("Timestamp for the last processed file")
+            .register(registry);
+
+        Gauge.builder("etl.file.mobile.reward.distance", getLastFileRewardDistance())
+            .description("Distance from now for the last processed file")
+            .register(registry);
 
         Gauge.builder("etl.cache.hotspot.pending", getChangeHsModification())
                 .description("Pending modification into the hotspots cache")

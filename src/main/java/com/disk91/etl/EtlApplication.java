@@ -43,6 +43,9 @@ public class EtlApplication implements CommandLineRunner, ExitCodeGenerator {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private EtlConfig etlConfig;
+
 	@Override
 	public void run(String... args) throws Exception {
 		long pid = ProcessHandle.current().pid();
@@ -57,7 +60,7 @@ public class EtlApplication implements CommandLineRunner, ExitCodeGenerator {
 			p.setLongValue(0);
 			paramRepository.save(p);
 		}
-		if ( p.getLongValue() == 0 ) {
+		if ( p.getLongValue() == 0 && etlConfig.isEtlMongodbShardingEnable() ) {
 			try {
 				System.out.println(">> Creating sharding");
 
@@ -83,7 +86,7 @@ public class EtlApplication implements CommandLineRunner, ExitCodeGenerator {
 				exit();
 			}
 		}
-		if ( p.getLongValue() == 1 ) {
+		if ( p.getLongValue() == 1 && etlConfig.isEtlMongodbShardingEnable() ) {
 			try {
 				System.out.println(">> Creating reward sharding");
 
@@ -100,6 +103,23 @@ public class EtlApplication implements CommandLineRunner, ExitCodeGenerator {
 				exit();
 			}
 		}
+        if ( p.getLongValue() == 2 && etlConfig.isEtlMongodbShardingEnable() ) {
+            try {
+                System.out.println(">> Creating mobile reward sharding");
+
+                MongoDatabase adminDB = mongoTemplate.getMongoDatabaseFactory()
+                    .getMongoDatabase("admin");
+                Document rewards = adminDB.runCommand(
+                    new Document("shardCollection", "helium-etl.etl_mob_rewards")
+                        .append("key", new Document("hotspotId", 1).append("_id", 1)));
+                p.setLongValue(3);
+                paramRepository.save(p);
+                System.out.println(">> V3 - DONE");
+            } catch (Exception x) {
+                System.out.println(">> Failed "+x.getMessage());
+                exit();
+            }
+        }
 		if (EtlApplication.requestingExitForStartupFailure) exit();
 	}
 

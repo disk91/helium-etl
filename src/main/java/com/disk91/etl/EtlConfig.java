@@ -87,6 +87,13 @@ public class EtlConfig {
         return heliumHotspotIndexingEnable;
     }
 
+    @Value("${etl.mongodb.sharding.enable:true}")
+    private boolean etlMongodbShardingEnable;
+
+    public boolean isEtlMongodbShardingEnable() {
+        return etlMongodbShardingEnable;
+    }
+
     // ====================================
     // Solana API key
     // ====================================
@@ -180,6 +187,15 @@ public class EtlConfig {
     @Value("${reward.load.parallel.queue.size}")
     private int rewardLoadParallelQueueSize;
 
+    @Value("${mobile.reward.load.enable:false}")
+    private boolean mobileRewardLoadEnable;
+
+    @Value("${mobile.reward.load.parallel.workers:8}")
+    private int mobileRewardLoadParallelWorkers;
+
+    @Value("${mobile.reward.load.parallel.queue.size:32}")
+    private int mobileRewardLoadParallelQueueSize;
+
     @Value("${exit.timeout.minutes}")
     private int exitTimeOutMinutes;
 
@@ -270,5 +286,17 @@ public class EtlConfig {
 
     public boolean isIotpocLoadUnselected() {
         return iotpocLoadUnselected;
+    }
+
+    public boolean isMobileRewardLoadEnable() {
+        return mobileRewardLoadEnable;
+    }
+
+    public int getMobileRewardLoadParallelWorkers() {
+        return mobileRewardLoadParallelWorkers;
+    }
+
+    public int getMobileRewardLoadParallelQueueSize() {
+        return mobileRewardLoadParallelQueueSize;
     }
 }

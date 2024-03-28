@@ -44,6 +44,33 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Service
 public class HotspotCache {
 
+    public final static int  WIT_ERROR_NONE = 0;
+    public final static int  WIT_ERROR_BAD_SIGNATURE = 1;
+    public final static int  WIT_ERROR_NOT_ASSERTED = 2;
+    public final static int  WIT_ERROR_ENTROPY_EXPIRED = 3;
+    public final static int  WIT_ERROR_BAD_ENTROPY = 4;
+    public final static int  WIT_ERROR_INVALID_CAPABILITY = 5;
+    public final static int  WIT_ERROR_INVALID_PUBKEY = 6;
+    public final static int  WIT_ERROR_IRREGULAR_INTERVAL = 7;
+    public final static int  WIT_ERROR_GATEWAY_NOT_FOUND = 8;
+    public final static int  WIT_ERROR_DENIED = 9;
+    public final static int  WIT_ERROR_INVALID_PACKET = 10;
+    public final static int  WIT_ERROR_BAD_RSSI = 11;
+    public final static int  WIT_ERROR_INVALID_REGION = 12;
+    public final static int  WIT_ERROR_MAX_DISTANCE_EXCEEDED = 13;
+    public final static int  WIT_ERROR_INVALID_FREQUENCY = 14;
+    public final static int  WIT_ERROR_SELF_WITNESS = 15;
+    public final static int  WIT_ERROR_STALE = 16;
+    public final static int  WIT_ERROR_SCALING_FACTOR_NOT_FOUND = 17;
+    public final static int  WIT_ERROR_UNKNOWN = 18;
+    public final static int  WIT_ERROR_BELOW_MIN_DISTANCE = 19;
+    public final static int  WIT_ERROR_DUPLICATE = 20;
+    public final static int  WIT_ERROR_DENIED_EDGE = 21;
+    public final static int  WIT_ERROR_TOO_LATE = 22;
+    public final static int  WIT_ERROR_NO_VALID_BEACON = 23;
+    public final static int  WIT_ERROR_NO_VALID_WITNESS = 24;
+
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private MeterRegistry registry;
     public HotspotCache(MeterRegistry registry) {
@@ -196,6 +223,7 @@ public class HotspotCache {
         this.pauseCanceler = false;
         while ( inAsyncWrite == true  && (Now.NowUtcMs() - s) < 120_000 );
         bulkInsertRewards();
+        bulkInsertMobileRewards();
         flushInsertWitness();
         flushInsertBeacon();
 
@@ -239,6 +267,7 @@ public class HotspotCache {
         long s = Now.NowUtcMs();
         while ( inAsyncWrite && (Now.NowUtcMs() - s) < 120_000 );
         bulkInsertRewards();
+        bulkInsertMobileRewards();
         flushInsertWitness();
         flushInsertBeacon();
 
@@ -528,7 +557,8 @@ public class HotspotCache {
                         (beaconner != null)?beaconner.getPosition().getLat():0.0,
                         (beaconner != null)?beaconner.getPosition().getLng():0.0,
                         true,
-                        0       // undefined
+                        0,       // Late Response : undefined
+                        WIT_ERROR_NONE                 // Unselected reason -> SELECTED
                 );
                 // mark as updated
                 this.updateHotspot(h);
@@ -852,7 +882,8 @@ public class HotspotCache {
                     (beaconner != null)?beaconner.getPosition().getLat():0.0,
                     (beaconner != null)?beaconner.getPosition().getLng():0.0,
                     true,
-                    v.getReceivedTimestamp() - firstArrival
+                    v.getReceivedTimestamp() - firstArrival,
+                    WIT_ERROR_NONE
             );
             // mark as updated
             this.updateHotspot(witnessed);
@@ -883,11 +914,20 @@ public class HotspotCache {
             }
 
         }
+
+        // Process the unselected
         for ( lora_verified_witness_report_v1 v : p.getUnselectedWitnessesList() ) {
             String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
             Hotspot witnessed = this.getHotspot(witnesserId, true);
 
             // if the reason is related to denied list
+            int reason = switch (v.getInvalidReasonValue()) {
+                // case we do not want to track
+                case WIT_ERROR_NONE, WIT_ERROR_SELF_WITNESS, WIT_ERROR_UNKNOWN -> WIT_ERROR_NONE;
+                // Others we want to track
+                default -> v.getInvalidReasonValue();
+            };
+
             if ( v.hasInvalidDetails() ) {
                 if ( v.getInvalidDetails().hasDenylistTag() ) {
                    if ( ! witnessed.isInDenyList() ) log.debug("Found a hotspot to add in deny list "+witnessed.getHotspotId());
@@ -915,7 +955,8 @@ public class HotspotCache {
                     (beaconner != null)?beaconner.getPosition().getLat():0.0,
                     (beaconner != null)?beaconner.getPosition().getLng():0.0,
                     false,
-                    v.getReceivedTimestamp() - firstArrival
+                    v.getReceivedTimestamp() - firstArrival,
+                    reason
             );
             // mark as updated
             this.updateHotspot(witnessed);
@@ -1018,6 +1059,116 @@ public class HotspotCache {
                 mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(false));
                 BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Reward.class);
                 for (Reward b : _rewardsDelayedInsert) {
+                    bulkInsert.insert(b);
+                }
+                BulkWriteResult bulkWriteResult = bulkInsert.execute();
+                return bulkWriteResult.getInsertedCount();
+            }
+            return 0;
+        } finally {
+            synchronized (asyncWrite) {
+                inAsyncWrite = false;
+            }
+        }
+
+    }
+
+
+    // ============================================
+    // Mobile Rewards
+    // ============================================
+
+    @Autowired
+    protected MobileRewardRepository mobileRewardRepository;
+
+    protected static final String BLANCK_KEY = "00000000000000000000000000000000";
+    public boolean addMobileReward(AwsService.MobileReward r) {
+        long start = Now.NowUtcMs();
+
+        MobileReward mr = new MobileReward();
+        mr.setVersion(1);
+
+        if ( r.oldReward != null ) {
+            mr.setHotspotId(HeliumHelper.pubAddressToName(r.oldReward.getHotspotKey()));
+            mr.setOwnerId(HeliumHelper.pubAddressToName(r.oldReward.getOwnerKey()));
+            mr.setStartPeriod(r.oldReward.getStartEpoch()*1000);
+            mr.setEndPeriod(r.oldReward.getEndEpoch()*1000);
+            mr.setRadioPocReward(r.oldReward.getAmount());
+            delayedMobileRewardSave(mr);
+            //log.info(">"+r.oldReward.getHotspotKey().toString()+" "+r.oldReward.getAmount()+" "+r.oldReward.getStartEpoch());
+        } else if ( r.newReward != null ) {
+            mr.setStartPeriod(r.newReward.getStartPeriod()*1000);
+            mr.setEndPeriod(r.newReward.getEndPeriod()*1000);
+            if ( r.newReward.hasRadioReward() ) {
+                mr.setHotspotId(HeliumHelper.pubAddressToName(r.newReward.getRadioReward().getHotspotKey()));
+                mr.setOwnerId(BLANCK_KEY);
+                mr.setRadioPocReward(r.newReward.getRadioReward().getPocReward());
+                mr.setRadioCovergePoint(r.newReward.getRadioReward().getCoveragePoints());
+                delayedMobileRewardSave(mr);
+                //log.info("ng> "+r.newReward.getGatewayReward().getHotspotKey().toString()+" "+r.newReward.getGatewayReward().getDcTransferReward()+" "+r.newReward.getStartPeriod());
+            }
+            if ( r.newReward.hasGatewayReward() ) {
+                mr.setHotspotId(HeliumHelper.pubAddressToName(r.newReward.getGatewayReward().getHotspotKey()));
+                mr.setOwnerId(BLANCK_KEY);
+                mr.setDcTransferReward(r.newReward.getGatewayReward().getDcTransferReward());
+                mr.setDcTransferPrice(r.newReward.getGatewayReward().getPrice());
+                mr.setOwnerId(BLANCK_KEY);
+                delayedMobileRewardSave(mr);
+                //log.info("nr> "+r.newReward.getRadioReward().getHotspotKey().toString()+" "+r.newReward.getRadioReward().getPocReward()+" "+r.newReward.getStartPeriod());
+            }
+            if ( r.newReward.hasSubscriberReward() ) {
+                mr.setHotspotId(BLANCK_KEY);
+                mr.setOwnerId(HeliumHelper.pubAddressToName(r.newReward.getSubscriberReward().getSubscriberId()));
+                mr.setSubscriberReward(r.newReward.getSubscriberReward().getDiscoveryLocationAmount());
+                delayedMobileRewardSave(mr);
+                //log.info("sr> "+r.newReward.getSubscriberReward().getSubscriberId().toString()+" ? "+" "+r.newReward.getStartPeriod());
+            }
+            if ( r.newReward.hasServiceProviderReward() ) {
+                mr.setHotspotId(BLANCK_KEY);
+                mr.setOwnerId("SP_"+r.newReward.getServiceProviderReward().getServiceProviderId().getNumber()+"_"+r.newReward.getServiceProviderReward().getServiceProviderId().name());
+                mr.setServiceProviderReward(r.newReward.getServiceProviderReward().getAmount());
+                delayedMobileRewardSave(mr);
+                //log.info("sp> "+r.newReward.getServiceProviderReward().getServiceProviderId().name()+" "+r.newReward.getServiceProviderReward().getAmount()+" "+r.newReward.getStartPeriod());
+            }
+            if ( r.newReward.hasUnallocatedReward() ) {
+                mr.setHotspotId(BLANCK_KEY);
+                mr.setOwnerId(BLANCK_KEY);
+                switch ( r.newReward.getUnallocatedReward().getRewardType() ) {
+                    case unallocated_reward_type_poc: mr.setUnallocatedPoc(r.newReward.getUnallocatedReward().getAmount()); break;
+                    case unallocated_reward_type_discovery_location: mr.setUnallocatedDiscovery(r.newReward.getUnallocatedReward().getAmount()); break;
+                    case unallocated_reward_type_mapper: mr.setUnallocatedMapper(r.newReward.getUnallocatedReward().getAmount()); break;
+                    case unallocated_reward_type_service_provider: mr.setUnallocatedService(r.newReward.getUnallocatedReward().getAmount()); break;
+                    case unallocated_reward_type_oracle: mr.setUnallocatedOracle(r.newReward.getUnallocatedReward().getAmount()); break;
+                    case unallocated_reward_type_data:mr.setUnallocatedData(r.newReward.getUnallocatedReward().getAmount()); break;
+                    default: break;
+                }
+                delayedMobileRewardSave(mr);
+            }
+        }
+        return true;
+    }
+
+    protected ArrayList<MobileReward> _mobileRewardsDelayedInsert = new ArrayList<>();
+    public synchronized void delayedMobileRewardSave(MobileReward b) {
+        _mobileRewardsDelayedInsert.add(b);
+        if ( _mobileRewardsDelayedInsert.size() > 8_000 ) {
+            if ( bulkInsertMobileRewards() > 0 ) {
+                _mobileRewardsDelayedInsert.clear();
+            }
+        }
+    }
+
+    public int bulkInsertMobileRewards() {
+
+        synchronized (asyncWrite) {
+            if (inAsyncWrite) return 0;
+            inAsyncWrite = true;
+        }
+        try {
+            if (!_mobileRewardsDelayedInsert.isEmpty()) {
+                mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(false));
+                BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, MobileReward.class);
+                for (MobileReward b : _mobileRewardsDelayedInsert) {
                     bulkInsert.insert(b);
                 }
                 BulkWriteResult bulkWriteResult = bulkInsert.execute();

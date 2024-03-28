@@ -17,6 +17,8 @@ import com.disk91.etl.data.object.Param;
 import com.disk91.etl.data.repository.ParamRepository;
 import com.helium.grpc.iot_reward_share;
 import com.helium.grpc.lora_poc_v1;
+import com.helium.grpc.mobile.mobile_reward_share;
+import com.helium.grpc.mobile.radio_reward_share;
 import fr.ingeniousthings.tools.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +50,12 @@ public class AwsService {
     // static final String REWARD_FIRST_OBJECT = "foundation-iot-verified-rewards/gateway_reward_share.1674766530034.gz";
     static final String REWARD_FIRST_OBJECT = "foundation-iot-verified-rewards/iot_reward_share.1674766530034.gz";
 
+    static final String MOBILE_REWARD_FIRST_OBJECT = "foundation-mobile-verified/radio_reward_share.1674766530034.gz";
+    static final String MOBILE_REWARD_LAST_OBJECT = "foundation-mobile-verified/radio_reward_share.1686188007722.gz";
+    static final String MOBILE_REWARD_FIRST_NEW_OBJECT = "foundation-mobile-verified/mobile_reward_share.1686100000000.gz";
+
+
+
     @Autowired
     protected EtlConfig etlConfig;
 
@@ -65,6 +73,8 @@ public class AwsService {
     Param iotPocFile = null;
 
     Param rewardPocFile = null;
+
+    Param mobileRewardFile = null;
 
 
     @PostConstruct
@@ -106,6 +116,13 @@ public class AwsService {
         } else if ( rewardPocFile.getStringValue().contains("gateway_reward_share") ) {
             // update with the new name after file format changed
             rewardPocFile.setStringValue(REWARD_FIRST_OBJECT);
+        }
+
+        mobileRewardFile = paramRepository.findOneParamByParamName("aws_last_mobile_reward_sync");
+        if ( mobileRewardFile == null ) {
+            mobileRewardFile = new Param();
+            mobileRewardFile.setParamName("aws_last_mobile_reward_sync");
+            mobileRewardFile.setStringValue(MOBILE_REWARD_FIRST_OBJECT);
         }
 
         this.awsCredentials = new BasicAWSCredentials(
@@ -172,6 +189,10 @@ public class AwsService {
             return 3;
         } else if ( fileName.startsWith("iot_reward") ) {
             return 4;
+        } else if ( fileName.startsWith("radio_reward") ) {
+            return 5;
+        } else if ( fileName.startsWith("mobile_reward") ) {
+            return 6;
         } else if ( fileName.startsWith("gateway_reward") ) {
            // log.info("Found gateway_reward file "+fileName);
         } else if ( fileName.startsWith("solana-migration-bad-data") ) {
@@ -181,7 +202,7 @@ public class AwsService {
         } else if ( fileName.startsWith("non_rewardable") ) {
             // log.info("Found non rewardable packets "+fileName);
         } else {
-            log.warn("Unknown type of file discovered "+fileName);
+            log.debug("Unknown type of file discovered "+fileName);
         }
         return 0;
     }
@@ -1099,7 +1120,7 @@ public class AwsService {
                             }
                             try {
                                 // when a queue is full just wait, it should be balanced
-                                while (queues[q].size() >= etlConfig.getRewardLoadParallelWorkers()) Thread.sleep(2);
+                                while (queues[q].size() >= etlConfig.getRewardLoadParallelQueueSize()) Thread.sleep(2);
                             } catch ( InterruptedException x ) {x.printStackTrace();};
                             queues[q].add(w);
 
@@ -1162,7 +1183,10 @@ public class AwsService {
                 try { Thread.sleep(500); } catch (InterruptedException x ) {};
             }
             if ( !terminated ) {
-                log.error("Cancelling Thread before ending enqueing");
+                log.error("Cancelling Reward Thread before ending dequeuing");
+            } else {
+                // flush pending rewards store
+                hotspotCache.bulkInsertRewards();
             }
             synchronized (this) {
                 runningJobs--;
@@ -1170,5 +1194,309 @@ public class AwsService {
             log.info("Rewards - exit completed");
         }
     }
+
+
+    // ---------------------------------------
+    // Mobile Rewards
+    // ---------------------------------------
+
+    protected boolean mobileRewardThreadEnable = true;
+
+    public static class MobileReward {
+        public radio_reward_share oldReward;        // depreacted format
+        public mobile_reward_share newReward;
+    }
+
+
+    public class ProcessMobileRewards implements Runnable {
+
+        ConcurrentLinkedQueue<MobileReward> queue;
+        Boolean status;
+        int id;
+
+        public ProcessMobileRewards(int _id, ConcurrentLinkedQueue<MobileReward> _queue, Boolean _status) {
+            id = _id;
+            queue = _queue;
+            status = _status;
+        }
+        public void run() {
+            this.status = true;
+            log.debug("Starting Mobile Reward process thread "+id);
+            MobileReward w;
+            while ( (w = queue.poll()) != null || mobileRewardThreadEnable ) {
+                if ( w != null) {
+                    if (!hotspotCache.addMobileReward(w)) {
+                        if ( w.oldReward != null ) log.debug("Th(" + id + ") mobile reward not processed " + w.oldReward.getStartEpoch());
+                        else if (w.newReward != null ) log.debug("Th(" + id + ") mobile reward not processed " + w.newReward.getStartPeriod());
+                    }
+                } else {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException x) {x.printStackTrace();}
+                }
+            }
+            log.debug("Closing mobile rewards process thread "+id);
+        }
+    }
+
+
+    // Reward are once a day, so no need to search faster than on every 20 minutes
+    @Scheduled(fixedDelay = 3600_000, initialDelay = 13_000)
+    protected void AwsMobileRewardSync() {
+        if ( ! readyToSync || !serviceEnable ) return;
+        if ( ! etlConfig.isMobileRewardLoadEnable() ) return;
+        log.info("Running AwsMobileRewardService Sync");
+
+        synchronized (this) {
+            this.runningJobs++;
+        }
+        long start = Now.NowUtcMs();
+        long lastLog = start;
+        this.mobileRewardThreadEnable = true;
+        int retry = 0;
+
+
+        // Create queues for parallelism
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        ConcurrentLinkedQueue<MobileReward> queues[] =  new ConcurrentLinkedQueue[etlConfig.getMobileRewardLoadParallelWorkers()];
+        Boolean threadRunning[] = new Boolean[etlConfig.getMobileRewardLoadParallelWorkers()];
+        Thread threads[] = new Thread[etlConfig.getMobileRewardLoadParallelWorkers()];
+        for ( int q = 0 ; q < etlConfig.getMobileRewardLoadParallelWorkers() ; q++) {
+            queues[q] = new ConcurrentLinkedQueue<MobileReward>();
+            threadRunning[q] = Boolean.FALSE;
+            Runnable r = new ProcessMobileRewards(q,queues[q],threadRunning[q]);
+            threads[q] = new Thread(r);
+            threads[q].start();
+        }
+
+        try {
+            if ( mobileRewardFile.getStringValue().compareToIgnoreCase(MOBILE_REWARD_LAST_OBJECT) == 0 ) {
+                log.info("Mobile Reward - switching files");
+                mobileRewardFile.setStringValue(MOBILE_REWARD_FIRST_NEW_OBJECT);
+            }
+            final ListObjectsV2Request lor = new ListObjectsV2Request();
+            lor.setBucketName(etlConfig.getAwsBucketName());
+            lor.setPrefix("foundation-mobile-verified");
+            lor.setStartAfter(mobileRewardFile.getStringValue());
+            lor.setRequesterPays(true);
+            ListObjectsV2Result list;
+            long totalObject = 0;
+            long totalSize = 0;
+            long totalMobileRewards = 0;
+            do {
+                list = this.s3Client.listObjectsV2(lor);
+                List<S3ObjectSummary> objects = list.getObjectSummaries();
+                for (S3ObjectSummary object : objects) {
+                    long cSize = object.getSize();
+                    long rSize = 0;
+                    totalObject++;
+                    totalSize+=object.getSize();
+                    if ( object.getSize() == 0 ) continue;
+                    long fileStart = Now.NowUtcMs();
+
+                    // Identify the type of objects
+                    //  iot_poc => valid poc
+                    if ( ! object.getKey().contains(".gz") ) continue; // not a file
+                    String fileName = object.getKey().split("/")[1];
+                    int fileType = getFileType(fileName);
+                    long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
+                    if ( fileType != 5 && fileType != 6 ) continue;
+                    if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
+                        mobileRewardFile.setStringValue(object.getKey());
+                        paramRepository.save(mobileRewardFile);
+                        continue;
+                    }
+
+                    log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - fileDate )/(Now.ONE_FULL_DAY)+") days");
+
+                    boolean readOk = false;
+                    retry = 0;
+                    ArrayList<MobileReward> toProcess = new ArrayList<>();
+                    while ( ! readOk && retry < 10 ) {
+
+                        final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
+                        or.setRequesterPays(true);
+                        S3Object fileObject = this.s3Client.getObject(or);
+                        GZIPInputStream stream = null;
+                        BufferedInputStream bufferedInputStream = null;
+
+                        try {
+                            // File is GZiped Version of a stream of protobuf messages
+                            // each protobuf messages is encapsulated with a header
+                            // int4 containing the length of the protobuf message following.
+                            stream = new GZIPInputStream(fileObject.getObjectContent());
+                            bufferedInputStream = new BufferedInputStream(stream);
+                            while (bufferedInputStream.available() > 0) {
+                                try {
+                                    byte[] sz = bufferedInputStream.readNBytes(4);
+                                    long len = Stuff.getLongValueFromBytes(sz);
+                                    rSize += len + 4;
+                                    if (len > 0) {
+                                        byte[] r = bufferedInputStream.readNBytes((int) len);
+                                        MobileReward mr = new MobileReward();
+                                        if ( fileType == 5 ) {
+                                            mr.oldReward = radio_reward_share.parseFrom(r);
+                                            mr.newReward = null;
+                                        } else {
+                                            mr.oldReward = null;
+                                            mr.newReward = mobile_reward_share.parseFrom(r);
+                                        }
+                                        toProcess.add(mr);
+                                    } else {
+                                        log.warn("Mobile Reward - Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
+                                    }
+                                } catch (IOException x) {
+                                    // in case of IOException Better skip the file
+                                    prometeusService.addAwsFailure();
+                                    log.error("Failed to process file " + object.getKey() + " " + x.getMessage());
+                                    if (serviceEnable == false) return;
+                                    toProcess.clear();
+                                    retry++;
+                                    break;
+                                } catch (Exception x) {
+                                    log.error("AwsMobileRewardSync - " + x.getMessage());
+                                    if (serviceEnable == false) return;
+                                    x.printStackTrace();
+                                    toProcess.clear();
+                                    retry++;
+                                    break;
+                                }
+                            }
+                            readOk = true;
+                        } catch (IOException x) {
+                            prometeusService.addAwsFailure();
+                            log.error("Failed to gunzip for Key " + object.getKey() + " " + x.getMessage());
+                            toProcess.clear();
+                            retry++;
+                        } catch (Exception x) {
+                            prometeusService.addAwsFailure();
+                            log.error("Failed to process file " + object.getKey() + " " + x.getMessage());
+                            toProcess.clear();
+                            retry++;
+                        } finally {
+                            if (bufferedInputStream != null) bufferedInputStream.close();
+                            if (stream != null) stream.close();
+                        }
+                    }
+                    if (retry == 10) {
+                        log.warn("Impossible to process file " + object.getKey() + " skip it");
+                        continue;
+                    }
+
+                    log.info("Mobile Reward from "+new Date(new Timestamp(fileDate).getTime())+" has "+toProcess.size()+" objects" );
+                    int current = 0;
+
+                    for ( MobileReward w : toProcess ) {
+                        try {
+                            totalMobileRewards++;
+                            // Add in queues - find it with a random element in the pub key
+                            // to make sure a single hotspot goes to the same queues to not
+                            // have collisions
+                            int q = 0;
+                            if ( w.oldReward != null ) {
+                                if ( w.oldReward.getHotspotKey().size() > 4 ) {
+                                    q = w.oldReward.getHotspotKey().byteAt(4);
+                                    q &= (etlConfig.getMobileRewardLoadParallelWorkers() - 1);
+                                } else {
+                                    // sounds like operational reward, skip that one
+                                    log.warn("Potential operational mobile reward");
+                                    continue;
+                                }
+                            } else {
+                                if ( w.newReward.hasGatewayReward() && w.newReward.getGatewayReward().getHotspotKey().size() > 4 ) {
+                                    q = w.newReward.getGatewayReward().getHotspotKey().byteAt(4);
+                                    q &= (etlConfig.getMobileRewardLoadParallelWorkers() - 1);
+                                } else if ( w.newReward.hasRadioReward() && w.newReward.getRadioReward().getHotspotKey().size() > 4 ) {
+                                    q = w.newReward.getRadioReward().getHotspotKey().byteAt(4);
+                                    q &= (etlConfig.getMobileRewardLoadParallelWorkers() - 1);
+                                } else if ( w.newReward.hasSubscriberReward() && w.newReward.getSubscriberReward().getSubscriberId().size() > 4 ) {
+                                    q = w.newReward.getSubscriberReward().getSubscriberId().byteAt(4);
+                                    q &= (etlConfig.getMobileRewardLoadParallelWorkers() - 1);
+                                } else if ( w.newReward.hasServiceProviderReward() ) {
+                                    q = (int)(etlConfig.getMobileRewardLoadParallelWorkers() * Math.random()); // unclear how to get an address ramdomize it
+                                    q &= (etlConfig.getMobileRewardLoadParallelWorkers() - 1); // make sure (too late)
+                                } else {
+                                    // sounds like strange reward, skip that one
+                                    log.warn("Potential strange mobile reward");
+                                    continue;
+                                }
+                            }
+                            try {
+                                // when a queue is full just wait, it should be balanced
+                                while (queues[q].size() >= etlConfig.getMobileRewardLoadParallelQueueSize()) Thread.sleep(2);
+                            } catch ( InterruptedException x ) {x.printStackTrace();};
+                            queues[q].add(w);
+
+                            // print progress log on regular basis
+                            if ((Now.NowUtcMs() - lastLog) > 30_000) {
+                                long distance = Now.NowUtcMs() - fileDate;
+                                log.info("Mobile Rewards Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, fpro : "+current+"/"+toProcess.size()+" tObject: " + totalObject + " tReward: " + totalMobileRewards + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                lastLog = Now.NowUtcMs();
+                            }
+                            // print process state on exit request
+                            if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
+                                log.info("Mobile Rewards - exit in progress - "+(Math.floor((100*current)/toProcess.size()))+"%" );
+                                lastLog = Now.NowUtcMs();
+                            }
+                            current++;
+                        } catch ( Exception x ) {
+                            log.error("Failed to process Mobile Reward "+object.getKey()+" at "+current+"/"+toProcess.size()+"["+x.getMessage()+"]");
+                        }
+                    } // end of current file
+                    toProcess.clear();
+
+                    prometeusService.addFileProcessed();
+                    prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
+                    prometeusService.changeFileMobileRewardTimestamp(fileDate);
+
+                    mobileRewardFile.setStringValue(object.getKey());
+                    paramRepository.save(mobileRewardFile);
+
+                    if ( serviceEnable == false ) {
+                        // we had a request to quit and at this point we can make it
+                        // clean
+                        log.info("Mobile Reward - exit ready");
+                        return;
+                    }
+                }
+                lor.setContinuationToken(list.getNextContinuationToken());
+
+            } while (list.isTruncated());
+        } catch (AmazonServiceException x) {
+            prometeusService.addAwsFailure();
+            log.error("AwsMobileRewardSync - "+x.getMessage());
+            // x.printStackTrace();
+        } catch (AmazonClientException x) {
+            prometeusService.addAwsFailure();
+            log.error("AwsMobileRewardSync - "+x.getMessage());
+            // x.printStackTrace();
+        } catch (Exception x) {
+            prometeusService.addAwsFailure();
+            log.error("Mobile Reward Batch Failure "+x.getMessage());
+        } finally {
+            // wait the parallel Thread to stop max 5 minutes
+            this.mobileRewardThreadEnable = false;
+            boolean terminated = false;
+            long waitStart = Now.NowUtcMs();
+            while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
+                terminated = true;
+                for (int t = 0; t < etlConfig.getMobileRewardLoadParallelWorkers(); t++) {
+                    if (threads[t].getState() != Thread.State.TERMINATED) terminated = false;
+                }
+                try { Thread.sleep(500); } catch (InterruptedException x ) {};
+            }
+            if ( !terminated ) {
+                log.error("Cancelling Mobile Reward Thread before ending dequeuing");
+            } else {
+                // flush pending rewards store
+                hotspotCache.bulkInsertMobileRewards();
+            }
+            synchronized (this) {
+                runningJobs--;
+            }
+            log.info("Mobile Rewards - exit completed");
+        }
+    }
+
 
 }

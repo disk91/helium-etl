@@ -31,10 +31,10 @@ dependencies {
     implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
 
     implementation group: 'com.amazonaws', name:'aws-java-sdk', version: '1.12.668'
-    implementation group: 'io.grpc', name: 'grpc-okhttp', version: '1.57.1'
-    implementation group: 'io.grpc', name: 'grpc-netty', version:'1.57.1'
-    implementation group: 'io.grpc', name: 'grpc-protobuf', version:'1.57.1'
-    implementation group: 'io.grpc', name: 'grpc-stub', version:'1.57.1'
+    implementation group: 'io.grpc', name: 'grpc-okhttp', version: '1.60.1'
+    implementation group: 'io.grpc', name: 'grpc-netty', version:'1.60.1'
+    implementation group: 'io.grpc', name: 'grpc-protobuf', version:'1.60.1'
+    implementation group: 'io.grpc', name: 'grpc-stub', version:'1.60.1'
     implementation group: 'com.uber', name: 'h3', version:'4.1.1'
 
 

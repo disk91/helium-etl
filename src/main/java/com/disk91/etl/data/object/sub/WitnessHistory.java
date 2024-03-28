@@ -2,6 +2,9 @@ package com.disk91.etl.data.object.sub;
 
 import fr.ingeniousthings.tools.ClonnableObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class WitnessHistory  implements ClonnableObject<WitnessHistory> {
 
     private long timeRef;           // corresponding to the hour of the history
@@ -11,10 +14,29 @@ public class WitnessHistory  implements ClonnableObject<WitnessHistory> {
 
     private int totLateMs = 0;      // distance in ms from the first hotspot responding to poc, give an idea of the cpu/network response time
 
+    private List<WitnessRejectionCause> rejections; // witness rejection cause during this time slot
+
     // ---------
 
     public void addTotLateMs(long deltaMs) {
         this.totLateMs += (int)deltaMs;
+    }
+
+    public void addCause(int cause) {
+        if ( rejections == null ) {
+            rejections = new ArrayList<>();
+        } else {
+            for (WitnessRejectionCause r : rejections) {
+                if (r.getCause() == cause) {
+                    r.setCount(r.getCount() + 1);
+                    return;
+                }
+            }
+        }
+        WitnessRejectionCause r = new WitnessRejectionCause();
+        r.setCause(cause);
+        r.setCount(1);
+        rejections.add(r);
     }
 
     public WitnessHistory clone() {
@@ -23,6 +45,10 @@ public class WitnessHistory  implements ClonnableObject<WitnessHistory> {
         c.setCountWitnesses(countWitnesses);
         c.setSeletedWitness(seletedWitness);
         c.setTotLateMs(totLateMs);
+        c.setRejections(new ArrayList<WitnessRejectionCause>());
+        for (WitnessRejectionCause r : rejections) {
+            c.getRejections().add(r.clone());
+        }
         return c;
     }
 
@@ -60,5 +86,13 @@ public class WitnessHistory  implements ClonnableObject<WitnessHistory> {
 
     public void setTotLateMs(int totLateMs) {
         this.totLateMs = totLateMs;
+    }
+
+    public List<WitnessRejectionCause> getRejections() {
+        return rejections;
+    }
+
+    public void setRejections(List<WitnessRejectionCause> rejections) {
+        this.rejections = rejections;
     }
 }
