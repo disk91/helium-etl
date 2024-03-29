@@ -361,6 +361,7 @@ public class HotspotCache {
                 hs.setVersion(1);
                 hs.setWitnessDist(0.0);
                 hs.setBeaconDist(0.0);
+                hs.setLastErrorCause(new ArrayList<>());
                 hs = hotspotsRepository.save(hs);   // to get the Id provided, will be simple to manage later
             } else {
                 // previous versions
@@ -389,6 +390,9 @@ public class HotspotCache {
                     hs.setDenyHistories(new ArrayList<>());
                     hs.setInDenyList(false);
                     hs.setLastDataReward(0);
+                }
+                if ( hs.getLastErrorCause() == null ) {
+                    hs.setLastErrorCause(new ArrayList<>());
                 }
                 // init from legacy
                 this.addForEnrichemnent(hs);

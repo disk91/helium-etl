@@ -14,7 +14,7 @@ public class WitnessHistory  implements ClonnableObject<WitnessHistory> {
 
     private int totLateMs = 0;      // distance in ms from the first hotspot responding to poc, give an idea of the cpu/network response time
 
-    private List<WitnessRejectionCause> rejections; // witness rejection cause during this time slot
+    private List<WitnessRejectionCause> rejections = new ArrayList<>(); // witness rejection cause during this time slot
 
     // ---------
 
@@ -46,8 +46,10 @@ public class WitnessHistory  implements ClonnableObject<WitnessHistory> {
         c.setSeletedWitness(seletedWitness);
         c.setTotLateMs(totLateMs);
         c.setRejections(new ArrayList<WitnessRejectionCause>());
-        for (WitnessRejectionCause r : rejections) {
-            c.getRejections().add(r.clone());
+        if ( rejections != null ) {
+            for (WitnessRejectionCause r : rejections) {
+                c.getRejections().add(r.clone());
+            }
         }
         return c;
     }

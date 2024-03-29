@@ -216,7 +216,7 @@ public class HotspotState {
 
         if ( h.getLastErrorCause() != null ) {
             setLastErrorCause(new ArrayList<>(h.getLastErrorCause()));
-        }
+        } else setLastErrorCause(new ArrayList<>());
 
     }
 

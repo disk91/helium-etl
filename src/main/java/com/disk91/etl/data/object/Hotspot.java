@@ -474,8 +474,10 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         c.setDenyHistories(dhs);
 
         List<Integer> lec = new ArrayList<>();
-        for (Integer i : lastErrorCause) {
-            lec.add(i.intValue());
+        if ( lastErrorCause != null) {
+            for (Integer i : lastErrorCause) {
+                lec.add(i.intValue());
+            }
         }
         c.setLastErrorCause(lec);
 
