@@ -1149,6 +1149,9 @@ public class HotspotCache {
                 delayedMobileRewardSave(mr);
             }
         }
+        // stats
+        prometeusService.addMobileRewardProcessed();
+        prometeusService.addMobileRewardProcessedTime(Now.NowUtcMs()-start);
         return true;
     }
 

@@ -74,6 +74,22 @@ public class PrometeusService {
     }
 
 
+    private long mobileRewardProccessed = 0;
+    synchronized public void addMobileRewardProcessed() {
+        this.mobileRewardProccessed++;
+    }
+    private Supplier<Number> getMobileRewardProcesses() {
+        return ()->mobileRewardProccessed;
+    }
+
+    private long mobileRewardProcessingTime = 0;
+    synchronized public void addMobileRewardProcessedTime(long ms) {
+        this.mobileRewardProcessingTime+=ms;
+    }
+    private Supplier<Number> getMobileRewardProcesseTimes() {
+        return ()->mobileRewardProcessingTime;
+    }
+
     private long witnessProccessed = 0;
     synchronized public void addWitnessProcessed() {
         this.witnessProccessed++;
@@ -234,6 +250,14 @@ public class PrometeusService {
         Gauge.builder("etl.reward.processed.time", getRewardProcesseTimes())
                 .description("Processing time for reward")
                 .register(registry);
+
+        Gauge.builder("etl.mobile.reward.processed", getMobileRewardProcesses())
+            .description("Counter number of mobile reward processed")
+            .register(registry);
+
+        Gauge.builder("etl.mobile.reward.processed.time", getMobileRewardProcesseTimes())
+            .description("Processing time for mobile reward")
+            .register(registry);
 
         Gauge.builder("etl.witness.processed", getWitnessProcesses())
                 .description("Counter number of witnesses processed")
