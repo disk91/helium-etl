@@ -651,7 +651,7 @@ public class AwsService {
                     } catch (InterruptedException x) {x.printStackTrace();}
                 }
             }
-            log.debug("Closing iot_poc process thread "+id);
+            log.info("Closing iot_poc process thread "+id);
         }
     }
 
