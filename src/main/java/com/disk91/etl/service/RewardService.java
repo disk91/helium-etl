@@ -1,7 +1,9 @@
 package com.disk91.etl.service;
 
 import com.disk91.etl.api.interfaces.LastRewardItf;
+import com.disk91.etl.data.object.MobileReward;
 import com.disk91.etl.data.object.Reward;
+import com.disk91.etl.data.repository.MobileRewardRepository;
 import com.disk91.etl.data.repository.RewardRepository;
 import fr.ingeniousthings.tools.ITNotFoundException;
 import fr.ingeniousthings.tools.ITParseException;
@@ -56,6 +58,40 @@ public class RewardService {
         return rewards;
 
     }
+
+
+    @Autowired
+    protected MobileRewardRepository mobileRewardRepository;
+
+
+    public List<MobileReward> getMobileHotspotRewards(String hsId, long from, long to)
+        throws ITParseException {
+
+        if ( to < from || (to - from) > 30*Now.ONE_FULL_DAY ) throw new ITParseException("invalid date between");
+
+        long start = Now.NowUtcMs();
+        Slice<MobileReward> rs = mobileRewardRepository.findMobileRewardsByHotspotIdAndStartPeriodBetweenOrderByStartPeriodAsc(
+            hsId,
+            from,
+            to+ Now.ONE_FULL_DAY,
+            PageRequest.of(0,100)
+        );
+        log.debug(">> process mobile reward search "+(Now.NowUtcMs()-start)+" ms");
+        ArrayList<MobileReward> rewards = new ArrayList<>();
+        if ( rs != null ) {
+            boolean quit = false;
+            do {
+                rewards.addAll(rs.getContent());
+                if ( rs.hasNext() ) {
+                    rs = mobileRewardRepository.findMobileRewardsByHotspotIdAndStartPeriodBetweenOrderByStartPeriodAsc(
+                        hsId, from, to + Now.ONE_FULL_DAY,
+                        rs.nextPageable());
+                } else quit = true;
+            } while ( rs != null && !quit );
+        }
+        return rewards;
+    }
+
 
     public LastRewardItf getLastReward( String hsId ) {
 

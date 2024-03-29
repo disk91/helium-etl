@@ -21,6 +21,7 @@ package com.disk91.etl.api;
 
 import com.disk91.etl.api.interfaces.*;
 import com.disk91.etl.data.object.Hotspot;
+import com.disk91.etl.data.object.MobileReward;
 import com.disk91.etl.data.object.Reward;
 import com.disk91.etl.service.*;
 import fr.ingeniousthings.tools.ITNotFoundException;
@@ -209,6 +210,34 @@ public class HotspotApi {
     ) {
         try {
             List<Reward> r = rewardService.getHotspotRewards(hotspotId,from,to);
+            return new ResponseEntity<>(r, HttpStatus.OK);
+        } catch (ITParseException x) {
+            return new ResponseEntity<>(ActionResult.BADREQUEST(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Operation(summary = "Get Mobile Hotspot rewards",
+        description = "Get Mobile Hotspot rewards data",
+        responses = {
+            @ApiResponse(responseCode = "200", description= "Done",
+                content = @Content(array = @ArraySchema(schema = @Schema( implementation = MobileReward.class)))),
+            @ApiResponse(responseCode = "400", description= "Bad Request", content = @Content(schema = @Schema(implementation = ActionResult.class)))
+        }
+    )
+    @RequestMapping(value="/mob_rewards/{hotspotId}/{from}/{to}/",
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        method= RequestMethod.GET)
+    public ResponseEntity<?> getMobileHotspotRewards(
+        HttpServletRequest request,
+        @Parameter(required = true, name = "hotspotId", description = "Base58 hotspot public key encoded")
+        @PathVariable String hotspotId,
+        @Parameter(required = true, name = "from", description = "from date UTC Ms")
+        @PathVariable long from,
+        @Parameter(required = true, name = "to", description = "to date UTC Ms")
+        @PathVariable long to
+    ) {
+        try {
+            List<MobileReward> r = rewardService.getMobileHotspotRewards(hotspotId,from,to);
             return new ResponseEntity<>(r, HttpStatus.OK);
         } catch (ITParseException x) {
             return new ResponseEntity<>(ActionResult.BADREQUEST(), HttpStatus.BAD_REQUEST);

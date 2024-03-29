@@ -135,6 +135,11 @@ public class HotspotState {
     )
     private Hotspot.HotspotBrand brand;
 
+    @Schema(
+        description = "Last Witnessing 10 error cause",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    protected List<Integer> lastErrorCause;
 
 
     // ---------------------------------------------------------
@@ -208,6 +213,10 @@ public class HotspotState {
             }
         }
         setRewardHistories(rhs);
+
+        if ( h.getLastErrorCause() != null ) {
+            setLastErrorCause(new ArrayList<>(h.getLastErrorCause()));
+        }
 
     }
 
@@ -374,5 +383,13 @@ public class HotspotState {
 
     public void setBrand(Hotspot.HotspotBrand brand) {
         this.brand = brand;
+    }
+
+    public List<Integer> getLastErrorCause() {
+        return lastErrorCause;
+    }
+
+    public void setLastErrorCause(List<Integer> lastErrorCause) {
+        this.lastErrorCause = lastErrorCause;
     }
 }

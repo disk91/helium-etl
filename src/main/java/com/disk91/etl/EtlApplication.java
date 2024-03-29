@@ -1,6 +1,8 @@
 package com.disk91.etl;
 
+import com.disk91.etl.data.object.MobileReward;
 import com.disk91.etl.data.object.Param;
+import com.disk91.etl.data.repository.MobileRewardRepository;
 import com.disk91.etl.data.repository.ParamRepository;
 import com.disk91.etl.service.ExitService;
 import com.mongodb.client.MongoClient;
@@ -45,6 +47,9 @@ public class EtlApplication implements CommandLineRunner, ExitCodeGenerator {
 
     @Autowired
     private EtlConfig etlConfig;
+
+    @Autowired
+    private MobileRewardRepository mobileRewardRepository;
 
 	@Override
 	public void run(String... args) throws Exception {
@@ -106,7 +111,13 @@ public class EtlApplication implements CommandLineRunner, ExitCodeGenerator {
         if ( p.getLongValue() == 2 && etlConfig.isEtlMongodbShardingEnable() ) {
             try {
                 System.out.println(">> Creating mobile reward sharding");
+                // make sure collection exists
+                MobileReward m = new MobileReward();
+                m.setHotspotId("0000");
+                m.setOwnerId("0000");
+                m = mobileRewardRepository.save(m);
 
+                // Create sharding
                 MongoDatabase adminDB = mongoTemplate.getMongoDatabaseFactory()
                     .getMongoDatabase("admin");
                 Document rewards = adminDB.runCommand(
@@ -114,6 +125,9 @@ public class EtlApplication implements CommandLineRunner, ExitCodeGenerator {
                         .append("key", new Document("hotspotId", 1).append("_id", 1)));
                 p.setLongValue(3);
                 paramRepository.save(p);
+
+                // remove dummy entry
+                mobileRewardRepository.delete(m);
                 System.out.println(">> V3 - DONE");
             } catch (Exception x) {
                 System.out.println(">> Failed "+x.getMessage());

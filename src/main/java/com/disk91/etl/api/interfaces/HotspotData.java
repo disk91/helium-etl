@@ -153,6 +153,25 @@ public class HotspotData {
     private List<DenyHistory> denyHistories;
 
 
+    @Schema(
+        description = "Beaconning Distance",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    protected double beaconDist;
+
+    @Schema(
+        description = "Witnessing Distance",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    protected double witnessDist;
+
+    @Schema(
+        description = "Last Witnessing 10 error cause",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    protected List<Integer> lastErrorCause;
+
+
     // ---------------------------------------------------------
     // clone
 
@@ -169,6 +188,12 @@ public class HotspotData {
         setSumRewardDc(h.getSumRewardDc());
         setOffsetReward(h.getOffsetReward());
         setInDenyList(h.isInDenyList());
+        setBeaconDist(h.getBeaconDist());
+        setWitnessDist(h.getWitnessDist());
+
+        if ( h.getLastErrorCause() != null ) {
+            setLastErrorCause(new ArrayList<>(h.getLastErrorCause()));
+        }
 
         if ( h.getOwner() != null ) {
             setOwner(h.getOwner().clone());
@@ -419,5 +444,29 @@ public class HotspotData {
 
     public void setDenyHistories(List<DenyHistory> denyHistories) {
         this.denyHistories = denyHistories;
+    }
+
+    public double getBeaconDist() {
+        return beaconDist;
+    }
+
+    public void setBeaconDist(double beaconDist) {
+        this.beaconDist = beaconDist;
+    }
+
+    public double getWitnessDist() {
+        return witnessDist;
+    }
+
+    public void setWitnessDist(double witnessDist) {
+        this.witnessDist = witnessDist;
+    }
+
+    public List<Integer> getLastErrorCause() {
+        return lastErrorCause;
+    }
+
+    public void setLastErrorCause(List<Integer> lastErrorCause) {
+        this.lastErrorCause = lastErrorCause;
     }
 }
