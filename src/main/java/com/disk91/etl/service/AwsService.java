@@ -1412,8 +1412,8 @@ public class AwsService {
                                 } else if ( w.newReward.hasSubscriberReward() && w.newReward.getSubscriberReward().getSubscriberId().size() > 4 ) {
                                     q = w.newReward.getSubscriberReward().getSubscriberId().byteAt(4);
                                     q &= (etlConfig.getMobileRewardLoadParallelWorkers() - 1);
-                                } else if ( w.newReward.hasServiceProviderReward() ) {
-                                    q = (int)(etlConfig.getMobileRewardLoadParallelWorkers() * Math.random()); // unclear how to get an address ramdomize it
+                                } else if ( w.newReward.hasServiceProviderReward() || w.newReward.hasUnallocatedReward() ) {
+                                    q = (int) (etlConfig.getMobileRewardLoadParallelWorkers() * Math.random()); // unclear how to get an address ramdomize it
                                     q &= (etlConfig.getMobileRewardLoadParallelWorkers() - 1); // make sure (too late)
                                 } else {
                                     // sounds like strange reward, skip that one
