@@ -872,7 +872,7 @@ public class AwsService {
                             }
                             try { Thread.sleep(10_000); } catch (InterruptedException x) {};
                             log.info("> Waiting for 1st file to be finished... "+pending);
-                        } while ( pending > 0);
+                        } while ( pending > 0 );
                         this.firstFile = false;
                     }
 

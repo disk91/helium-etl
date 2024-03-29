@@ -287,11 +287,11 @@ public class PrometeusService {
                 .description("Distance from now for the last processed file")
                 .register(registry);
 
-        Gauge.builder("etl.file.mobile.reward.time", getLastFileRewardTimestamp())
+        Gauge.builder("etl.file.mobile.reward.time", getLastFileMobileRewardTimestamp())
             .description("Timestamp for the last processed file")
             .register(registry);
 
-        Gauge.builder("etl.file.mobile.reward.distance", getLastFileRewardDistance())
+        Gauge.builder("etl.file.mobile.reward.distance", getLastFileMobileRewardDistance())
             .description("Distance from now for the last processed file")
             .register(registry);
 
