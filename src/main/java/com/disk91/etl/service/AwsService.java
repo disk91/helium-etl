@@ -1274,6 +1274,7 @@ public class AwsService {
                 log.info("Mobile Reward - switching files");
                 mobileRewardFile.setStringValue(MOBILE_REWARD_FIRST_NEW_OBJECT);
             }
+            boolean isNewType = mobileRewardFile.getStringValue().contains("mobile_reward");
             final ListObjectsV2Request lor = new ListObjectsV2Request();
             lor.setBucketName(etlConfig.getAwsBucketName());
             lor.setPrefix("foundation-mobile-verified");
@@ -1301,6 +1302,8 @@ public class AwsService {
                     int fileType = getFileType(fileName);
                     long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
                     if ( fileType != 5 && fileType != 6 ) continue;
+                    if ( isNewType && fileType == 5 ) continue; // do not reprocess file in past due to naming.
+
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
                         mobileRewardFile.setStringValue(object.getKey());
                         paramRepository.save(mobileRewardFile);
