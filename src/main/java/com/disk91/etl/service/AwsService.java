@@ -33,6 +33,7 @@ import java.io.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.zip.GZIPInputStream;
@@ -168,8 +169,11 @@ public class AwsService {
     }
 
 
+    protected HashMap<String,Integer> runningJobsName = new HashMap<>();
     protected int runningJobs;
     protected boolean serviceEnable = false; // false to stop the services
+
+    private final Object locker = new Object();
 
     public void stopService() {
         this.serviceEnable = false;
@@ -179,6 +183,13 @@ public class AwsService {
         return (!this.serviceEnable && this.runningJobs == 0);
     }
 
+    public String listServices() {
+        String s = "";
+        for (String k : this.runningJobsName.keySet()) {
+            s += k + "(" + this.runningJobsName.get(k) + ") ";
+        }
+        return s;
+    }
 
     private int getFileType(String fileName) {
         if ( fileName.startsWith("iot_beacon_ingest_report") ) {
@@ -218,8 +229,9 @@ public class AwsService {
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isBeaconLoadEnable() ) return;
 
-        synchronized (this) {
+        synchronized (locker) {
             this.runningJobs++;
+            this.runningJobsName.merge("Beacon", 1, Integer::sum);
         }
         log.info("Running AwsBeaconService Sync");
 
@@ -364,8 +376,9 @@ public class AwsService {
             prometeusService.addAwsFailure();
             log.error("Beacon Batch Failure "+x.getMessage());
         } finally {
-            synchronized (this) {
+            synchronized (locker) {
                 runningJobs--;
+                this.runningJobsName.put("Beacon", this.runningJobsName.get("Beacon")-1);
             }
         }
 
@@ -411,8 +424,9 @@ public class AwsService {
 
         log.info("Running AwsWitnessService Sync");
 
-        synchronized (this) {
+        synchronized (locker) {
             this.runningJobs++;
+            this.runningJobsName.merge("Witness", 1, Integer::sum);
         }
         long start = Now.NowUtcMs();
         long lastLog = start;
@@ -611,8 +625,10 @@ public class AwsService {
             if ( !terminated ) {
                 log.error("Cancelling Thread before ending enqueing");
             }
-            synchronized (this) {
+            synchronized (locker) {
                 runningJobs--;
+                this.runningJobsName.put("Witness", this.runningJobsName.get("Witness")-1);
+
             }
             log.info("Witness - exit completed");
         }
@@ -630,6 +646,7 @@ public class AwsService {
         ConcurrentLinkedQueue<lora_poc_v1> queue;
         Boolean status;
         int id;
+        long lastTrace = 0;
 
         public ProcessIoTPoc(int _id, ConcurrentLinkedQueue<lora_poc_v1> _queue, Boolean _status) {
             id = _id;
@@ -641,6 +658,13 @@ public class AwsService {
             log.debug("Starting iot_poc process thread "+id);
             lora_poc_v1 w;
             while ( (w = queue.poll()) != null || pocThreadEnable ) {
+                if ( ! pocThreadEnable ) {
+                    // trace shutdown
+                    if ( (Now.NowUtcMs() - lastTrace) > 5_000 ) {
+                        log.info("Th(" + id + ") shutting down - still "+queue.size()+" to process");
+                        lastTrace = Now.NowUtcMs();
+                    }
+                }
                 if ( w != null) {
                    if (!hotspotCache.addIoTPoC(w, firstFile)) {
                         log.debug("Th(" + id + ") iotpoc not processed " + w.getBeaconReport().getReceivedTimestamp());
@@ -665,8 +689,9 @@ public class AwsService {
         if ( ! etlConfig.isIotpocLoadEnable() ) return;
         log.info("Running AwsIoTPoc Sync");
 
-        synchronized (this) {
+        synchronized (locker) {
             this.runningJobs++;
+            this.runningJobsName.merge("Poc", 1, Integer::sum);
         }
         long start = Now.NowUtcMs();
         long lastLog = start;
@@ -921,8 +946,9 @@ public class AwsService {
             if ( !terminated ) {
                 log.error("Cancelling Thread before ending enqueing");
             }
-            synchronized (this) {
+            synchronized (locker) {
                 runningJobs--;
+                this.runningJobsName.put("Poc", this.runningJobsName.get("Poc")-1);
             }
             log.info("IoTPoc - exit completed");
         }
@@ -975,14 +1001,14 @@ public class AwsService {
         if ( ! etlConfig.isRewardLoadEnable() ) return;
         log.info("Running AwsRewardService Sync");
 
-        synchronized (this) {
+        synchronized (locker) {
             this.runningJobs++;
+            this.runningJobsName.merge("IoTRew", 1, Integer::sum);
         }
         long start = Now.NowUtcMs();
         long lastLog = start;
         this.rewardThreadEnable = true;
         int retry = 0;
-
 
         // Create queues for parallelism
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -997,6 +1023,7 @@ public class AwsService {
             threads[q].start();
         }
 
+        long totalObject = 0;
         try {
             final ListObjectsV2Request lor = new ListObjectsV2Request();
             lor.setBucketName(etlConfig.getAwsBucketName());
@@ -1004,7 +1031,6 @@ public class AwsService {
             lor.setStartAfter(rewardPocFile.getStringValue());
             lor.setRequesterPays(true);
             ListObjectsV2Result list;
-            long totalObject = 0;
             long totalSize = 0;
             long totalWitness = 0;
             do {
@@ -1188,10 +1214,11 @@ public class AwsService {
                 // flush pending rewards store
                 hotspotCache.bulkInsertRewards();
             }
-            synchronized (this) {
+            synchronized (locker) {
                 runningJobs--;
+                this.runningJobsName.put("IoTRew", this.runningJobsName.get("IoTRew")-1);
             }
-            log.info("Rewards - exit completed");
+            log.info("Rewards - exit completed - object seen "+totalObject);
         }
     }
 
@@ -1241,14 +1268,15 @@ public class AwsService {
 
 
     // Reward are once a day, so no need to search faster than on every 20 minutes
-    @Scheduled(fixedDelay = 3600_000, initialDelay = 13_000)
+    @Scheduled(fixedDelay = 7200_000, initialDelay = 13_000)
     protected void AwsMobileRewardSync() {
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isMobileRewardLoadEnable() ) return;
         log.info("Running AwsMobileRewardService Sync");
 
-        synchronized (this) {
+        synchronized (locker) {
             this.runningJobs++;
+            this.runningJobsName.merge("MobileRew", 1, Integer::sum);
         }
         long start = Now.NowUtcMs();
         long lastLog = start;
@@ -1269,6 +1297,7 @@ public class AwsService {
             threads[q].start();
         }
 
+        long totalObject = 0;
         try {
             if ( mobileRewardFile.getStringValue().compareToIgnoreCase(MOBILE_REWARD_LAST_OBJECT) == 0 ) {
                 log.info("Mobile Reward - switching files");
@@ -1281,7 +1310,6 @@ public class AwsService {
             lor.setStartAfter(mobileRewardFile.getStringValue());
             lor.setRequesterPays(true);
             ListObjectsV2Result list;
-            long totalObject = 0;
             long totalSize = 0;
             long totalMobileRewards = 0;
             do {
@@ -1494,10 +1522,11 @@ public class AwsService {
                 // flush pending rewards store
                 hotspotCache.bulkInsertMobileRewards();
             }
-            synchronized (this) {
+            synchronized (locker) {
                 runningJobs--;
+                this.runningJobsName.put("MobileRew", this.runningJobsName.get("MobileRew")-1);
             }
-            log.info("Mobile Rewards - exit completed");
+            log.info("Mobile Rewards - exit completed - objects seen "+totalObject);
         }
     }
 

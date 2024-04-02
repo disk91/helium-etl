@@ -125,7 +125,7 @@ public class ExitService implements Lifecycle {
             if ( ! awsService.hasStopped() ) services++;
 
             if ( (Now.NowUtcMs() - d) > 10_000 ) {
-                log.error("Exiting/Pausing ... Waiting for "+services+" services to stop for "+(Now.NowUtcMs()-s)/60_000+"m");
+                log.error("Exiting/Pausing ... Waiting for "+services+" services ["+awsService.listServices()+"] to stop for "+(Now.NowUtcMs()-s)/60_000+"m");
                 d+=10_000;
             }
             if ( (Now.NowUtcMs() - s) > etlConfig.getExitTimeOutMinutes()*60_000L ) {
