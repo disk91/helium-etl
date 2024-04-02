@@ -55,6 +55,9 @@ public class Witness {
 
     private boolean valid;
 
+    private int orderOfArrival = 0; // from the 1st received by Oracle, gives the posititon
+    private long lateOfArrival = -1; // rom the 1st received by Oracle, gives the delay in ms of that one
+
     // ---
 
 
@@ -160,5 +163,21 @@ public class Witness {
 
     public void setBeaconTime(long beaconTime) {
         this.beaconTime = beaconTime;
+    }
+
+    public int getOrderOfArrival() {
+        return orderOfArrival;
+    }
+
+    public void setOrderOfArrival(int orderOfArrival) {
+        this.orderOfArrival = orderOfArrival;
+    }
+
+    public long getLateOfArrival() {
+        return lateOfArrival;
+    }
+
+    public void setLateOfArrival(long lateOfArrival) {
+        this.lateOfArrival = lateOfArrival;
     }
 }
