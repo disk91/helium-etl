@@ -381,7 +381,7 @@ public class Hotspot implements ClonnableObject<Hotspot> {
             wh.setTimeRef(hRef);
             wh.setCountWitnesses(1);
             if ( selected ) wh.setSeletedWitness(1);
-            wh.setTotLateMs(respLate);
+            wh.setTotLateMs((int)respLate);
             if ( unselectedReason != WIT_ERROR_NONE ) wh.addCause(unselectedReason);
             this.witnessesHistory.add(wh);
 
