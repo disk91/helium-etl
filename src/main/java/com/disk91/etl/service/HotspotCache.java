@@ -35,10 +35,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Service
@@ -96,8 +93,10 @@ public class HotspotCache {
     protected Param iotpocTopLine = null;
     protected long iotpocTopTs = 0;
 
-    protected volatile Boolean inAsyncWrite = Boolean.valueOf(false);
-    private final Object asyncWrite = new Object();
+    protected volatile Boolean inAsyncIoTWrite = Boolean.valueOf(false);
+    private final Object asyncIoTWrite = new Object();
+    protected volatile Boolean inAsyncMobileWrite = Boolean.valueOf(false);
+    private final Object asyncMobileWrite = new Object();
 
     @Autowired
     protected HotspotCacheAsync hotspotCacheAsync;
@@ -221,15 +220,17 @@ public class HotspotCache {
         long s = Now.NowUtcMs();
         this.pauseIndexing = true;
         this.pauseCanceler = false;
-        while ( inAsyncWrite == true  && (Now.NowUtcMs() - s) < 120_000 );
+        while ( (inAsyncIoTWrite || inAsyncMobileWrite)  && (Now.NowUtcMs() - s) < 120_000 ){
+            Now.sleep(100);
+        }
         bulkInsertRewards();
         bulkInsertMobileRewards();
         flushInsertWitness();
         flushInsertBeacon();
 
         while (hotspotCacheAsync.isRunning() ) {
-            try { Thread.sleep(100); } catch ( InterruptedException x) {};
-        };
+            Now.sleep(100);
+        }
 
         // commit all other modifications
         log.info("Commit hotspot cache");
@@ -265,7 +266,9 @@ public class HotspotCache {
         log.info("Flush Beacon & Witness pending");
         this.stopRequested = true;
         long s = Now.NowUtcMs();
-        while ( inAsyncWrite && (Now.NowUtcMs() - s) < 120_000 );
+        while ( (inAsyncIoTWrite || inAsyncMobileWrite)  && (Now.NowUtcMs() - s) < 120_000 ){
+            Now.sleep(100);
+        }
         bulkInsertRewards();
         bulkInsertMobileRewards();
         flushInsertWitness();
@@ -853,10 +856,16 @@ public class HotspotCache {
         for ( lora_verified_witness_report_v1 v : p.getSelectedWitnessesList() ) {
             if ( v.getReceivedTimestamp() < firstArrival ) firstArrival = v.getReceivedTimestamp();
         }
+        // sort the list by order of arrival to get the position
+        p.getSelectedWitnessesList().sort(Comparator.comparingLong(lora_verified_witness_report_v1::getReceivedTimestamp));
+        p.getUnselectedWitnessesList().sort(Comparator.comparingLong(lora_verified_witness_report_v1::getReceivedTimestamp));
+
 
         // Update the Witness information
+        int order = 0;
         for ( lora_verified_witness_report_v1 v : p.getSelectedWitnessesList() ) {
             long wstart = Now.NowUtcMs();
+            order++;
             String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
             Hotspot witnessed = this.getHotspot(witnesserId, true);
 
@@ -906,6 +915,8 @@ public class HotspotCache {
                 wi.setFrequency(v.getReport().getFrequency());
                 wi.setTimestamp(v.getReport().getTimestamp());
                 wi.setTmst(v.getReport().getTmst());
+                wi.setOrderOfArrival(order);
+                wi.setLateOfArrival(v.getReceivedTimestamp() - firstArrival);
                 // bulk inserting
                 delayedWitnessSave(wi);
                 //witnessesRepository.save(wi);
@@ -921,6 +932,7 @@ public class HotspotCache {
 
         // Process the unselected
         for ( lora_verified_witness_report_v1 v : p.getUnselectedWitnessesList() ) {
+            order++;
             String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
             Hotspot witnessed = this.getHotspot(witnesserId, true);
 
@@ -986,6 +998,8 @@ public class HotspotCache {
                 wi.setFrequency(v.getReport().getFrequency());
                 wi.setTimestamp(v.getReport().getTimestamp());
                 wi.setTmst(v.getReport().getTmst());
+                wi.setOrderOfArrival(order);
+                wi.setLateOfArrival(v.getReceivedTimestamp() - firstArrival);
                 // bulk inserting
                 delayedWitnessSave(wi);
                 //witnessesRepository.save(wi);
@@ -1054,9 +1068,9 @@ public class HotspotCache {
 
     public int bulkInsertRewards() {
 
-        synchronized (asyncWrite) {
-            if ( inAsyncWrite == true ) return 0;
-            inAsyncWrite = true;
+        synchronized (asyncIoTWrite) {
+            if (inAsyncIoTWrite) return 0;
+            inAsyncIoTWrite = true;
         }
         try {
             if (!_rewardsDelayedInsert.isEmpty()) {
@@ -1070,8 +1084,8 @@ public class HotspotCache {
             }
             return 0;
         } finally {
-            synchronized (asyncWrite) {
-                inAsyncWrite = false;
+            synchronized (asyncIoTWrite) {
+                inAsyncIoTWrite = false;
             }
         }
 
@@ -1167,9 +1181,9 @@ public class HotspotCache {
 
     public int bulkInsertMobileRewards() {
 
-        synchronized (asyncWrite) {
-            if (inAsyncWrite) return 0;
-            inAsyncWrite = true;
+        synchronized (asyncMobileWrite) {
+            if (inAsyncMobileWrite) return 0;
+            inAsyncMobileWrite = true;
         }
         try {
             if (!_mobileRewardsDelayedInsert.isEmpty()) {
@@ -1183,8 +1197,8 @@ public class HotspotCache {
             }
             return 0;
         } finally {
-            synchronized (asyncWrite) {
-                inAsyncWrite = false;
+            synchronized (asyncMobileWrite) {
+                inAsyncMobileWrite = false;
             }
         }
 
@@ -1192,7 +1206,7 @@ public class HotspotCache {
 
 
     // ============================================
-    // Hotspot Enrichement from Legacy
+    // Hotspot Enrichment from Legacy
     // ============================================
 
     @Autowired
