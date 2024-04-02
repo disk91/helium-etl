@@ -393,8 +393,8 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         if ( unselectedReason != WIT_ERROR_NONE && unselectedReason != WIT_ERROR_TOO_LATE) {
             // add the cause in recent history
             if ( lastErrorCause == null ) lastErrorCause = new ArrayList<>();
-            if ( lastErrorCause.size() >= 10 ) {
-                lastErrorCause = lastErrorCause.subList(lastErrorCause.size()-9, lastErrorCause.size());
+            if ( lastErrorCause.size() >= 5 ) {
+                lastErrorCause = lastErrorCause.subList(lastErrorCause.size()-4, lastErrorCause.size());
             }
             lastErrorCause.add(unselectedReason);
         }
