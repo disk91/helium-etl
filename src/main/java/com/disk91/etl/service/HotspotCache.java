@@ -856,10 +856,9 @@ public class HotspotCache {
         for ( lora_verified_witness_report_v1 v : p.getSelectedWitnessesList() ) {
             if ( v.getReceivedTimestamp() < firstArrival ) firstArrival = v.getReceivedTimestamp();
         }
-        // sort the list by order of arrival to get the position
-        p.getSelectedWitnessesList().sort(Comparator.comparingLong(lora_verified_witness_report_v1::getReceivedTimestamp));
-        p.getUnselectedWitnessesList().sort(Comparator.comparingLong(lora_verified_witness_report_v1::getReceivedTimestamp));
-
+        // sort the list by order of arrival to get the position -> ascending order
+        p.getSelectedWitnessesList().sort((p1, p2) -> (int) (p1.getReceivedTimestamp() - p2.getReceivedTimestamp()));
+        p.getUnselectedWitnessesList().sort((p1, p2) -> (int) (p1.getReceivedTimestamp() - p2.getReceivedTimestamp()));
 
         // Update the Witness information
         int order = 0;
