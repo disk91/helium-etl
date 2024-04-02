@@ -14,7 +14,7 @@ setup: .FORCE
 	cp -R ./etl/* /etl/
 	chown nobody:nogroup /etl/prometheus
 	chown 472:root /etl/grafana
-	-sudo apt-get install default-jdk
+	-sudo apt-get install openjdk-21-jdk
 	-sudo apt-get install docker-compose
 	-sudo apt install gnupg2 pass
 	$(DOCKER_COMP_CMD) --profile mongo up -d
