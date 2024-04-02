@@ -857,12 +857,14 @@ public class HotspotCache {
             if ( v.getReceivedTimestamp() < firstArrival ) firstArrival = v.getReceivedTimestamp();
         }
         // sort the list by order of arrival to get the position -> ascending order
-        p.getSelectedWitnessesList().sort((p1, p2) -> (int) (p1.getReceivedTimestamp() - p2.getReceivedTimestamp()));
-        p.getUnselectedWitnessesList().sort((p1, p2) -> (int) (p1.getReceivedTimestamp() - p2.getReceivedTimestamp()));
+        ArrayList<lora_verified_witness_report_v1> selected = new ArrayList<>(p.getSelectedWitnessesList());
+        ArrayList<lora_verified_witness_report_v1> unselected = new ArrayList<>(p.getUnselectedWitnessesList());
+        selected.sort((p1, p2) -> (int) (p1.getReceivedTimestamp() - p2.getReceivedTimestamp()));
+        unselected.sort((p1, p2) -> (int) (p1.getReceivedTimestamp() - p2.getReceivedTimestamp()));
 
         // Update the Witness information
         int order = 0;
-        for ( lora_verified_witness_report_v1 v : p.getSelectedWitnessesList() ) {
+        for ( lora_verified_witness_report_v1 v : selected ) {
             long wstart = Now.NowUtcMs();
             order++;
             String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
@@ -930,8 +932,7 @@ public class HotspotCache {
         }
 
         // Process the unselected
-        for ( lora_verified_witness_report_v1 v : p.getUnselectedWitnessesList() ) {
-            order++;
+        for ( lora_verified_witness_report_v1 v : unselected ) {
             String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
             Hotspot witnessed = this.getHotspot(witnesserId, true);
 
@@ -975,12 +976,15 @@ public class HotspotCache {
             );
             // mark as updated
             this.updateHotspot(witnessed);
+
         }
         this.updateHotspot(beaconner);
 
         // Update the invalid witnesses
         if ( ! etlConfig.isWitnessLoadEnable() && etlConfig.isIotpocLoadUnselected() ) {
-            for (lora_verified_witness_report_v1 v : p.getUnselectedWitnessesList()) {
+            for (lora_verified_witness_report_v1 v : unselected) {
+                order++;
+
                 String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
                 //Hotspot witnessed = this.getHotspot(witnesserId, true);
 
