@@ -711,6 +711,7 @@ public class AwsService {
             threads[q].start();
         }
 
+        long totalObject = 0;
         try {
             final ListObjectsV2Request lor = new ListObjectsV2Request();
             lor.setBucketName(etlConfig.getAwsBucketName());
@@ -718,7 +719,6 @@ public class AwsService {
             lor.setStartAfter(iotPocFile.getStringValue());
             lor.setRequesterPays(true);
             ListObjectsV2Result list;
-            long totalObject = 0;
             long totalSize = 0;
             long totalWitness = 0;
             do {
@@ -950,7 +950,8 @@ public class AwsService {
                 runningJobs--;
                 this.runningJobsName.put("Poc", this.runningJobsName.get("Poc")-1);
             }
-            log.info("IoTPoc - exit completed");
+            log.info("IoTPoc - exit completed - objects seen "+totalObject);
+
         }
     }
 
@@ -1033,6 +1034,7 @@ public class AwsService {
             ListObjectsV2Result list;
             long totalSize = 0;
             long totalWitness = 0;
+            int notExpectedFile = 0;
             do {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3ObjectSummary> objects = list.getObjectSummaries();
@@ -1050,7 +1052,13 @@ public class AwsService {
                     String fileName = object.getKey().split("/")[1];
                     int fileType = getFileType(fileName);
                     long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
-                    if ( fileType != 4 ) continue;
+                    if ( fileType != 4 ) {
+                        notExpectedFile++;
+                        if ( notExpectedFile < 5 ) continue;
+                        return; // end of the files
+                    } else {
+                        notExpectedFile = 0; // reset counter
+                    }
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
                         rewardPocFile.setStringValue(object.getKey());
                         paramRepository.save(rewardPocFile);
@@ -1312,6 +1320,7 @@ public class AwsService {
             ListObjectsV2Result list;
             long totalSize = 0;
             long totalMobileRewards = 0;
+            int notExpectedFile = 0;
             do {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3ObjectSummary> objects = list.getObjectSummaries();
@@ -1329,7 +1338,14 @@ public class AwsService {
                     String fileName = object.getKey().split("/")[1];
                     int fileType = getFileType(fileName);
                     long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
-                    if ( fileType != 5 && fileType != 6 ) continue;
+                    if ( fileType != 5 && fileType != 6  ) {
+                        notExpectedFile++;
+                        if ( notExpectedFile < 5 ) continue;
+                        return; // end of the files
+                    } else {
+                        notExpectedFile = 0; // reset counter
+                    }
+
                     if ( isNewType && fileType == 5 ) continue; // do not reprocess file in past due to naming.
 
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
