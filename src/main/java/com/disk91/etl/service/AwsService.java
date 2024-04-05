@@ -675,7 +675,7 @@ public class AwsService {
                     } catch (InterruptedException x) {x.printStackTrace();}
                 }
             }
-            log.info("Closing iot_poc process thread "+id);
+            log.debug("Closing iot_poc process thread "+id);
         }
     }
 
@@ -721,6 +721,7 @@ public class AwsService {
             ListObjectsV2Result list;
             long totalSize = 0;
             long totalWitness = 0;
+            int notExpectedFile = 0;
             do {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3ObjectSummary> objects = list.getObjectSummaries();
@@ -739,7 +740,14 @@ public class AwsService {
                     String fileName = object.getKey().split("/")[1];
                     int fileType = getFileType(fileName);
                     long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
-                    if ( fileType != 3 ) continue;
+                    if ( fileType != 3 ) {
+                        notExpectedFile++;
+                        if ( notExpectedFile < 5 ) continue;
+                        return; // end of the files
+                    } else {
+                        notExpectedFile = 0; // reset counter
+                    }
+
                     if ( fileDate/1000 < etlConfig.getIotpocHistoryStartDate() ) {
                         iotPocFile.setStringValue(object.getKey());
                         paramRepository.save(iotPocFile);
@@ -995,7 +1003,7 @@ public class AwsService {
 
 
     // Reward are once a day, so no need to search faster than on every 20 minutes
-    @Scheduled(fixedDelay = 3600_000, initialDelay = 13_000)
+    @Scheduled(fixedDelay = 3600_000, initialDelay = 300_000)
     protected void AwsRewardSync() {
         if ( ! hotspotCache.isReady() ) return;
         if ( ! readyToSync || !serviceEnable ) return;
@@ -1276,7 +1284,7 @@ public class AwsService {
 
 
     // Reward are once a day, so no need to search faster than on every 20 minutes
-    @Scheduled(fixedDelay = 7200_000, initialDelay = 13_000)
+    @Scheduled(fixedDelay = 7200_000, initialDelay = 600_000)
     protected void AwsMobileRewardSync() {
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isMobileRewardLoadEnable() ) return;
