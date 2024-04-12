@@ -7,11 +7,20 @@ The choice of MongoDB allows to create a scalable architecture with sharding and
 too large single tenant DB as we have with postgresql.
 
 ### Recommanded HW
-- 96GB RAM server
+- 128GB RAM server
 - 3x or 4x SSD/NVMe units for storage
 
 Works with 64G systems (but have some swap even if memory not fully allocated, 
 use docker-compose and Dockerfile with -64G extension)
+
+It's better to reduce the swappiness parameter to limit swap usage when memory still available 
+```bash
+$ sysctl vm.swappiness=10
+```
+make it permanent by adding the following line to /etc/sysctl.conf
+```bash
+vm.swappiness=10
+```
 
 ### Install
 Tested on Ubuntu 22.04LTS
