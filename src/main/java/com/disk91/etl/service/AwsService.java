@@ -657,25 +657,29 @@ public class AwsService {
             this.status = true;
             log.debug("Starting iot_poc process thread "+id);
             lora_poc_v1 w;
+            long _w = Now.NowUtcMs();
             while ( (w = queue.poll()) != null || pocThreadEnable ) {
                 if ( ! pocThreadEnable ) {
                     // trace shutdown
                     if ( (Now.NowUtcMs() - lastTrace) > 5_000 ) {
-                        log.info("Th(" + id + ") shutting down - still "+queue.size()+" to process");
+                        log.debug("Th(" + id + ") shutting down - still "+queue.size()+" to process");
                         lastTrace = Now.NowUtcMs();
                     }
                 }
                 if ( w != null) {
-                   if (!hotspotCache.addIoTPoC(w, firstFile)) {
+                    _w = Now.NowUtcMs();
+                    if (!hotspotCache.addIoTPoC(w, firstFile)) {
                         log.debug("Th(" + id + ") iotpoc not processed " + w.getBeaconReport().getReceivedTimestamp());
                    }
                 } else {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException x) {x.printStackTrace();}
+                    Now.sleep(10);
+                    if ( (Now.NowUtcMs() - _w) > 30_000 ) {
+                        log.info("Th(" + id + ") iotpoc thread waiting for data");
+                        _w = Now.NowUtcMs();
+                    }
                 }
             }
-            log.debug("Closing iot_poc process thread "+id);
+            log.info("Closing iot_poc process thread "+id);
         }
     }
 
@@ -869,11 +873,14 @@ public class AwsService {
                                     + w.getBeaconReport().getReport().getPubKey().byteAt(6)
                                     + w.getBeaconReport().getReport().getPubKey().byteAt(7);
                             q &= (etlConfig.getIotpocLoadParallelWorkers() - 1);
-                            try {
-                                // when a queue is full just wait, it should be balanced
-                                while (queues[q].size() >= etlConfig.getIotpocLoadParallelQueueSize()) Thread.sleep(2);
-                            } catch (InterruptedException x) {
-                                x.printStackTrace();
+
+                            long _w = Now.NowUtcMs();
+                            while (queues[q].size() >= etlConfig.getIotpocLoadParallelQueueSize()) {
+                                Now.sleep(2);
+                                if ( (Now.NowUtcMs() - _w) > 30_000 ) {
+                                    log.error("Failed to add in queue "+q+" with size "+queues[q].size());
+                                    break;
+                                }
                             }
                             queues[q].add(w);
 
