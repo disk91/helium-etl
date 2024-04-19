@@ -19,6 +19,7 @@
  */
 package fr.ingeniousthings.tools;
 
+import org.openjdk.jol.info.GraphLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
@@ -522,16 +523,16 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
             total++;
         }
 
-        log.info("---------- Cache log (" + this.name + ") -------------");
-        log.info("-- Size    " + this.cacheUsage() + "% "+ this.cacheSize + " / " + this.maxCacheSize);
-        log.info("-- Updated " + toUpdate + " - unsaved: "+unSaved+" / " + total+ " objects");
-        log.info("-- Miss    " + ((totalCacheTry>0)?Math.floor(100.0 * this.cacheMissStat / this.totalCacheTry):"NA") + "% " + this.cacheMissStat + " / " + this.totalCacheTry);
-        log.info("-- Avg Tm  " + ((totalCacheTry>0)?Math.floor(this.totalCacheTime / (double)this.totalCacheTry):"NA") + "ns average");
+        log.info("---------- Cache log ({}) -------------", this.name);
+        log.info("-- Size    {}% {} / {} mem: {}", this.cacheUsage(), this.cacheSize, this.maxCacheSize, GraphLayout.parseInstance(this.cache));
+        log.info("-- Updated {} - unsaved: {} / {} objects", toUpdate, unSaved, total);
+        log.info("-- Miss    {}% {} / {}", (totalCacheTry > 0) ? Math.floor(100.0 * this.cacheMissStat / this.totalCacheTry) : "NA", this.cacheMissStat, this.totalCacheTry);
+        log.info("-- Avg Tm  {}ns average", (totalCacheTry > 0) ? Math.floor(this.totalCacheTime / (double) this.totalCacheTry) : "NA");
         if (this.lastGCMs > 0) {
             if ( this.lastGCDurationMs > 1000 ) {
-                log.info("-- GC      " + (Now.NowUtcMs() - this.lastGCMs) / (60_000) + "m ago, duration " + this.lastGCDurationMs/1000 + "s");
+                log.info("-- GC      {}m ago, duration {}s", (Now.NowUtcMs() - this.lastGCMs) / (60_000),this.lastGCDurationMs/1000);
             } else {
-                log.info("-- GC      " + (Now.NowUtcMs() - this.lastGCMs) / (60_000) + "m ago, duration " + this.lastGCDurationMs + "ms");
+                log.info("-- GC      {}m ago, duration {}ms", (Now.NowUtcMs() - this.lastGCMs) / (60_000),this.lastGCDurationMs);
             }
         } else {
             log.info("-- GC      NEVER" );
