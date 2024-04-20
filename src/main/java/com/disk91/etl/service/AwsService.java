@@ -437,7 +437,7 @@ public class AwsService {
         @SuppressWarnings({"unchecked", "rawtypes"})
         ConcurrentLinkedQueue<lora_witness_ingest_report_v1> queues[] =  new ConcurrentLinkedQueue[etlConfig.getWitnessLoadParallelWorkers()];
         Boolean threadRunning[] = new Boolean[etlConfig.getWitnessLoadParallelWorkers()];
-        Thread threads[] = new Thread[etlConfig.getWitnessLoadParallelWorkers()];
+        Thread[] threads = new Thread[etlConfig.getWitnessLoadParallelWorkers()];
         for ( int q = 0 ; q < etlConfig.getWitnessLoadParallelWorkers() ; q++) {
             queues[q] = new ConcurrentLinkedQueue<lora_witness_ingest_report_v1>();
             threadRunning[q] = Boolean.FALSE;
@@ -618,9 +618,12 @@ public class AwsService {
             while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
                 terminated = true;
                 for (int t = 0; t < etlConfig.getWitnessLoadParallelWorkers(); t++) {
-                    if (threads[t].getState() != Thread.State.TERMINATED) terminated = false;
+                    if (threads[t].getState() != Thread.State.TERMINATED) {
+                        terminated = false;
+                        break;
+                    }
                 }
-                try { Thread.sleep(500); } catch (InterruptedException x ) {};
+                Now.sleep(500) ;
             }
             if ( !terminated ) {
                 log.error("Cancelling Thread before ending enqueing");
@@ -655,31 +658,40 @@ public class AwsService {
         }
         public void run() {
             this.status = true;
-            log.debug("Starting iot_poc process thread "+id);
+            if ( !serviceEnable ) {
+                log.info("Starting iot_poc process thread {}", id);
+            } else {
+                log.debug("Starting iot_poc process thread {}", id);
+            }
             lora_poc_v1 w;
             long _w = Now.NowUtcMs();
+            lastTrace = 0;
             while ( (w = queue.poll()) != null || pocThreadEnable ) {
                 if ( ! pocThreadEnable ) {
                     // trace shutdown
                     if ( (Now.NowUtcMs() - lastTrace) > 5_000 ) {
-                        log.debug("Th(" + id + ") shutting down - still "+queue.size()+" to process");
+                        log.debug("Th({}) shutting down - still {} to process", id, queue.size());
                         lastTrace = Now.NowUtcMs();
                     }
                 }
                 if ( w != null) {
                     _w = Now.NowUtcMs();
                     if (!hotspotCache.addIoTPoC(w, firstFile)) {
-                        log.debug("Th(" + id + ") iotpoc not processed " + w.getBeaconReport().getReceivedTimestamp());
+                        log.info("Th({}) iotpoc not processed {}", id, w.getBeaconReport().getReceivedTimestamp());
                    }
                 } else {
                     Now.sleep(10);
-                    if ( (Now.NowUtcMs() - _w) > 30_000 ) {
-                        log.info("Th(" + id + ") iotpoc thread waiting for data");
+                    if ( (Now.NowUtcMs() - _w) > 60_000 ) {
+                        log.info("Th({}) iotpoc thread waiting for data", id);
                         _w = Now.NowUtcMs();
                     }
                 }
             }
-            log.info("Closing iot_poc process thread "+id);
+            if ( !serviceEnable ) {
+                log.info("Closing iot_poc process thread {}", id);
+            } else {
+                log.debug("Closing iot_poc process thread {}", id);
+            }
         }
     }
 
@@ -825,7 +837,7 @@ public class AwsService {
                                     // in case of IOException Better skip the file
                                     prometeusService.addAwsFailure();
                                     log.error("Failed to process file " + object.getKey() + " at entry " + toProcess.size() + "(" + x.getMessage() + ")");
-                                    if (serviceEnable == false) return;
+                                    if (!serviceEnable) return;
                                     toProcess.clear();
                                     retry++;
                                     break;
@@ -954,9 +966,12 @@ public class AwsService {
             while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
                 terminated = true;
                 for (int t = 0; t < etlConfig.getIotpocLoadParallelWorkers(); t++) {
-                    if (threads[t].getState() != Thread.State.TERMINATED) terminated = false;
+                    if (threads[t].getState() != Thread.State.TERMINATED){
+                        terminated = false;
+                        break;
+                    }
                 }
-                try { Thread.sleep(500); } catch (InterruptedException x ) {};
+                Now.sleep(500);
             }
             if ( !terminated ) {
                 log.error("Cancelling Thread before ending enqueing");
@@ -965,7 +980,7 @@ public class AwsService {
                 runningJobs--;
                 this.runningJobsName.put("Poc", this.runningJobsName.get("Poc")-1);
             }
-            log.info("IoTPoc - exit completed - objects seen "+totalObject);
+            log.info("IoTPoc - exit completed - objects seen {}", totalObject);
 
         }
     }
@@ -1280,9 +1295,7 @@ public class AwsService {
                         else if (w.newReward != null ) log.debug("Th(" + id + ") mobile reward not processed " + w.newReward.getStartPeriod());
                     }
                 } else {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException x) {x.printStackTrace();}
+                    Now.sleep(10);
                 }
             }
             log.debug("Closing mobile rewards process thread "+id);

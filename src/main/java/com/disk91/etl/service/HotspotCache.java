@@ -618,10 +618,10 @@ public class HotspotCache {
     protected ConcurrentLinkedQueue<Beacon> _beaconDelayedInsert = new ConcurrentLinkedQueue<>();
     protected AtomicInteger _beaconDelayedInsertQueueSize = new AtomicInteger(0);
     public void delayedBeaconSave(Beacon b) {
-        if ( _beaconDelayedInsertQueueSize.get() > MIN_BEFORE_BATCH_BEACON_INSERT + 1_000 ) {
+        if ( _beaconDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_BEACON_INSERT + 1_000 ) {
             // force wait when more than 2_000 pending
-            while (_beaconDelayedInsertQueueSize.get() > MIN_BEFORE_BATCH_BEACON_INSERT + 500 ) {
-                try { Thread.sleep(100); } catch (InterruptedException x) {} ;
+            while (_beaconDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_BEACON_INSERT + 500 ) {
+                Now.sleep(100);
             };
         }
         _beaconDelayedInsert.add(b);
@@ -632,7 +632,7 @@ public class HotspotCache {
     @Scheduled(fixedDelay = 2_000, initialDelay = 5_000)
     public void bulkInsertBeacons() {
 
-        while ( _beaconDelayedInsertQueueSize.get() > MIN_BEFORE_BATCH_BEACON_INSERT ) {
+        while ( _beaconDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_BEACON_INSERT ) {
             // extract the Witnesses to process
             ArrayList<Beacon> _toWriteBeacon = new ArrayList<>(_beaconDelayedInsert.size());
             int toRead = _beaconDelayedInsert.size();
@@ -652,20 +652,26 @@ public class HotspotCache {
             }
 
             long start = Now.NowUtcMs();
-            // parallel write performance is between 1ms and 2ms per entry
-            //_toWriteWitness.parallelStream().forEach(witnessesRepository::save);
-            // bulk write performance is between 30ms / 100 => 0.3ms per entry
-            mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(false));
-            BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Beacon.class);
-            bulkInsert.insert(_toWriteBeacon);
-            BulkWriteResult bulkWriteResult = bulkInsert.execute();
-            long duration = Now.NowUtcMs() - start;
-            int hadToSave = _toWriteBeacon.size();
-            _toWriteBeacon.clear();
+            try {
+                // parallel write performance is between 1ms and 2ms per entry
+                //_toWriteWitness.parallelStream().forEach(witnessesRepository::save);
+                // bulk write performance is between 30ms / 100 => 0.3ms per entry
+                mongoTemplate.setWriteConcern(WriteConcern.W1.withJournal(false));
+                BulkOperations bulkInsert = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Beacon.class);
+                bulkInsert.insert(_toWriteBeacon);
+                BulkWriteResult bulkWriteResult = bulkInsert.execute();
+                long duration = Now.NowUtcMs() - start;
+                int hadToSave = _toWriteBeacon.size();
 
-            if ( _beaconDelayedInsertQueueSize.get() > MIN_BEFORE_BATCH_BEACON_INSERT ) {
-                log.warn("bulkInsertBeacons going slow ! "+_beaconDelayedInsertQueueSize.get()+" pending");
-                log.warn("bulkInsertBeacons saves "+hadToSave+" in "+duration+"ms "+duration/(hadToSave/100.0)+"ms/ 100 units");
+                if ( _beaconDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_BEACON_INSERT ) {
+                    log.warn("bulkInsertBeacons going slow ! {} pending", _beaconDelayedInsertQueueSize.get());
+                    log.warn("bulkInsertBeacons saves {} in {}ms {}ms/ 100 units", hadToSave, duration, duration / (hadToSave / 100.0));
+                }
+
+            } catch ( MongoBulkWriteException x ) {
+                log.error("Error during beacon write {}", x.getMessage());
+            } finally {
+                _toWriteBeacon.clear();
             }
 
         }
@@ -677,20 +683,17 @@ public class HotspotCache {
     private boolean flushInsertBeacon() {
         // refuse it scheduled process has reason to start
         int loops = 0;
-        while ( _beaconDelayedInsert.size() > MIN_BEFORE_BATCH_BEACON_INSERT && loops < 100 ) {
-            try {
-                Thread.sleep(500);
-            } catch ( InterruptedException x ) {};
+        while ( _beaconDelayedInsert.size() > MIN_BEFORE_BATCH_BEACON_INSERT && loops < 300 ) {
+            Now.sleep(1000);
             loops++;
         }
-        if ( loops < 100) {
+        if (!_beaconDelayedInsert.isEmpty()) {
+            log.info("flushInsertBeacon - pending {}",_beaconDelayedInsert.size());
             _beaconDelayedInsert.parallelStream().forEach(beaconsRepository::save);
             _beaconDelayedInsertQueueSize.set(0);
-            log.info("flushInsertBeacon - completed");
-            return true;
         }
-        log.error("flushInsertBeacon - failed "+_beaconDelayedInsert.size()+" pending");
-        return false;
+        log.info("flushInsertBeacon - completed");
+        return true;
     }
 
 
@@ -700,10 +703,10 @@ public class HotspotCache {
     protected AtomicInteger _witnessDelayedInsertQueueSize = new AtomicInteger(0);
 
     public void delayedWitnessSave(com.disk91.etl.data.object.Witness b) {
-        if ( _witnessDelayedInsertQueueSize.get() > MIN_BEFORE_BATCH_WITNESS_INSERT + 5_000 ) {
-            // force wait when more than 10_000 pending
-            while ( _witnessDelayedInsertQueueSize.get() > MIN_BEFORE_BATCH_WITNESS_INSERT + 4_000 ) {
-                try { Thread.sleep(100); } catch (InterruptedException x) {} ;
+        if ( _witnessDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_WITNESS_INSERT + 5_000 ) {
+            // force wait when more than 10_000 pending and until we ger 8_000
+            while ( _witnessDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_WITNESS_INSERT + 3_000 ) {
+                Now.sleep(100);
             };
         }
         _witnessDelayedInsert.add(b);
@@ -735,7 +738,7 @@ public class HotspotCache {
                 // all read, resync the counter
                 _witnessDelayedInsertQueueSize.set(0);
             }
-            // this may re-open the queue registration
+            // this may re-open the queue registration ( as soon as the _witnessDelayedInsertQueueSize has changed )
 
 
             long start = Now.NowUtcMs();
@@ -752,11 +755,11 @@ public class HotspotCache {
                 int hadToSave = _toWriteWitness.size();
 
                 if (_witnessDelayedInsertQueueSize.get() > MIN_BEFORE_BATCH_WITNESS_INSERT) {
-                    log.warn("bulkInsertWitness going slow ! " + _witnessDelayedInsertQueueSize.get() + " pending");
-                    log.warn("bulkInsertWitness saves " + hadToSave + " in " + duration + "ms " + duration / (hadToSave / 100.0) + "ms/ 100 units");
+                    log.warn("bulkInsertWitness going slow ! {} pending", _witnessDelayedInsertQueueSize.get());
+                    log.warn("bulkInsertWitness saves {} in {}ms {}ms/ 100 units", hadToSave, duration, duration / (hadToSave / 100.0));
                 }
             } catch ( MongoBulkWriteException x ) {
-                log.error("Error during witness write "+x.getMessage());
+                log.error("Error during witness write {}", x.getMessage());
             } finally {
                 _toWriteWitness.clear();
             }
@@ -768,20 +771,17 @@ public class HotspotCache {
     private boolean flushInsertWitness() {
         // refuse it scheduled process has reason to start
         int loops = 0;
-        while ( _witnessDelayedInsert.size() > MIN_BEFORE_BATCH_WITNESS_INSERT && loops < 100 ) {
-           try {
-               Thread.sleep(500);
-           } catch ( InterruptedException x ) {};
+        while ( _witnessDelayedInsert.size() > MIN_BEFORE_BATCH_WITNESS_INSERT && loops < 300 ) {
+           Now.sleep(1000);
            loops++;
         }
-        if ( loops < 100) {
+        if ( !_witnessDelayedInsert.isEmpty() ) {
+            log.info("flushInsertWitness - pending {}",_witnessDelayedInsert.size());
             _witnessDelayedInsert.parallelStream().forEach(witnessesRepository::save);
             _witnessDelayedInsertQueueSize.set(0);
-            log.info("flushInsertWitness - completed");
-            return true;
         }
-        log.error("flushInsertWitness - failed "+_witnessDelayedInsert.size()+" pending");
-        return false;
+        log.info("flushInsertWitness - completed");
+        return true;
     }
 
     // ======================================================
@@ -806,7 +806,7 @@ public class HotspotCache {
                     beacon.getReport().getTimestamp()
             );
             // already processed
-            if ( b != null ) return false;
+            if ( b != null ) return true;
         }
 
         // init the hexScale & update the gateway info
@@ -913,7 +913,7 @@ public class HotspotCache {
 
             // Add beaconner to witnessed
             witnessed.addWitness(
-                    hsBeaconerId,
+                    beaconner.getHotspotId(),
                     v.getReport().getTimestamp(),
                     v.getReport().getSignal()/10.0,
                     v.getReport().getSnr()/10.0,
@@ -988,7 +988,7 @@ public class HotspotCache {
 
             // Add beaconner to witnessed
             witnessed.addWitness(
-                    hsBeaconerId,
+                    beaconner.getHotspotId(),
                     v.getReport().getTimestamp(),
                     v.getReport().getSignal()/10.0,
                     v.getReport().getSnr()/10.0,
