@@ -14,9 +14,9 @@ services:
       - AWS_ACCESS_KEY=
       - AWS_SECRET_KEY=
       - SOLANA_APIKEY=
-    mem_limit: 64000m
-    memswap_limit: 64000m
-    mem_reservation: 64000m
+    mem_limit: 72000m
+    memswap_limit: 72000m
+    mem_reservation: 72000m
     ports:
       - 127.0.0.1:8091:8091
     profiles:

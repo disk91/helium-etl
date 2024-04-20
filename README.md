@@ -13,6 +13,18 @@ too large single tenant DB as we have with postgresql.
 Works with 64G systems (but have some swap even if memory not fully allocated, 
 use docker-compose and Dockerfile with -64G extension)
 
+It's important to enable swap account in kernel otherwise docker limits will not be applied
+for swap and the system will start swapping as soon as the memory limit is reached. We don't want
+java process to swap as the performance with GC become catastrophic.
+
+```bash
+$ vi /etc/default/grub
+...
+GRUB_CMDLINE_LINUX_DEFAULT="swapaccount=1"
+...
+$ update-grub
+```
+
 It's better to reduce the swappiness parameter to limit swap usage when memory still available 
 ```bash
 $ sysctl vm.swappiness=10
