@@ -522,9 +522,14 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
             if (c.isUnsaved()) unSaved++;
             total++;
         }
+        long sz = 0;
+        try {
+            sz = GraphLayout.parseInstance(this.cache).totalSize() / ( 1024*1024 );
+        } catch (Exception ignored) {
+        }
 
         log.info("---------- Cache log ({}) -------------", this.name);
-        log.info("-- Size    {}% {} / {} mem: {}", this.cacheUsage(), this.cacheSize, this.maxCacheSize, GraphLayout.parseInstance(this.cache));
+        log.info("-- Size    {}% {} / {} mem: {}MB", this.cacheUsage(), this.cacheSize, this.maxCacheSize, sz);
         log.info("-- Updated {} - unsaved: {} / {} objects", toUpdate, unSaved, total);
         log.info("-- Miss    {}% {} / {}", (totalCacheTry > 0) ? Math.floor(100.0 * this.cacheMissStat / this.totalCacheTry) : "NA", this.cacheMissStat, this.totalCacheTry);
         log.info("-- Avg Tm  {}ns average", (totalCacheTry > 0) ? Math.floor(this.totalCacheTime / (double) this.totalCacheTry) : "NA");
