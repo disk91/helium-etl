@@ -523,10 +523,12 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
             total++;
         }
         long sz = 0;
+        /*
         try {
             sz = GraphLayout.parseInstance(this.cache).totalSize() / ( 1024*1024 );
         } catch (Exception ignored) {
         }
+        */
 
         log.info("---------- Cache log ({}) -------------", this.name);
         log.info("-- Size    {}% {} / {} mem: {}MB", this.cacheUsage(), this.cacheSize, this.maxCacheSize, sz);

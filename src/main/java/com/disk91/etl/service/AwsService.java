@@ -665,6 +665,7 @@ public class AwsService {
             }
             lora_poc_v1 w;
             long _w = Now.NowUtcMs();
+            boolean hadOneDataProcessed = false;
             lastTrace = 0;
             while ( (w = queue.poll()) != null || pocThreadEnable ) {
                 if ( ! pocThreadEnable ) {
@@ -676,12 +677,13 @@ public class AwsService {
                 }
                 if ( w != null) {
                     _w = Now.NowUtcMs();
+                    hadOneDataProcessed = true;
                     if (!hotspotCache.addIoTPoC(w, firstFile)) {
                         log.info("Th({}) iotpoc not processed {}", id, w.getBeaconReport().getReceivedTimestamp());
                    }
                 } else {
                     Now.sleep(10);
-                    if ( (Now.NowUtcMs() - _w) > 60_000 ) {
+                    if ( (Now.NowUtcMs() - _w) > 60_000 && hadOneDataProcessed ) {
                         log.info("Th({}) iotpoc thread waiting for data", id);
                         _w = Now.NowUtcMs();
                     }
@@ -899,7 +901,7 @@ public class AwsService {
                             // print progress log on regular basis
                             if ((Now.NowUtcMs() - lastLog) > 30_000) {
                                 long distance = Now.NowUtcMs() - fileDate;
-                                log.info("IoTPoc Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days,fpro : "+current+"/"+toProcess.size()+" tObject: " + totalObject + " tPoc: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                log.info("IoTPoc Dist: " + Math.floor(10*distance / Now.ONE_FULL_DAY)/10.0 + " days,fpro : "+current+"/"+toProcess.size()+" tObject: " + totalObject + " tPoc: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
                                 lastLog = Now.NowUtcMs();
                             }
                             // print process state on exit request
