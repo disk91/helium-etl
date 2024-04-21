@@ -620,8 +620,14 @@ public class HotspotCache {
     public void delayedBeaconSave(Beacon b) {
         if ( _beaconDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_BEACON_INSERT + 1_000 ) {
             // force wait when more than 2_000 pending
+            long waitTime = Now.NowUtcMs();
             while (_beaconDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_BEACON_INSERT + 500 ) {
                 Now.sleep(100);
+                if ( (Now.NowUtcMs() - waitTime) > 300_000 ) {
+                    log.error("delayedBeaconSave - locked ! with {} vs {}", _beaconDelayedInsertQueueSize.get(), _beaconDelayedInsert.size());
+                    waitTime = Now.NowUtcMs();
+                }
+
             };
         }
         _beaconDelayedInsert.add(b);
@@ -705,8 +711,13 @@ public class HotspotCache {
     public void delayedWitnessSave(com.disk91.etl.data.object.Witness b) {
         if ( _witnessDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_WITNESS_INSERT + 5_000 ) {
             // force wait when more than 10_000 pending and until we ger 8_000
+            long waitTime = Now.NowUtcMs();
             while ( _witnessDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_WITNESS_INSERT + 3_000 ) {
                 Now.sleep(100);
+                if ( (Now.NowUtcMs() - waitTime) > 300_000 ) {
+                    log.error("delayedWitnessSave - locked ! with {} vs {}", _witnessDelayedInsertQueueSize.get(), _witnessDelayedInsert.size());
+                    waitTime = Now.NowUtcMs();
+                }
             };
         }
         _witnessDelayedInsert.add(b);
