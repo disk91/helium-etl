@@ -626,7 +626,7 @@ public class AwsService {
                 Now.sleep(500) ;
             }
             if ( !terminated ) {
-                log.error("Cancelling Thread before ending enqueing");
+                log.error("Cancelling Witness Thread before ending enqueing");
             }
             synchronized (locker) {
                 runningJobs--;
@@ -965,18 +965,27 @@ public class AwsService {
             this.pocThreadEnable = false;
             boolean terminated = false;
             long waitStart = Now.NowUtcMs();
-            while ( !terminated && ((Now.NowUtcMs() - waitStart) < 600_000 )) {
+            long traceMs = Now.NowUtcMs();
+            while ( !terminated && ((Now.NowUtcMs() - waitStart) < 1200_000 )) {
                 terminated = true;
+                if ( (Now.NowUtcMs() - traceMs) > 60_000 ) {
+                    for (int t = 0; t < etlConfig.getIotpocLoadParallelWorkers(); t++) {
+                        if (threads[t].getState() != Thread.State.TERMINATED){
+                            log.debug("Th({}) still running with pending {} entries", t,queues[t].size());
+                        }
+                    }
+                    traceMs = Now.NowUtcMs();
+                }
                 for (int t = 0; t < etlConfig.getIotpocLoadParallelWorkers(); t++) {
                     if (threads[t].getState() != Thread.State.TERMINATED){
                         terminated = false;
                         break;
                     }
                 }
-                Now.sleep(500);
+                Now.sleep(1000);
             }
             if ( !terminated ) {
-                log.error("Cancelling Thread before ending enqueing");
+                log.error("Cancelling IoT Thread before ending enqueuing");
             }
             synchronized (locker) {
                 runningJobs--;

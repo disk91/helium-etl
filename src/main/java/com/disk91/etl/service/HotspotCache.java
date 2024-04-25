@@ -715,10 +715,11 @@ public class HotspotCache {
             while ( _witnessDelayedInsertQueueSize.get() >= MIN_BEFORE_BATCH_WITNESS_INSERT + 3_000 ) {
                 Now.sleep(100);
                 if ( (Now.NowUtcMs() - waitTime) > 300_000 ) {
-                    log.error("delayedWitnessSave - locked ! with {} vs {}", _witnessDelayedInsertQueueSize.get(), _witnessDelayedInsert.size());
+                    log.warn("delayedWitnessSave - thread locked ! with {} vs {}", _witnessDelayedInsertQueueSize.get(), _witnessDelayedInsert.size());
                     waitTime = Now.NowUtcMs();
                 }
-            };
+            }
+            log.info("delayedWitnessSave - thread unlocked");
         }
         _witnessDelayedInsert.add(b);
         _witnessDelayedInsertQueueSize.addAndGet(1);
@@ -744,7 +745,8 @@ public class HotspotCache {
                 // exit due to cnt == toRead but we can have a last value polled
                 _toWriteWitness.add(w);
                 cnt++;
-                _witnessDelayedInsertQueueSize.addAndGet(-cnt);
+                if ( _witnessDelayedInsertQueueSize.get() > cnt ) _witnessDelayedInsertQueueSize.addAndGet(-cnt);
+                else _witnessDelayedInsertQueueSize.set(0);
             } else {
                 // all read, resync the counter
                 _witnessDelayedInsertQueueSize.set(0);
