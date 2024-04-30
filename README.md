@@ -7,7 +7,7 @@ The choice of MongoDB allows to create a scalable architecture with sharding and
 too large single tenant DB as we have with postgresql.
 
 ### Recommanded HW
-- 128GB RAM server
+- 160-256GB RAM server
 - 3x or 4x SSD/NVMe units for storage
 
 Works with 64G systems (but have some swap even if memory not fully allocated, 
