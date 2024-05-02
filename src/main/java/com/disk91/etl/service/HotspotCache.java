@@ -1014,15 +1014,15 @@ public class HotspotCache {
             );
             // mark as updated
             this.updateHotspot(witnessed);
-
         }
         this.updateHotspot(beaconner);
 
         // Update the invalid witnesses
         if ( ! etlConfig.isWitnessLoadEnable() && etlConfig.isIotpocLoadUnselected() ) {
             for (lora_verified_witness_report_v1 v : unselected) {
-                order++;
+                long wstart = Now.NowUtcMs();
 
+                order++;
                 String witnesserId = HeliumHelper.pubAddressToName(v.getReport().getPubKey());
                 //Hotspot witnessed = this.getHotspot(witnesserId, true);
 
@@ -1048,6 +1048,9 @@ public class HotspotCache {
                     this.witnessTopTs = v.getReceivedTimestamp();
                 }
                 if ( wi.isValid() ) prometeusService.addValidWitnessProcessed();
+
+                prometeusService.addWitnessProcessed();
+                prometeusService.addWitnessProcessedTime(Now.NowUtcMs()-wstart);
             }
         }
 
