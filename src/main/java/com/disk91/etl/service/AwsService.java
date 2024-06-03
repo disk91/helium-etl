@@ -811,17 +811,31 @@ public class AwsService {
                     retry = 0;
                     ArrayList<lora_poc_v1> toProcess = new ArrayList<>();
                     while ( ! readOk && retry < 10 ) {
-                        final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
-                        or.setRequesterPays(true);
-                        S3Object fileObject = this.s3Client.getObject(or);
+
+                        File localFile = new File("./files/" + fileName);
+                        if (!localFile.exists() || localFile.length() != object.getSize() ) {
+                            if ( localFile.exists() ) {
+                                log.debug("Re-Download from S3: "+fileName);
+                                localFile.delete();
+                            }
+                            // read it on Amazon, then it exists
+                            final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
+                            or.setRequesterPays(true);
+                            this.s3Client.getObject(or, localFile);
+
+                        } else {
+                            log.debug("Use local file: "+fileName);
+                        }
 
                         GZIPInputStream stream = null;
                         BufferedInputStream bufferedInputStream = null;
                         try {
+                            FileInputStream localfileInputStream = new FileInputStream(localFile);
+
                             // File is GZiped Version of a stream of protobuf messages
                             // each protobuf messages is encapsulated with a header
                             // int4 containing the length of the protobuf message following.
-                            stream = new GZIPInputStream(fileObject.getObjectContent());
+                            stream = new GZIPInputStream(localfileInputStream);
                             bufferedInputStream = new BufferedInputStream(stream);
                             while (bufferedInputStream.available() > 0) {
                                 try {
@@ -1113,17 +1127,31 @@ public class AwsService {
                     ArrayList<iot_reward_share> toProcess = new ArrayList<>();
                     while ( ! readOk && retry < 10 ) {
 
-                        final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
-                        or.setRequesterPays(true);
-                        S3Object fileObject = this.s3Client.getObject(or);
+                        File localFile = new File("./files/" + fileName);
+                        if (!localFile.exists() || localFile.length() != object.getSize() ) {
+                            if ( localFile.exists() ) {
+                                log.debug("Re-Download from S3: "+fileName);
+                                localFile.delete();
+                            }
+                            // read it on Amazon, then it exists
+                            final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
+                            or.setRequesterPays(true);
+                            this.s3Client.getObject(or, localFile);
+
+                        } else {
+                            log.debug("Use local file: "+fileName);
+                        }
+
                         GZIPInputStream stream = null;
                         BufferedInputStream bufferedInputStream = null;
 
                         try {
+                            FileInputStream localfileInputStream = new FileInputStream(localFile);
+
                             // File is GZiped Version of a stream of protobuf messages
                             // each protobuf messages is encapsulated with a header
                             // int4 containing the length of the protobuf message following.
-                            stream = new GZIPInputStream(fileObject.getObjectContent());
+                            stream = new GZIPInputStream(localfileInputStream);
                             bufferedInputStream = new BufferedInputStream(stream);
                             while (bufferedInputStream.available() > 0) {
                                 try {
@@ -1400,17 +1428,31 @@ public class AwsService {
                     ArrayList<MobileReward> toProcess = new ArrayList<>();
                     while ( ! readOk && retry < 10 ) {
 
-                        final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
-                        or.setRequesterPays(true);
-                        S3Object fileObject = this.s3Client.getObject(or);
+                        File localFile = new File("./files/" + fileName);
+                        if (!localFile.exists() || localFile.length() != object.getSize() ) {
+                            if ( localFile.exists() ) {
+                                log.debug("Re-Download from S3: "+fileName);
+                                localFile.delete();
+                            }
+                            // read it on Amazon, then it exists
+                            final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
+                            or.setRequesterPays(true);
+                            this.s3Client.getObject(or, localFile);
+
+                        } else {
+                            log.debug("Use local file: "+fileName);
+                        }
+
                         GZIPInputStream stream = null;
                         BufferedInputStream bufferedInputStream = null;
 
                         try {
+                            FileInputStream localfileInputStream = new FileInputStream(localFile);
+                            
                             // File is GZiped Version of a stream of protobuf messages
                             // each protobuf messages is encapsulated with a header
                             // int4 containing the length of the protobuf message following.
-                            stream = new GZIPInputStream(fileObject.getObjectContent());
+                            stream = new GZIPInputStream(localfileInputStream);
                             bufferedInputStream = new BufferedInputStream(stream);
                             while (bufferedInputStream.available() > 0) {
                                 try {

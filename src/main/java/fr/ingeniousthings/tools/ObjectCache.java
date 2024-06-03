@@ -219,7 +219,9 @@ public abstract class ObjectCache<K, T extends ClonnableObject<T>> {
 
             if ( ! inClean ) {
                 this.total100CacheTry++;
+                // we only count duration after the first 100 call (warming)
                 if (this.total100CacheTry >= 100) this.total100CacheTime += (Now.NanoTime() - start);
+                // we get a measure once we reach 5000 samples
                 if (this.total100CacheTry >= 5_000) {
                     // average situation... when above 2ms, better not use the cache !
                     // forget the 100 first request as the creation can be really long
