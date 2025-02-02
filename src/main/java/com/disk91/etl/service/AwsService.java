@@ -50,10 +50,16 @@ public class AwsService {
 
     // static final String REWARD_FIRST_OBJECT = "foundation-iot-verified-rewards/gateway_reward_share.1674766530034.gz";
     static final String REWARD_FIRST_OBJECT = "foundation-iot-verified-rewards/iot_reward_share.1674766530034.gz";
+    static final String REWARD_LAST_OBJECT = "foundation-iot-verified-rewards/iot_reward_share.1738114331931.gz";
+    static final String IOT_HNTREWARD_FIRST_OBJECT = "foundation-iot-verified-rewards/iot_network_reward_shares_v1.1738114331931.gz";
+
 
     static final String MOBILE_REWARD_FIRST_OBJECT = "foundation-mobile-verified/radio_reward_share.1674766530034.gz";
     static final String MOBILE_REWARD_LAST_OBJECT = "foundation-mobile-verified/radio_reward_share.1686188007722.gz";
     static final String MOBILE_REWARD_FIRST_NEW_OBJECT = "foundation-mobile-verified/mobile_reward_share.1686100000000.gz";
+    static final String MOBILE_REWARD_LAST_NEW_OBJECT = "foundation-mobile-verified/mobile_reward_share.1738114909254.gz";
+
+    static final String MOBILE_HNTREWARD_FIRST_OBJECT = "foundation-mobile-verified/mobile_network_reward_shares_v1.1738114909254.gz";
 
 
 

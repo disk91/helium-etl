@@ -8,6 +8,7 @@ public class RewardHistory implements ClonnableObject<RewardHistory> {
     private long witnessReward;
     private long beaconReward;
     private long dataReward;
+    private int token = 0;  // 0 for native token, 1 for HNT
 
     // ---------
 
@@ -17,6 +18,7 @@ public class RewardHistory implements ClonnableObject<RewardHistory> {
         c.setWitnessReward(witnessReward);
         c.setBeaconReward(beaconReward);
         c.setDataReward(dataReward);
+        c.setToken(token);
         return c;
     }
 
@@ -55,5 +57,13 @@ public class RewardHistory implements ClonnableObject<RewardHistory> {
 
     public void setDataReward(long dataReward) {
         this.dataReward = dataReward;
+    }
+
+    public int getToken() {
+        return token;
+    }
+
+    public void setToken(int token) {
+        this.token = token;
     }
 }

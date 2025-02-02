@@ -30,6 +30,10 @@ public class MobileReward implements ClonnableObject<MobileReward> {
     private long startPeriod;
     private long endPeriod;
 
+    // Used to indicate the token type
+    // 0 for Mobile, 1 for HNT
+    private int token = 0;
+
     private long radioPocReward = 0;
     private long radioCovergePoint = 0;
     private long dcTransferReward = 0;
@@ -64,6 +68,7 @@ public class MobileReward implements ClonnableObject<MobileReward> {
         c.setUnallocatedService(unallocatedService);
         c.setUnallocatedOracle(unallocatedOracle);
         c.setUnallocatedData(unallocatedData);
+        c.setToken(token);
         return c;
     }
 
@@ -214,5 +219,13 @@ public class MobileReward implements ClonnableObject<MobileReward> {
 
     public void setUnallocatedData(long unallocatedData) {
         this.unallocatedData = unallocatedData;
+    }
+
+    public int getToken() {
+        return token;
+    }
+
+    public void setToken(int token) {
+        this.token = token;
     }
 }

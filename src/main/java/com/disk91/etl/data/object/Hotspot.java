@@ -67,8 +67,11 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     private long sumRewardBeacon;
     private long sumRewardWitness;
-
     private long sumRewardDc;
+
+    private long sumRewardHntBeacon = 0;
+    private long sumRewardHntWitness = 0;
+    private long sumRewardHntDc = 0;
 
     private long offsetReward;
 
@@ -128,12 +131,18 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         this.owner.setTimeMs(time);
     }
 
-    synchronized public void updateReward(long tm, long beacon, long witness, long dcs) {
+    synchronized public void updateReward(long tm, long beacon, long witness, long dcs, int token) {
         this.lastReward = tm;
         if ( this.firstSeen == 0 ) this.firstSeen = tm;
-        this.sumRewardBeacon += beacon;
-        this.sumRewardWitness += witness;
-        this.sumRewardDc += dcs;
+        if ( token == 0 ) {
+            this.sumRewardBeacon += beacon;
+            this.sumRewardWitness += witness;
+            this.sumRewardDc += dcs;
+        } else if (token == 1) {
+            this.sumRewardHntBeacon += beacon;
+            this.sumRewardHntWitness += witness;
+            this.sumRewardHntDc += dcs;
+        }
 
         if ( dcs > 0 ) {
             this.lastDataReward = tm;
@@ -420,6 +429,9 @@ public class Hotspot implements ClonnableObject<Hotspot> {
         c.setSumRewardBeacon(sumRewardBeacon);
         c.setSumRewardWitness(sumRewardWitness);
         c.setSumRewardDc(sumRewardDc);
+        c.setSumRewardHntBeacon(sumRewardHntBeacon);
+        c.setSumRewardHntWitness(sumRewardHntWitness);
+        c.setSumRewardHntDc(sumRewardHntDc);
         c.setOffsetReward(offsetReward);
         c.setBrand(brand);
         c.setInDenyList(inDenyList);
@@ -718,5 +730,29 @@ public class Hotspot implements ClonnableObject<Hotspot> {
 
     public void setLastErrorCause(List<Integer> lastErrorCause) {
         this.lastErrorCause = lastErrorCause;
+    }
+
+    public long getSumRewardHntBeacon() {
+        return sumRewardHntBeacon;
+    }
+
+    public void setSumRewardHntBeacon(long sumRewardHntBeacon) {
+        this.sumRewardHntBeacon = sumRewardHntBeacon;
+    }
+
+    public long getSumRewardHntWitness() {
+        return sumRewardHntWitness;
+    }
+
+    public void setSumRewardHntWitness(long sumRewardHntWitness) {
+        this.sumRewardHntWitness = sumRewardHntWitness;
+    }
+
+    public long getSumRewardHntDc() {
+        return sumRewardHntDc;
+    }
+
+    public void setSumRewardHntDc(long sumRewardHntDc) {
+        this.sumRewardHntDc = sumRewardHntDc;
     }
 }

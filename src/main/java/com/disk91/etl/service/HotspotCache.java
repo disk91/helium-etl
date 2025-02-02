@@ -1071,13 +1071,13 @@ public class HotspotCache {
     @Autowired
     protected RewardRepository rewardRepository;
 
-    public boolean addReward(iot_reward_share r) {
+    public boolean addReward(iot_reward_share r, int token) {
         long start = Now.NowUtcMs();
 
         String hsId = HeliumHelper.pubAddressToName(r.getGatewayReward().getHotspotKey());
         Hotspot rewarded = this.getHotspot(hsId, true);
         if( r.getStartPeriod()*1000 > rewarded.getLastReward() ) {
-            rewarded.updateReward(r.getStartPeriod()*1000,r.getGatewayReward().getBeaconAmount(),r.getGatewayReward().getWitnessAmount(),r.getGatewayReward().getDcTransferAmount());
+            rewarded.updateReward(r.getStartPeriod()*1000,r.getGatewayReward().getBeaconAmount(),r.getGatewayReward().getWitnessAmount(),r.getGatewayReward().getDcTransferAmount(), token);
             this.updateHotspot(rewarded);
 
             // add the Reward data
@@ -1085,6 +1085,7 @@ public class HotspotCache {
             _r.setHotspotId(hsId);
             _r.setStartPeriod(r.getStartPeriod()*1000);
             _r.setEndPeriod(r.getEndPeriod()*1000);
+            _r.setToken(token);
             _r.setWitnessAmount(r.getGatewayReward().getWitnessAmount());
             _r.setBeaconAmount(r.getGatewayReward().getBeaconAmount());
             _r.setDcTransferAmount(r.getGatewayReward().getDcTransferAmount());
@@ -1145,7 +1146,7 @@ public class HotspotCache {
     protected MobileRewardRepository mobileRewardRepository;
 
     protected static final String BLANCK_KEY = "00000000000000000000000000000000";
-    public boolean addMobileReward(AwsService.MobileReward r) {
+    public boolean addMobileReward(AwsService.MobileReward r, int token) {
         long start = Now.NowUtcMs();
 
         MobileReward mr = new MobileReward();
@@ -1162,6 +1163,7 @@ public class HotspotCache {
         } else if ( r.newReward != null ) {
             mr.setStartPeriod(r.newReward.getStartPeriod()*1000);
             mr.setEndPeriod(r.newReward.getEndPeriod()*1000);
+            mr.setToken(token);
             if ( r.newReward.hasRadioReward() ) {
                 mr.setHotspotId(HeliumHelper.pubAddressToName(r.newReward.getRadioReward().getHotspotKey()));
                 mr.setOwnerId(BLANCK_KEY);

@@ -39,6 +39,10 @@ public class Reward implements ClonnableObject<Reward> {
     private long startPeriod;
     private long endPeriod;
 
+    // Used to indicate the token type
+    // 0 for IoT, 1 for HNT
+    private int token = 0;
+
     private long beaconAmount;
     private long witnessAmount;
 
@@ -55,6 +59,7 @@ public class Reward implements ClonnableObject<Reward> {
         c.setBeaconAmount(beaconAmount);
         c.setWitnessAmount(witnessAmount);
         c.setDcTransferAmount(dcTransferAmount);
+        c.setToken(token);
         return c;
     }
 
@@ -125,5 +130,13 @@ public class Reward implements ClonnableObject<Reward> {
 
     public void setDcTransferAmount(long dcTransferAmount) {
         this.dcTransferAmount = dcTransferAmount;
+    }
+
+    public int getToken() {
+        return token;
+    }
+
+    public void setToken(int token) {
+        this.token = token;
     }
 }
