@@ -206,9 +206,13 @@ public class AwsService {
             return 3;
         } else if ( fileName.startsWith("iot_reward") ) {
             return 4;
+        } else if ( fileName.startsWith("iot_network_reward") ) {
+            return 4;
         } else if ( fileName.startsWith("radio_reward") ) {
             return 5;
         } else if ( fileName.startsWith("mobile_reward") ) {
+            return 6;
+        } else if ( fileName.startsWith("mobile_network_reward") ) {
             return 6;
         } else if ( fileName.startsWith("gateway_reward") ) {
            // log.info("Found gateway_reward file "+fileName);
