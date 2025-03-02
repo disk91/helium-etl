@@ -1064,11 +1064,6 @@ public class AwsService {
         if ( ! etlConfig.isRewardLoadEnable() ) return;
         log.info("Running AwsRewardService Sync");
 
-        // switch to the new files
-        if ( rewardPocFile.getStringValue() != null && rewardPocFile.getStringValue().compareToIgnoreCase(REWARD_LAST_OBJECT) == 0 ) {
-            rewardPocFile.setStringValue(IOT_HNTREWARD_FIRST_OBJECT);
-        }
-
         synchronized (locker) {
             this.runningJobs++;
             this.runningJobsName.merge("IoTRew", 1, Integer::sum);
@@ -1093,6 +1088,15 @@ public class AwsService {
 
         long totalObject = 0;
         try {
+            // switch to the new files
+            if ( rewardPocFile.getStringValue() != null && rewardPocFile.getStringValue().compareToIgnoreCase(REWARD_LAST_OBJECT) == 0 ) {
+                log.info("HNT IoT Reward - switching files");
+                rewardPocFile.setStringValue(IOT_HNTREWARD_FIRST_OBJECT);
+            }
+            if ( rewardPocFile.getStringValue().contains("shares_v1") ) {
+                currentIoTTokenIsHnt = true;
+            }
+
             final ListObjectsV2Request lor = new ListObjectsV2Request();
             lor.setBucketName(etlConfig.getAwsBucketName());
             lor.setPrefix("foundation-iot-verified-rewards");
@@ -1106,6 +1110,7 @@ public class AwsService {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3ObjectSummary> objects = list.getObjectSummaries();
                 for (S3ObjectSummary object : objects) {
+                    log.info(">> Found IoT Reward file {} with size {}", object.getKey(), object.getSize());
                     long cSize = object.getSize();
                     long rSize = 0;
                     totalObject++;
@@ -1125,9 +1130,6 @@ public class AwsService {
                         return; // end of the files
                     } else {
                         notExpectedFile = 0; // reset counter
-                    }
-                    if ( object.getKey().contains("shares_v1") ) {
-                        currentIoTTokenIsHnt = true;
                     }
 
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
@@ -1185,13 +1187,13 @@ public class AwsService {
                                     // in case of IOException Better skip the file
                                     prometeusService.addAwsFailure();
                                     log.error("Failed to process file {} {}", object.getKey(), x.getMessage());
-                                    if (serviceEnable == false) return;
+                                    if (!serviceEnable) return;
                                     toProcess.clear();
                                     retry++;
                                     break;
                                 } catch (Exception x) {
                                     log.error("AwsRewardSync - {}", x.getMessage());
-                                    if (serviceEnable == false) return;
+                                    if (!serviceEnable) return;
                                     x.printStackTrace();
                                     toProcess.clear();
                                     retry++;
@@ -1368,11 +1370,6 @@ public class AwsService {
         if ( ! etlConfig.isMobileRewardLoadEnable() ) return;
         log.info("Running AwsMobileRewardService Sync");
 
-        // switch to the new files
-        if ( mobileRewardFile.getStringValue() != null && mobileRewardFile.getStringValue().compareToIgnoreCase(MOBILE_REWARD_LAST_NEW_OBJECT) == 0 ) {
-            mobileRewardFile.setStringValue(MOBILE_HNTREWARD_FIRST_OBJECT);
-        }
-
         synchronized (locker) {
             this.runningJobs++;
             this.runningJobsName.merge("MobileRew", 1, Integer::sum);
@@ -1385,9 +1382,9 @@ public class AwsService {
 
         // Create queues for parallelism
         @SuppressWarnings({"unchecked", "rawtypes"})
-        ConcurrentLinkedQueue<MobileReward> queues[] =  new ConcurrentLinkedQueue[etlConfig.getMobileRewardLoadParallelWorkers()];
-        Boolean threadRunning[] = new Boolean[etlConfig.getMobileRewardLoadParallelWorkers()];
-        Thread threads[] = new Thread[etlConfig.getMobileRewardLoadParallelWorkers()];
+        ConcurrentLinkedQueue<MobileReward>[] queues =  new ConcurrentLinkedQueue[etlConfig.getMobileRewardLoadParallelWorkers()];
+        Boolean[] threadRunning = new Boolean[etlConfig.getMobileRewardLoadParallelWorkers()];
+        Thread[] threads = new Thread[etlConfig.getMobileRewardLoadParallelWorkers()];
         for ( int q = 0 ; q < etlConfig.getMobileRewardLoadParallelWorkers() ; q++) {
             queues[q] = new ConcurrentLinkedQueue<MobileReward>();
             threadRunning[q] = Boolean.FALSE;
@@ -1398,11 +1395,21 @@ public class AwsService {
 
         long totalObject = 0;
         try {
-            if ( mobileRewardFile.getStringValue().compareToIgnoreCase(MOBILE_REWARD_LAST_OBJECT) == 0 ) {
+            if ( mobileRewardFile.getStringValue() != null && mobileRewardFile.getStringValue().compareToIgnoreCase(MOBILE_REWARD_LAST_OBJECT) == 0 ) {
                 log.info("Mobile Reward - switching files");
                 mobileRewardFile.setStringValue(MOBILE_REWARD_FIRST_NEW_OBJECT);
             }
+            // switch to the new files
+            if ( mobileRewardFile.getStringValue() != null && mobileRewardFile.getStringValue().compareToIgnoreCase(MOBILE_REWARD_LAST_NEW_OBJECT) == 0 ) {
+                log.info("HNT Mobile Reward - switching files");
+                mobileRewardFile.setStringValue(MOBILE_HNTREWARD_FIRST_OBJECT);
+            }
+
             boolean isNewType = mobileRewardFile.getStringValue().contains("mobile_reward");
+            if ( mobileRewardFile.getStringValue().contains("shares_v1") ) {
+                currentMobileTokenIsHnt = true;
+            }
+
             final ListObjectsV2Request lor = new ListObjectsV2Request();
             lor.setBucketName(etlConfig.getAwsBucketName());
             lor.setPrefix("foundation-mobile-verified");
@@ -1416,6 +1423,7 @@ public class AwsService {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3ObjectSummary> objects = list.getObjectSummaries();
                 for (S3ObjectSummary object : objects) {
+                    log.info(">> Found Mobile Reward file {} with size {}", object.getKey(), object.getSize());
                     long cSize = object.getSize();
                     long rSize = 0;
                     totalObject++;
@@ -1438,10 +1446,6 @@ public class AwsService {
                     }
 
                     if ( isNewType && fileType == 5 ) continue; // do not reprocess file in past due to naming.
-
-                    if ( object.getKey().contains("shares_v1") ) {
-                        currentMobileTokenIsHnt = true;
-                    }
 
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
                         mobileRewardFile.setStringValue(object.getKey());
