@@ -1576,7 +1576,10 @@ public class AwsService {
                                 } else if ( w.newReward.hasSubscriberReward() && w.newReward.getSubscriberReward().getSubscriberId().size() > 4 ) {
                                     q = w.newReward.getSubscriberReward().getSubscriberId().byteAt(4);
                                     q &= (etlConfig.getMobileRewardLoadParallelWorkers() - 1);
-                                } else if ( w.newReward.hasServiceProviderReward() || w.newReward.hasUnallocatedReward() ) {
+                                } else if ( w.newReward.hasRadioRewardV2() && w.newReward.getRadioRewardV2().getHotspotKey().size() > 4 ) {
+                                    q = w.newReward.getRadioRewardV2().getHotspotKey().byteAt(4);
+                                    q &= (etlConfig.getMobileRewardLoadParallelWorkers() - 1);
+                                } else if ( w.newReward.hasServiceProviderReward() || w.newReward.hasUnallocatedReward() || w.newReward.hasPromotionReward() ) {
                                     q = (int) (etlConfig.getMobileRewardLoadParallelWorkers() * Math.random()); // unclear how to get an address ramdomize it
                                     q &= (etlConfig.getMobileRewardLoadParallelWorkers() - 1); // make sure (too late)
                                 } else {

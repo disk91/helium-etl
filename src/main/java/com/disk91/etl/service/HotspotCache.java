@@ -1178,6 +1178,14 @@ public class HotspotCache {
                 delayedMobileRewardSave(mr);
                 //log.info("ng> "+r.newReward.getGatewayReward().getHotspotKey().toString()+" "+r.newReward.getGatewayReward().getDcTransferReward()+" "+r.newReward.getStartPeriod());
             }
+            if ( r.newReward.hasRadioRewardV2() ) {
+                mr.setHotspotId(HeliumHelper.pubAddressToName(r.newReward.getRadioRewardV2().getHotspotKey()));
+                mr.setOwnerId(BLANCK_KEY);
+                mr.setRadioPocReward(  r.newReward.getRadioRewardV2().getBasePocReward()
+                                     + r.newReward.getRadioRewardV2().getBoostedPocReward()  );
+                mr.setRadioCovergePoint(0); // TODO
+                delayedMobileRewardSave(mr);
+            }
             if ( r.newReward.hasGatewayReward() ) {
                 mr.setHotspotId(HeliumHelper.pubAddressToName(r.newReward.getGatewayReward().getHotspotKey()));
                 mr.setOwnerId(BLANCK_KEY);
@@ -1214,6 +1222,9 @@ public class HotspotCache {
                     default: break;
                 }
                 delayedMobileRewardSave(mr);
+            }
+            if ( r.newReward.hasSubscriberReward() ) {
+                // @TODO
             }
         }
         // stats
