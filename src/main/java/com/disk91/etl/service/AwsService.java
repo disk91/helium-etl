@@ -1023,6 +1023,7 @@ public class AwsService {
     // ---------------------------------------
 
     protected boolean rewardThreadEnable = true;
+    protected boolean currentIoTTokenIsHnt = false;
 
     public class ProcessRewards implements Runnable {
 
@@ -1037,12 +1038,12 @@ public class AwsService {
         }
         public void run() {
             this.status = true;
-            log.debug("Starting Reward process thread "+id);
+            log.debug("Starting Reward process thread {}", id);
             iot_reward_share w;
             while ( (w = queue.poll()) != null || rewardThreadEnable ) {
                 if ( w != null) {
-                    if (!hotspotCache.addReward(w)) {
-                        log.debug("Th(" + id + ") reward not processed " + w.getStartPeriod());
+                    if (!hotspotCache.addReward(w, (currentIoTTokenIsHnt)?1:0)) {
+                        log.debug("Th({}) reward not processed {}", id, w.getStartPeriod());
                     }
                 } else {
                     try {
@@ -1050,7 +1051,7 @@ public class AwsService {
                     } catch (InterruptedException x) {x.printStackTrace();}
                 }
             }
-            log.debug("Closing rewards process thread "+id);
+            log.debug("Closing rewards process thread {}", id);
         }
     }
 
@@ -1063,6 +1064,11 @@ public class AwsService {
         if ( ! etlConfig.isRewardLoadEnable() ) return;
         log.info("Running AwsRewardService Sync");
 
+        // switch to the new files
+        if ( rewardPocFile.getStringValue() != null && rewardPocFile.getStringValue().compareToIgnoreCase(REWARD_LAST_OBJECT) == 0 ) {
+            rewardPocFile.setStringValue(IOT_HNTREWARD_FIRST_OBJECT);
+        }
+
         synchronized (locker) {
             this.runningJobs++;
             this.runningJobsName.merge("IoTRew", 1, Integer::sum);
@@ -1074,9 +1080,9 @@ public class AwsService {
 
         // Create queues for parallelism
         @SuppressWarnings({"unchecked", "rawtypes"})
-        ConcurrentLinkedQueue<iot_reward_share> queues[] =  new ConcurrentLinkedQueue[etlConfig.getRewardLoadParallelWorkers()];
+        ConcurrentLinkedQueue<iot_reward_share>[] queues =  new ConcurrentLinkedQueue[etlConfig.getRewardLoadParallelWorkers()];
         Boolean threadRunning[] = new Boolean[etlConfig.getRewardLoadParallelWorkers()];
-        Thread threads[] = new Thread[etlConfig.getRewardLoadParallelWorkers()];
+        Thread[] threads = new Thread[etlConfig.getRewardLoadParallelWorkers()];
         for ( int q = 0 ; q < etlConfig.getRewardLoadParallelWorkers() ; q++) {
             queues[q] = new ConcurrentLinkedQueue<iot_reward_share>();
             threadRunning[q] = Boolean.FALSE;
@@ -1120,13 +1126,17 @@ public class AwsService {
                     } else {
                         notExpectedFile = 0; // reset counter
                     }
+                    if ( object.getKey().contains("shares_v1") ) {
+                        currentIoTTokenIsHnt = true;
+                    }
+
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
                         rewardPocFile.setStringValue(object.getKey());
                         paramRepository.save(rewardPocFile);
                         continue;
                     }
 
-                    log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - fileDate )/(Now.ONE_FULL_DAY)+") days");
+                    log.debug("Processing type {}: {}({}) days", fileType, fileName, (Now.NowUtcMs() - fileDate) / (Now.ONE_FULL_DAY));
 
                     boolean readOk = false;
                     retry = 0;
@@ -1136,7 +1146,7 @@ public class AwsService {
                         File localFile = new File("./files/" + fileName);
                         if (!localFile.exists() || localFile.length() != object.getSize() ) {
                             if ( localFile.exists() ) {
-                                log.debug("Re-Download from S3: "+fileName);
+                                log.debug("Re-Download from S3: {}", fileName);
                                 localFile.delete();
                             }
                             // read it on Amazon, then it exists
@@ -1145,7 +1155,7 @@ public class AwsService {
                             this.s3Client.getObject(or, localFile);
 
                         } else {
-                            log.debug("Use local file: "+fileName);
+                            log.debug("Use local file: {}", fileName);
                         }
 
                         GZIPInputStream stream = null;
@@ -1169,18 +1179,18 @@ public class AwsService {
                                         iot_reward_share w = iot_reward_share.parseFrom(r);
                                         toProcess.add(w);
                                     } else {
-                                        log.warn("Reward - Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
+                                        log.warn("Reward - Found 0 len entry {}", HexaConverters.byteToHexStringWithSpace(sz));
                                     }
                                 } catch (IOException x) {
                                     // in case of IOException Better skip the file
                                     prometeusService.addAwsFailure();
-                                    log.error("Failed to process file " + object.getKey() + " " + x.getMessage());
+                                    log.error("Failed to process file {} {}", object.getKey(), x.getMessage());
                                     if (serviceEnable == false) return;
                                     toProcess.clear();
                                     retry++;
                                     break;
                                 } catch (Exception x) {
-                                    log.error("AwsRewardSync - " + x.getMessage());
+                                    log.error("AwsRewardSync - {}", x.getMessage());
                                     if (serviceEnable == false) return;
                                     x.printStackTrace();
                                     toProcess.clear();
@@ -1191,12 +1201,12 @@ public class AwsService {
                             readOk = true;
                         } catch (IOException x) {
                             prometeusService.addAwsFailure();
-                            log.error("Failed to gunzip for Key " + object.getKey() + " " + x.getMessage());
+                            log.error("Failed to gunzip for Key {} {}", object.getKey(), x.getMessage());
                             toProcess.clear();
                             retry++;
                         } catch (Exception x) {
                             prometeusService.addAwsFailure();
-                            log.error("Failed to process file " + object.getKey() + " " + x.getMessage());
+                            log.error("Failed to process file {} {}", object.getKey(), x.getMessage());
                             toProcess.clear();
                             retry++;
                         } finally {
@@ -1205,11 +1215,11 @@ public class AwsService {
                         }
                     }
                     if (retry == 10) {
-                        log.warn("Impossible to process file " + object.getKey() + " skip it");
+                        log.warn("Impossible to process file {} skip it", object.getKey());
                         continue;
                     }
 
-                    log.info("Reward from "+new Date(new Timestamp(fileDate).getTime())+" has "+toProcess.size()+" objects" );
+                    log.info("Reward from {} has {} objects", new Date(new Timestamp(fileDate).getTime()), toProcess.size());
                     int current = 0;
 
                     for ( iot_reward_share w : toProcess ) {
@@ -1241,7 +1251,7 @@ public class AwsService {
                             }
                             // print process state on exit request
                             if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
-                                log.info("Rewards - exit in progress - "+(Math.floor((100*current)/toProcess.size()))+"%" );
+                                log.info("Rewards - exit in progress - {}%", Math.floor((100 * current) / toProcess.size()));
                                 lastLog = Now.NowUtcMs();
                             }
                             current++;
@@ -1258,7 +1268,7 @@ public class AwsService {
                     rewardPocFile.setStringValue(object.getKey());
                     paramRepository.save(rewardPocFile);
 
-                    if ( serviceEnable == false ) {
+                    if (!serviceEnable) {
                         // we had a request to quit and at this point we can make it
                         // clean
                         log.info("Reward - exit ready");
@@ -1270,15 +1280,15 @@ public class AwsService {
             } while (list.isTruncated());
         } catch (AmazonServiceException x) {
             prometeusService.addAwsFailure();
-            log.error("AwsRewardSync - "+x.getMessage());
+            log.error("AwsRewardSync - {}", x.getMessage());
            // x.printStackTrace();
         } catch (AmazonClientException x) {
             prometeusService.addAwsFailure();
-            log.error("AwsRewardSync - "+x.getMessage());
+            log.error("AwsRewardSync - {}", x.getMessage());
            // x.printStackTrace();
         } catch (Exception x) {
             prometeusService.addAwsFailure();
-            log.error("Reward Batch Failure "+x.getMessage());
+            log.error("Reward Batch Failure {}", x.getMessage());
         } finally {
             // wait the parallel Thread to stop max 5 minutes
             this.rewardThreadEnable = false;
@@ -1301,7 +1311,7 @@ public class AwsService {
                 runningJobs--;
                 this.runningJobsName.put("IoTRew", this.runningJobsName.get("IoTRew")-1);
             }
-            log.info("Rewards - exit completed - object seen "+totalObject);
+            log.info("Rewards - exit completed - object seen {}", totalObject);
         }
     }
 
@@ -1311,6 +1321,7 @@ public class AwsService {
     // ---------------------------------------
 
     protected boolean mobileRewardThreadEnable = true;
+    protected boolean currentMobileTokenIsHnt = false;
 
     public static class MobileReward {
         public radio_reward_share oldReward;        // depreacted format
@@ -1331,19 +1342,21 @@ public class AwsService {
         }
         public void run() {
             this.status = true;
-            log.debug("Starting Mobile Reward process thread "+id);
+            log.debug("Starting Mobile Reward process thread {}", id);
             MobileReward w;
             while ( (w = queue.poll()) != null || mobileRewardThreadEnable ) {
                 if ( w != null) {
-                    if (!hotspotCache.addMobileReward(w)) {
-                        if ( w.oldReward != null ) log.debug("Th(" + id + ") mobile reward not processed " + w.oldReward.getStartEpoch());
-                        else if (w.newReward != null ) log.debug("Th(" + id + ") mobile reward not processed " + w.newReward.getStartPeriod());
+                    if (!hotspotCache.addMobileReward(w,(currentMobileTokenIsHnt)?1:0)) {
+                        if ( w.oldReward != null )
+                            log.debug("Th({}) mobile reward not processed {}", id, w.oldReward.getStartEpoch());
+                        else if (w.newReward != null )
+                            log.debug("Th({}) mobile reward not processed {}", id, w.newReward.getStartPeriod());
                     }
                 } else {
                     Now.sleep(10);
                 }
             }
-            log.debug("Closing mobile rewards process thread "+id);
+            log.debug("Closing mobile rewards process thread {}", id);
         }
     }
 
@@ -1354,6 +1367,11 @@ public class AwsService {
         if ( ! readyToSync || !serviceEnable ) return;
         if ( ! etlConfig.isMobileRewardLoadEnable() ) return;
         log.info("Running AwsMobileRewardService Sync");
+
+        // switch to the new files
+        if ( mobileRewardFile.getStringValue() != null && mobileRewardFile.getStringValue().compareToIgnoreCase(MOBILE_REWARD_LAST_NEW_OBJECT) == 0 ) {
+            mobileRewardFile.setStringValue(MOBILE_HNTREWARD_FIRST_OBJECT);
+        }
 
         synchronized (locker) {
             this.runningJobs++;
@@ -1421,13 +1439,17 @@ public class AwsService {
 
                     if ( isNewType && fileType == 5 ) continue; // do not reprocess file in past due to naming.
 
+                    if ( object.getKey().contains("shares_v1") ) {
+                        currentMobileTokenIsHnt = true;
+                    }
+
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
                         mobileRewardFile.setStringValue(object.getKey());
                         paramRepository.save(mobileRewardFile);
                         continue;
                     }
 
-                    log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - fileDate )/(Now.ONE_FULL_DAY)+") days");
+                    log.debug("Processing type {}: {}({}) days", fileType, fileName, (Now.NowUtcMs() - fileDate) / (Now.ONE_FULL_DAY));
 
                     boolean readOk = false;
                     retry = 0;
@@ -1437,7 +1459,7 @@ public class AwsService {
                         File localFile = new File("./files/" + fileName);
                         if (!localFile.exists() || localFile.length() != object.getSize() ) {
                             if ( localFile.exists() ) {
-                                log.debug("Re-Download from S3: "+fileName);
+                                log.debug("Re-Download from S3: {}", fileName);
                                 localFile.delete();
                             }
                             // read it on Amazon, then it exists
@@ -1446,7 +1468,7 @@ public class AwsService {
                             this.s3Client.getObject(or, localFile);
 
                         } else {
-                            log.debug("Use local file: "+fileName);
+                            log.debug("Use local file: {}", fileName);
                         }
 
                         GZIPInputStream stream = null;
@@ -1477,18 +1499,18 @@ public class AwsService {
                                         }
                                         toProcess.add(mr);
                                     } else {
-                                        log.warn("Mobile Reward - Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
+                                        log.warn("Mobile Reward - Found 0 len entry {}", HexaConverters.byteToHexStringWithSpace(sz));
                                     }
                                 } catch (IOException x) {
                                     // in case of IOException Better skip the file
                                     prometeusService.addAwsFailure();
-                                    log.error("Failed to process file " + object.getKey() + " " + x.getMessage());
+                                    log.error("Failed to process file {} {}", object.getKey(), x.getMessage());
                                     if (serviceEnable == false) return;
                                     toProcess.clear();
                                     retry++;
                                     break;
                                 } catch (Exception x) {
-                                    log.error("AwsMobileRewardSync - " + x.getMessage());
+                                    log.error("AwsMobileRewardSync - {}", x.getMessage());
                                     if (serviceEnable == false) return;
                                     x.printStackTrace();
                                     toProcess.clear();
@@ -1499,12 +1521,12 @@ public class AwsService {
                             readOk = true;
                         } catch (IOException x) {
                             prometeusService.addAwsFailure();
-                            log.error("Failed to gunzip for Key " + object.getKey() + " " + x.getMessage());
+                            log.error("Failed to gunzip for Key {} {}", object.getKey(), x.getMessage());
                             toProcess.clear();
                             retry++;
                         } catch (Exception x) {
                             prometeusService.addAwsFailure();
-                            log.error("Failed to process file " + object.getKey() + " " + x.getMessage());
+                            log.error("Failed to process file {} {}", object.getKey(), x.getMessage());
                             toProcess.clear();
                             retry++;
                         } finally {
@@ -1513,11 +1535,11 @@ public class AwsService {
                         }
                     }
                     if (retry == 10) {
-                        log.warn("Impossible to process file " + object.getKey() + " skip it");
+                        log.warn("Impossible to process file {} skip it", object.getKey());
                         continue;
                     }
 
-                    log.info("Mobile Reward from "+new Date(new Timestamp(fileDate).getTime())+" has "+toProcess.size()+" objects" );
+                    log.info("Mobile Reward from {} has {} objects", new Date(new Timestamp(fileDate).getTime()), toProcess.size());
                     int current = 0;
 
                     for ( MobileReward w : toProcess ) {
@@ -1564,17 +1586,17 @@ public class AwsService {
                             // print progress log on regular basis
                             if ((Now.NowUtcMs() - lastLog) > 30_000) {
                                 long distance = Now.NowUtcMs() - fileDate;
-                                log.info("Mobile Rewards Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, fpro : "+current+"/"+toProcess.size()+" tObject: " + totalObject + " tReward: " + totalMobileRewards + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                log.info("Mobile Rewards Dist: {} days, fpro : {}/{} tObject: {} tReward: {} tSize: {}MB, Duration: {}m", Math.floor(distance / Now.ONE_FULL_DAY), current, toProcess.size(), totalObject, totalMobileRewards, totalSize / (1024 * 1024), (Now.NowUtcMs() - start) / 60_000);
                                 lastLog = Now.NowUtcMs();
                             }
                             // print process state on exit request
-                            if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
-                                log.info("Mobile Rewards - exit in progress - "+(Math.floor((100*current)/toProcess.size()))+"%" );
+                            if ( !serviceEnable && (Now.NowUtcMs() - lastLog) > 5_000) {
+                                log.info("Mobile Rewards - exit in progress - {}%", Math.floor((100 * current) / toProcess.size()));
                                 lastLog = Now.NowUtcMs();
                             }
                             current++;
                         } catch ( Exception x ) {
-                            log.error("Failed to process Mobile Reward "+object.getKey()+" at "+current+"/"+toProcess.size()+"["+x.getMessage()+"]");
+                            log.error("Failed to process Mobile Reward {} at {}/{}[{}]", object.getKey(), current, toProcess.size(), x.getMessage());
                         }
                     } // end of current file
                     toProcess.clear();
@@ -1586,7 +1608,7 @@ public class AwsService {
                     mobileRewardFile.setStringValue(object.getKey());
                     paramRepository.save(mobileRewardFile);
 
-                    if ( serviceEnable == false ) {
+                    if (!serviceEnable) {
                         // we had a request to quit and at this point we can make it
                         // clean
                         log.info("Mobile Reward - exit ready");
@@ -1598,15 +1620,15 @@ public class AwsService {
             } while (list.isTruncated());
         } catch (AmazonServiceException x) {
             prometeusService.addAwsFailure();
-            log.error("AwsMobileRewardSync - "+x.getMessage());
+            log.error("AwsMobileRewardSync - {}", x.getMessage());
             // x.printStackTrace();
         } catch (AmazonClientException x) {
             prometeusService.addAwsFailure();
-            log.error("AwsMobileRewardSync - "+x.getMessage());
+            log.error("AwsMobileRewardSync - {}", x.getMessage());
             // x.printStackTrace();
         } catch (Exception x) {
             prometeusService.addAwsFailure();
-            log.error("Mobile Reward Batch Failure "+x.getMessage());
+            log.error("Mobile Reward Batch Failure {}", x.getMessage());
         } finally {
             // wait the parallel Thread to stop max 5 minutes
             this.mobileRewardThreadEnable = false;
@@ -1629,7 +1651,7 @@ public class AwsService {
                 runningJobs--;
                 this.runningJobsName.put("MobileRew", this.runningJobsName.get("MobileRew")-1);
             }
-            log.info("Mobile Rewards - exit completed - objects seen "+totalObject);
+            log.info("Mobile Rewards - exit completed - objects seen {}", totalObject);
         }
     }
 

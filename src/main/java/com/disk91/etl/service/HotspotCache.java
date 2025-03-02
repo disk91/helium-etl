@@ -1071,6 +1071,12 @@ public class HotspotCache {
     @Autowired
     protected RewardRepository rewardRepository;
 
+    /**
+     * Add a reward to the Hotspot
+     * @param r
+     * @param token 0 for IoT and 1 for HNT
+     * @return
+     */
     public boolean addReward(iot_reward_share r, int token) {
         long start = Now.NowUtcMs();
 
