@@ -80,6 +80,24 @@ public class HotspotState {
     private long sumRewardDc;
 
     @Schema(
+            description = "Total income since 2025 Jan for beacon activities (in HNT Bones)",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private long sumRewardHntBeacon;
+
+    @Schema(
+            description = "Total income since 2025 Jan for witness activities (in HNT bones)",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private long sumRewardHntWitness;
+    @Schema(
+            description = "Total income since 2025 Jan for Dcs activities (in HNT bones)",
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private long sumRewardHntDc;
+
+
+    @Schema(
             description = "Previous hostpot rewards (in HNT)",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
@@ -156,6 +174,9 @@ public class HotspotState {
         setSumRewardBeacon(h.getSumRewardBeacon());
         setSumRewardWitness(h.getSumRewardWitness());
         setSumRewardDc(h.getSumRewardDc());
+        setSumRewardHntBeacon(h.getSumRewardHntBeacon());
+        setSumRewardHntWitness(h.getSumRewardHntWitness());
+        setSumRewardHntDc(h.getSumRewardHntDc());
         setOffsetReward(h.getOffsetReward());
         if ( h.getOwner() != null ) {
             setOwner(h.getOwner().clone());
@@ -391,5 +412,29 @@ public class HotspotState {
 
     public void setLastErrorCause(List<Integer> lastErrorCause) {
         this.lastErrorCause = lastErrorCause;
+    }
+
+    public long getSumRewardHntBeacon() {
+        return sumRewardHntBeacon;
+    }
+
+    public void setSumRewardHntBeacon(long sumRewardHntBeacon) {
+        this.sumRewardHntBeacon = sumRewardHntBeacon;
+    }
+
+    public long getSumRewardHntWitness() {
+        return sumRewardHntWitness;
+    }
+
+    public void setSumRewardHntWitness(long sumRewardHntWitness) {
+        this.sumRewardHntWitness = sumRewardHntWitness;
+    }
+
+    public long getSumRewardHntDc() {
+        return sumRewardHntDc;
+    }
+
+    public void setSumRewardHntDc(long sumRewardHntDc) {
+        this.sumRewardHntDc = sumRewardHntDc;
     }
 }
