@@ -48,6 +48,7 @@ public class Reward implements ClonnableObject<Reward> {
 
     private long dcTransferAmount;
 
+    private long insertedAt = 0;
 
     public Reward clone() {
         Reward c = new Reward();
@@ -60,6 +61,7 @@ public class Reward implements ClonnableObject<Reward> {
         c.setWitnessAmount(witnessAmount);
         c.setDcTransferAmount(dcTransferAmount);
         c.setToken(token);
+        c.setInsertedAt(insertedAt);
         return c;
     }
 
@@ -138,5 +140,13 @@ public class Reward implements ClonnableObject<Reward> {
 
     public void setToken(int token) {
         this.token = token;
+    }
+
+    public long getInsertedAt() {
+        return insertedAt;
+    }
+
+    public void setInsertedAt(long insertedAt) {
+        this.insertedAt = insertedAt;
     }
 }

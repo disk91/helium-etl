@@ -1136,6 +1136,12 @@ public class AwsService {
                         notExpectedFile = 0; // reset counter
                     }
 
+                    long rewardDate = Long.parseLong(rewardPocFile.getStringValue().split("\\.")[1]);
+                    if ( fileDate < rewardDate ) {
+                        log.warn("IoT Reward - Skip file {} as it is older than the last one", object.getKey());
+                        continue;
+                    }
+
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
                         rewardPocFile.setStringValue(object.getKey());
                         paramRepository.save(rewardPocFile);
@@ -1409,7 +1415,7 @@ public class AwsService {
                 mobileRewardFile.setStringValue(MOBILE_HNTREWARD_FIRST_OBJECT);
             }
 
-            boolean isNewType = mobileRewardFile.getStringValue().contains("mobile_reward");
+            boolean isNewType = ( mobileRewardFile.getStringValue().contains("mobile_reward") || mobileRewardFile.getStringValue().contains("mobile_network_reward") );
             if ( mobileRewardFile.getStringValue().contains("shares_v1") ) {
                 currentMobileTokenIsHnt = true;
             }
@@ -1427,7 +1433,7 @@ public class AwsService {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3ObjectSummary> objects = list.getObjectSummaries();
                 for (S3ObjectSummary object : objects) {
-                    log.info(">> Found Mobile Reward file {} with size {}", object.getKey(), object.getSize());
+                    log.debug(">> Found Mobile Reward file {} with size {}", object.getKey(), object.getSize());
                     long cSize = object.getSize();
                     long rSize = 0;
                     totalObject++;
@@ -1450,6 +1456,13 @@ public class AwsService {
                     }
 
                     if ( isNewType && fileType == 5 ) continue; // do not reprocess file in past due to naming.
+
+                    // ensure we don't go in the past
+                    long rewardDate = Long.parseLong(mobileRewardFile.getStringValue().split("\\.")[1]);
+                    if ( fileDate < rewardDate ) {
+                        log.warn("Mobile Reward - Skip file {} as it is older than the last one", object.getKey());
+                        continue;
+                    }
 
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
                         mobileRewardFile.setStringValue(object.getKey());

@@ -48,6 +48,8 @@ public class MobileReward implements ClonnableObject<MobileReward> {
     private long unallocatedOracle = 0;
     private long unallocatedData = 0;
 
+    private long insertedAt = 0;
+
     public MobileReward clone() {
         MobileReward c = new MobileReward();
         c.setId(id);
@@ -69,6 +71,7 @@ public class MobileReward implements ClonnableObject<MobileReward> {
         c.setUnallocatedOracle(unallocatedOracle);
         c.setUnallocatedData(unallocatedData);
         c.setToken(token);
+        c.setInsertedAt(insertedAt);
         return c;
     }
 
@@ -227,5 +230,13 @@ public class MobileReward implements ClonnableObject<MobileReward> {
 
     public void setToken(int token) {
         this.token = token;
+    }
+
+    public long getInsertedAt() {
+        return insertedAt;
+    }
+
+    public void setInsertedAt(long insertedAt) {
+        this.insertedAt = insertedAt;
     }
 }

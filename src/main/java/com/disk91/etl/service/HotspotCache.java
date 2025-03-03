@@ -719,7 +719,7 @@ public class HotspotCache {
                     waitTime = Now.NowUtcMs();
                 }
             }
-            log.info("delayedWitnessSave - thread unlocked");
+            log.debug("delayedWitnessSave - thread unlocked");
         }
         _witnessDelayedInsert.add(b);
         _witnessDelayedInsertQueueSize.addAndGet(1);
@@ -1089,6 +1089,7 @@ public class HotspotCache {
             // add the Reward data
             Reward _r = new Reward();
             _r.setHotspotId(hsId);
+            _r.setInsertedAt(Now.NowUtcMs());
             _r.setStartPeriod(r.getStartPeriod()*1000);
             _r.setEndPeriod(r.getEndPeriod()*1000);
             _r.setToken(token);
@@ -1157,6 +1158,7 @@ public class HotspotCache {
 
         MobileReward mr = new MobileReward();
         mr.setVersion(1);
+        mr.setInsertedAt(Now.NowUtcMs());
 
         if ( r.oldReward != null ) {
             mr.setHotspotId(HeliumHelper.pubAddressToName(r.oldReward.getHotspotKey()));
