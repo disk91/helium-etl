@@ -76,6 +76,7 @@ services:
       - /etl/configuration/mongo/scripts:/scripts
       - /etl/mongo/router-01:/data/db
       - /etl/configuration/mongo/router-01:/data/configdb
+      - /etl/mongo/import:/dump
     profiles:
       - mongo
     depends_on:

@@ -66,6 +66,10 @@ reward.load.enable=false
 reward.load.parallel.workers=8
 reward.load.parallel.queue.size=64
 
+mobile.reward.load.enable=false
+mobile.reward.load.parallel.workers=8
+mobile.reward.load.parallel.queue.size=64
+
 # legacy ETL for data enrichment
 helium.legacy.api.endpoint=
 helium.legacy.api.user=
