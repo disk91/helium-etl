@@ -1,46 +1,48 @@
 # Main Application
 config.file = ./configuration.properties
-run.mode=PRODUCTION
+run.mode=DEVELOPMENT
 spring.main.banner-mode=off
 logging.level.org.springframework=WARN
-spring.task.scheduling.pool.size=128
+spring.task.scheduling.pool.size=32
 
-#  intercept SIGTERM signal
+# Developer mode options
+#   - justload : when true, no data are stored in database, useful for testing aws access, comment to disable
+developer.mode.justload=true
+
+
+# Intercept SIGTERM signal
 spring.main.register-shutdown-hook=true
 server.shutdown=graceful
 spring.task.execution.shutdown.await-termination=true
 spring.task.execution.shutdown.await-termination-period=10s
 spring.task.scheduling.shutdown.await-termination=true
 spring.task.scheduling.shutdown.await-termination-period=10s
+exit.timeout.minutes=30
 
 #mongodb
-spring.data.mongodb.uri=mongodb://mongo-router-01:27017,mongo-router-02:27017/helium-etl
-#spring.data.mongodb.host=localhost
-#spring.data.mongodb.port=27017
-#spring.data.mongodb.database=helium-etl
-#spring.data.mongodb.username=
-#spring.data.mongodb.password=
+spring.data.mongodb.uri=mongodb://localhost:27120,localhost:27121/helium-etl
 spring.data.mongodb.auto-index-creation=true
-exit.timeout.minutes=170
+etl.mongodb.sharding.enable=false
 
 #logging
+logging.level.com.disk91.etl.service.AwsService=debug
 logging.level.com.disk91.etl.service.HotspotCacheAsync=debug
 logging.level.org.springframework.data=info
 logging.level.=info
 
 # Caching log
-logging.cache.fixedrate=3600000
+logging.cache.fixedrate=1800000
 
 # caching control
 cache.hotspot.size=500000
 cache.beacon.size=200000
-cache.hotspot.commit=1000000
+cache.hotspot.commit=1000
 
 # History management
-hotspot.beacon.history.entries=100
-hotspot.witness.history.entries=240
+hotspot.beacon.history.entries=10
+hotspot.witness.history.entries=10
 hotspot.update.prevent.until.days=30
-# start loading historical data after a given date (in S from EPOC) 4/18/2023
+# start loading historical data after a given date (in S from EPOC)
 beacon.history.startdate=1681776000
 witness.history.startdate=1681776000
 iotpoc.history.startdate=1681776000
@@ -48,47 +50,43 @@ reward.history.startdate=1681776000
 
 # RAW Beacon loading
 beacon.load.enable=false
-
 # RAW Witness loading
 witness.load.enable=false
-#  It must be a power of 2
-witness.load.parallel.workers=32
-witness.load.parallel.queue.size=128
 
-# VERIFIED IoT PoC loading ( should replace RAW )
+#  It must be a power of 2
+witness.load.parallel.workers=4
+witness.load.parallel.queue.size=32
+
+# VERIFIED IoT PoC loading
 iotpoc.load.enable=true
 iotpoc.load.unselected=false
-iotpoc.load.parallel.workers=32
-iotpoc.load.parallel.queue.size=256
+iotpoc.load.parallel.workers=1
+iotpoc.load.parallel.queue.size=32
 
 # Rewards
 reward.load.enable=true
-reward.load.parallel.workers=8
-reward.load.parallel.queue.size=64
+reward.load.parallel.workers=1
+reward.load.parallel.queue.size=32
 
 mobile.reward.load.enable=true
-mobile.reward.load.parallel.workers=8
-mobile.reward.load.parallel.queue.size=64
+mobile.reward.load.parallel.workers=1
+mobile.reward.load.parallel.queue.size=32
 
 # legacy ETL for data enrichment
 helium.legacy.api.enable=false
 helium.legacy.api.endpoint=
 helium.legacy.api.user=
 helium.legacy.api.pass=
-helium.legacy.api.credits=100
+helium.legacy.api.credits=1000
 
-# hotspot indexing -> fill the hotspot Index with the hostpot data
-# processing can really slow down loading by making cache full of inactive hotspot
-helium.hotspot.indexing.enable=false
-
-# solana API for data enrichement and account retrival
+# solana API for data enrichment and account retrieval
 solana.api.url=https://api.shyft.to
-solana.api.apikey=${SOLANA_APIKEY}
+solana.api.apikey=
 solana.api.credit.per.minute=10
 
 # Aws S3
-aws.access.key=${AWS_ACCESS_KEY}
-aws.secret.key=${AWS_SECRET_KEY}
+aws.access.key=
+aws.secret.key=
 aws.bucket.name=foundation-poc-data-requester-pays
 
 # Metering

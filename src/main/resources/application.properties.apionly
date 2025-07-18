@@ -1,5 +1,6 @@
 # Main Application
 config.file = ./configuration.properties
+run.mode=PRODUCTION_API_ONLY
 spring.main.banner-mode=off
 logging.level.org.springframework=WARN
 spring.task.scheduling.pool.size=32

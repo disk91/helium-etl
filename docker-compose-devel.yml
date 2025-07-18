@@ -1,0 +1,195 @@
+services:
+
+  ## Router - get the traffic request
+  mongo-router01:
+    image: mongo:6.0.24
+    container_name: mongo-router-01
+    command: mongos --port 27017 --configdb rs-config-server/mongo-configsvr01:27017,mongo-configsvr02:27017,mongo-configsvr03:27017 --bind_ip_all
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    ports:
+      - 127.0.0.1:27120:27017
+    restart: always
+    volumes:
+      - ./etl/configuration/mongo/scripts:/scripts
+      - router-01-data:/data/db
+      - router-01-config:/data/configdb
+    depends_on:
+      - mongo-configsvr01
+      - mongo-configsvr02
+      - mongo-configsvr03
+      - mongo-shard01a
+      - mongo-shard02a
+      - mongo-shard03a
+    networks:
+      - mongo_net
+
+  mongo-router02:
+    image: mongo:6.0.24
+    container_name: mongo-router-02
+    command: mongos --port 27017 --configdb rs-config-server/mongo-configsvr01:27017,mongo-configsvr02:27017,mongo-configsvr03:27017 --bind_ip_all
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    ports:
+      - 127.0.0.1:27121:27017
+    restart: always
+    volumes:
+      - ./etl/configuration/mongo/scripts:/scripts
+      - router-02-data:/data/db
+      - router-02-config:/data/configdb
+    networks:
+      - mongo_net
+    depends_on:
+      - mongo-configsvr01
+      - mongo-configsvr02
+      - mongo-configsvr03
+      - mongo-shard01a
+      - mongo-shard02a
+      - mongo-shard03a
+
+  ## Config Servers - know the cluster configuration
+  mongo-configsvr01:
+    image: mongo:6.0.24
+    container_name: mongo-config-01
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - ./etl/configuration/mongo/scripts:/scripts
+      - config-01-data:/data/db
+      - config-01-config:/data/configdb
+    restart: always
+    networks:
+      - mongo_net
+
+  mongo-configsvr02:
+    image: mongo:6.0.24
+    container_name: mongo-config-02
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - ./etl/configuration/mongo/scripts:/scripts
+      - config-02-data:/data/db
+      - config-02-config:/data/configdb
+    restart: always
+    networks:
+      - mongo_net
+
+  mongo-configsvr03:
+    image: mongo:6.0.24
+    container_name: mongo-config-03
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - ./etl/configuration/mongo/scripts:/scripts
+      - config-03-data:/data/db
+      - config-03-config:/data/configdb
+    restart: always
+    networks:
+      - mongo_net
+
+  ## Shards
+  mongo-shard01a:
+    image: mongo:6.0.24
+    container_name: shard-01-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    deploy:
+      resources:
+        limits:
+          memory: 4096m
+    volumes:
+      - ./etl/configuration/mongo/scripts:/scripts
+      - shard-01-data:/data/db
+      - shard-01-config:/data/configdb
+    restart: always
+    networks:
+      - mongo_net
+
+
+  mongo-shard02a:
+    image: mongo:6.0.24
+    container_name: shard-02-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-02
+    deploy:
+      resources:
+        limits:
+          memory: 4096m
+    volumes:
+      - ./etl/configuration/mongo/scripts:/scripts
+      - shard-02-data:/data/db
+      - shard-02-config:/data/configdb
+    restart: always
+    networks:
+      - mongo_net
+
+  mongo-shard03a:
+    image: mongo:6.0.24
+    container_name: shard-03-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-03
+    deploy:
+      resources:
+        limits:
+          memory: 4096m
+    volumes:
+      - ./etl/configuration/mongo/scripts:/scripts
+      - shard-03-data:/data/db
+      - shard-03-config:/data/configdb
+    restart: always
+    networks:
+      - mongo_net
+
+networks:
+  mongo_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.99.2.0/24
+          gateway: 172.99.2.254
+          aux_addresses:
+            mongo_exporter: 172.99.2.98
+            mongo-router01: 172.99.2.1
+            mongo-router02: 172.99.2.2
+            mongo-configsvr01: 172.99.2.61
+            mongo-configsvr02: 172.99.2.62
+            mongo-configsvr03: 172.99.2.63
+            mongo-shard01a: 172.99.2.10
+            mongo-shard02a: 172.99.2.20
+            mongo-shard03a: 172.99.2.30
+
+volumes:
+  router-01-data:
+    driver: local
+  router-01-config:
+    driver: local
+  router-02-data:
+    driver: local
+  router-02-config:
+    driver: local
+  config-01-data:
+    driver: local
+  config-01-config:
+    driver: local
+  config-02-data:
+    driver: local
+  config-02-config:
+    driver: local
+  config-03-data:
+    driver: local
+  config-03-config:
+    driver: local
+  shard-01-data:
+    driver: local
+  shard-01-config:
+    driver: local
+  shard-02-data:
+    driver: local
+  shard-02-config:
+    driver: local
+  shard-03-data:
+    driver: local
+  shard-03-config:
+    driver: local

@@ -472,6 +472,8 @@ public class HotspotCache {
 
     public boolean addBeacon(lora_beacon_ingest_report_v1 b) {
 
+        if ( etlConfig.isDeveloperModeJustLoad() ) return true;
+
         // already process
         if ( b.getReceivedTimestamp() < beaconTopLine.getLongValue() ) {
             //log.info("TopLine is"+beaconTopLine.getLongValue());
@@ -525,6 +527,8 @@ public class HotspotCache {
     protected WitnessesRepository witnessesRepository;
 
     public boolean addWitness(lora_witness_ingest_report_v1 w) {
+
+        if ( etlConfig.isDeveloperModeJustLoad() ) return true;
 
         // already process
         if ( w.getReceivedTimestamp() < witnessTopLine.getLongValue() ) return false;
@@ -804,6 +808,7 @@ public class HotspotCache {
     public boolean addIoTPoC(lora_poc_v1 p, boolean inFirstFile) {
 
         long start = Now.NowUtcMs();
+        if ( etlConfig.isDeveloperModeJustLoad() ) return true;
 
         // contains POC and Witness information
         lora_valid_beacon_report_v1 beacon = p.getBeaconReport();
@@ -1080,6 +1085,8 @@ public class HotspotCache {
     public boolean addReward(iot_reward_share r, int token) {
         long start = Now.NowUtcMs();
 
+        if ( etlConfig.isDeveloperModeJustLoad() ) return true;
+
         String hsId = HeliumHelper.pubAddressToName(r.getGatewayReward().getHotspotKey());
         Hotspot rewarded = this.getHotspot(hsId, true);
         if( r.getStartPeriod()*1000 > rewarded.getLastReward() ) {
@@ -1155,6 +1162,8 @@ public class HotspotCache {
     protected static final String BLANCK_KEY = "00000000000000000000000000000000";
     public boolean addMobileReward(AwsService.MobileReward r, int token) {
         long start = Now.NowUtcMs();
+
+        if ( etlConfig.isDeveloperModeJustLoad() ) return true;
 
         MobileReward mr = new MobileReward();
         mr.setVersion(1);

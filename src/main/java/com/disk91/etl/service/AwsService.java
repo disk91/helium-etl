@@ -1,16 +1,15 @@
 package com.disk91.etl.service;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.SdkClientException;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.*;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 import com.disk91.etl.EtlApplication;
 import com.disk91.etl.EtlConfig;
 import com.disk91.etl.data.object.Param;
@@ -29,8 +28,10 @@ import com.helium.grpc.lora_beacon_ingest_report_v1;
 import com.helium.grpc.lora_witness_ingest_report_v1;
 
 import jakarta.annotation.PostConstruct;
+
 import java.io.*;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -72,8 +73,8 @@ public class AwsService {
     @Autowired
     protected PrometeusService prometeusService;
 
-    protected AWSCredentials awsCredentials = null;
-    protected AmazonS3 s3Client = null;
+    protected AwsBasicCredentials awsCredentials = null;
+    protected S3Client s3Client = null;
 
     Param beaconFile = null;
     Param witnessFile = null;
@@ -132,44 +133,34 @@ public class AwsService {
             mobileRewardFile.setStringValue(MOBILE_REWARD_FIRST_OBJECT);
         }
 
-        this.awsCredentials = new BasicAWSCredentials(
-                etlConfig.getAwsAccessKey(),
-                etlConfig.getAwsSecretKey()
-        );
+        this.awsCredentials = AwsBasicCredentials.builder()
+                .accessKeyId(etlConfig.getAwsAccessKey())
+                .secretAccessKey(etlConfig.getAwsSecretKey())
+                .build();
 
-        if ( awsCredentials != null ) {
-            this.s3Client = AmazonS3ClientBuilder
-                    .standard()
-                    .withCredentials(new AWSCredentialsProvider() {
-                        @Override
-                        public AWSCredentials getCredentials() {
-                            return awsCredentials;
-                        }
+        this.s3Client = S3Client.builder()
+                .region(Region.US_WEST_2)
+                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+                .httpClientBuilder(ApacheHttpClient.builder()
+                        .maxConnections(10)
+                        .connectionTimeout(Duration.ofMillis(10_000))
+                        .socketTimeout(Duration.ofMillis(60_000))
+                )
+                .overrideConfiguration(ClientOverrideConfiguration.builder()
+                        .apiCallAttemptTimeout(Duration.ofSeconds(60))
+                        .apiCallTimeout(Duration.ofSeconds(60))
+                        .retryStrategy(r -> r.maxAttempts(5))
+                        .build()
+                )
+                .build();
 
-                        @Override
-                        public void refresh() {
-                            awsCredentials = new BasicAWSCredentials(
-                                    etlConfig.getAwsAccessKey(),
-                                    etlConfig.getAwsSecretKey()
-                            );
-                        }
-                    })
-                    .withRegion(Regions.US_WEST_2)
-                    .withClientConfiguration( new ClientConfiguration()
-                        .withMaxErrorRetry(5)
-                        .withMaxConnections(10)
-                        .withConnectionTimeout(10_000)
-                        .withSocketTimeout(60_000)
-                    )
-                    .build();
-            if ( this.s3Client != null ) {
-                this.readyToSync = true;
-                this.serviceEnable = true;
-                this.runningJobs = 0;
-                //lor.putCustomRequestHeader("x-amz-request-payer", "requester");
-            } else {
-                log.error("Impossible to connect to AWS, no sync will be possible");
-            }
+        if ( this.s3Client != null ) {
+            this.readyToSync = true;
+            this.serviceEnable = true;
+            this.runningJobs = 0;
+            //lor.putCustomRequestHeader("x-amz-request-payer", "requester");
+        } else {
+            log.error("Impossible to connect to AWS, no sync will be possible");
         }
 
     }
@@ -233,6 +224,10 @@ public class AwsService {
 
     private boolean readyToSync = false;
 
+    // ===========================================================
+    // Beacon Sync
+    // ===========================================================
+
     @Scheduled(fixedDelay = 180_000, initialDelay = 10_000)
     protected void AwsBeaconSync() {
         if ( ! hotspotCache.isReady() ) return;
@@ -250,51 +245,56 @@ public class AwsService {
 
         try {
 
-            final ListObjectsV2Request lor = new ListObjectsV2Request();
-            lor.setBucketName(etlConfig.getAwsBucketName());
-            lor.setPrefix("foundation-iot-ingest");
-            lor.setStartAfter(beaconFile.getStringValue());
-            lor.setRequesterPays(true);
+            ListObjectsV2Request lor = ListObjectsV2Request.builder()
+                    .bucket(etlConfig.getAwsBucketName())
+                    .prefix("foundation-iot-ingest")
+                    .startAfter(beaconFile.getStringValue())
+                    .requestPayer(RequestPayer.REQUESTER)
+                    .build();
 
-            ListObjectsV2Result list;
+            ListObjectsV2Response list;
             long totalObject = 0;
             long totalSize = 0;
             long totalBeacon = 0;
             do {
                 list = this.s3Client.listObjectsV2(lor);
-                List<S3ObjectSummary> objects = list.getObjectSummaries();
-                for (S3ObjectSummary object : objects) {
-                    long cSize = object.getSize();
+                List<S3Object> objects = list.contents();
+                for (S3Object object : objects) {
+                    long cSize = object.size();
                     long rSize = 0;
                     totalObject++;
-                    totalSize+=object.getSize();
-                    if ( object.getSize() == 0 ) continue;
+                    totalSize+=object.size();
+                    if ( object.size() == 0 ) continue;
                     long fileStart = Now.NowUtcMs();
 
                     // Identify the type of objects
                     //  iot_beacon_ingest_report => beacons
                     //  iot_witness_ingest_report => witnesses
-                    if ( ! object.getKey().contains(".gz") ) continue; // not a file
-                    String fileName = object.getKey().split("/")[1];
+                    if ( ! object.key().contains(".gz") ) continue; // not a file
+                    String fileName = object.key().split("/")[1];
                     int fileType = this.getFileType(fileName);
-                    long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
+                    long fileDate = Long.parseLong(object.key().split("\\.")[1]);
                     if ( fileType != 1 ) continue;
                     if ( fileDate/1000 < etlConfig.getBeaconHistoryStartDate() ) {
-                        beaconFile.setStringValue(object.getKey());
+                        beaconFile.setStringValue(object.key());
                         paramRepository.save(beaconFile);
                         continue;
                     }
                     //log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - Long.parseLong(object.getKey().split("\\.")[1]) )/(Now.ONE_FULL_DAY)+") days");
 
-                    final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
-                    or.setRequesterPays(true);
-                    S3Object fileObject = this.s3Client.getObject(or);
+                    final GetObjectRequest or = GetObjectRequest.builder()
+                            .bucket(etlConfig.getAwsBucketName())
+                            .key(object.key())
+                            .requestPayer(RequestPayer.REQUESTER)
+                            .build();
 
                     try {
+                        ResponseInputStream<GetObjectResponse> fileStream = this.s3Client.getObject(or);
+
                         // File is GZiped Version of a stream of protobuf messages
                         // each protobuf messages is encapsulated with a header
                         // int4 containing the length of the protobuf message following.
-                        GZIPInputStream stream = new GZIPInputStream(fileObject.getObjectContent());
+                        GZIPInputStream stream = new GZIPInputStream(fileStream);
                         BufferedInputStream bufferedInputStream = new BufferedInputStream(stream);
                         while ( bufferedInputStream.available() > 0 ) {
                             try {
@@ -306,35 +306,35 @@ public class AwsService {
                                     totalBeacon++;
                                     lora_beacon_ingest_report_v1 b = lora_beacon_ingest_report_v1.parseFrom(r);
                                     if (!hotspotCache.addBeacon(b)) {
-                                        log.warn("beacon not processed " + b.getReceivedTimestamp());
+                                        log.warn("beacon not processed {}", b.getReceivedTimestamp());
                                     }
 
                                 } else {
-                                    log.error("Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
+                                    log.error("Found 0 len entry {}", HexaConverters.byteToHexStringWithSpace(sz));
                                 }
 
                                 // print progress log on regular basis
                                 if ((Now.NowUtcMs() - lastLog) > 30_000) {
-                                    String distance_s = object.getKey().split("\\.")[1];
+                                    String distance_s = object.key().split("\\.")[1];
                                     long distance = Now.NowUtcMs() - Long.parseLong(distance_s);
-                                    log.info("Beacon Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tBeacon: " + totalBeacon + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                    log.info("Beacon Dist: {} days, tObject: {} tBeacon: {} tSize: {}MB, Duration: {}m", Math.floor(distance / Now.ONE_FULL_DAY), totalObject, totalBeacon, totalSize / (1024 * 1024), (Now.NowUtcMs() - start) / 60_000);
                                     lastLog = Now.NowUtcMs();
                                 }
                                 // print process state on exit request
-                                if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
-                                    log.info("Beacon - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
+                                if ( !serviceEnable && (Now.NowUtcMs() - lastLog) > 5_000) {
+                                    log.info("Beacon - exit in progress - {}%", Math.floor((double) (100 * rSize) / cSize));
                                     lastLog = Now.NowUtcMs();
                                 }
 
                             } catch ( IOException x ) {
                                 // in case of IOException Better skip the file
                                 prometeusService.addAwsFailure();
-                                log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
-                                if ( serviceEnable == false ) return;
+                                log.error("Failed to process file {} {}", object.key(), x.getMessage());
+                                if (!serviceEnable) return;
                                 else break;
                             } catch ( Exception x ) {
                                 log.error("AwsBeaconSync - "+x.getMessage());
-                                if ( serviceEnable == false ) return;
+                                if (!serviceEnable) return;
                                 x.printStackTrace();
                             }
 
@@ -344,41 +344,47 @@ public class AwsService {
                         prometeusService.addFileProcessed();
                         prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
                         try {
-                            String time_s = object.getKey().split("\\.")[1];
+                            String time_s = object.key().split("\\.")[1];
                             prometeusService.changeFileBeaconTimestamp(Long.parseLong(time_s));
                         } catch (Exception x) {
                             // don't care that is monitoring
-                            log.error("Can't parse file timestamp for "+object.getKey());
+                            log.error("Can't parse file timestamp for {}", object.key());
                         }
 
                     } catch (IOException x) {
                         prometeusService.addAwsFailure();
-                        log.error("Failed to gunzip for Key "+object.getKey()+" "+x.getMessage());
+                        log.error("Failed to gunzip for Key {} {}", object.key(), x.getMessage());
                     } catch (Exception x) {
                         prometeusService.addAwsFailure();
-                        log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
+                        log.error("Failed to process file {} {}", object.key(), x.getMessage());
                     }
 
                     if ( fileType == 1 ) {
-                        beaconFile.setStringValue(object.getKey());
+                        beaconFile.setStringValue(object.key());
                         paramRepository.save(beaconFile);
                     }
                     hotspotCache.flushTopLines();
-                    if ( serviceEnable == false ) {
+                    if (!serviceEnable) {
                         log.info("Beacon - exit done");
                         // we had a request to quit and at this point we can make it
                         // clean
                         return;
                     }
                 }
-                lor.setContinuationToken(list.getNextContinuationToken());
+
+                lor = ListObjectsV2Request.builder()
+                        .bucket(etlConfig.getAwsBucketName())
+                        .prefix("foundation-iot-ingest")
+                        .continuationToken(list.nextContinuationToken())
+                        .requestPayer(RequestPayer.REQUESTER)
+                        .build();
 
             } while (list.isTruncated());
-        } catch (AmazonServiceException x) {
+        } catch (AwsServiceException x) {
             prometeusService.addAwsFailure();
             log.error(x.getMessage());
             x.printStackTrace();
-        } catch (AmazonClientException x) {
+        } catch ( SdkClientException x) {
             prometeusService.addAwsFailure();
             log.error(x.getMessage());
             x.printStackTrace();
@@ -394,6 +400,9 @@ public class AwsService {
 
     }
 
+    // ===========================================================
+    // Witness Sync
+    // ===========================================================
 
     protected boolean witThreadEnable = true;
     public class ProcessWitness implements Runnable {
@@ -409,12 +418,12 @@ public class AwsService {
         }
         public void run() {
             this.status = true;
-            log.info("Starting witness process thread "+id);
+            log.info("Starting witness process thread {}", id);
             lora_witness_ingest_report_v1 w;
             while ( (w = queue.poll()) != null || witThreadEnable ) {
                 if ( w != null) {
                     if (!hotspotCache.addWitness(w)) {
-                        log.debug("Th(" + id + ") witness not processed " + w.getReceivedTimestamp());
+                        log.debug("Th({}) witness not processed {}", id, w.getReceivedTimestamp());
                     }
                 } else {
                     try {
@@ -422,7 +431,7 @@ public class AwsService {
                     } catch (InterruptedException x) {x.printStackTrace();}
                 }
             }
-            log.info("Closing witness process thread "+id);
+            log.info("Closing witness process thread {}", id);
         }
     }
 
@@ -457,42 +466,44 @@ public class AwsService {
         }
 
         try {
-            final ListObjectsV2Request lor = new ListObjectsV2Request();
-            lor.setBucketName(etlConfig.getAwsBucketName());
-            lor.setPrefix("foundation-iot-ingest");
-            lor.setStartAfter(witnessFile.getStringValue());
-            lor.setRequesterPays(true);
-            ListObjectsV2Result list;
+            ListObjectsV2Request lor = ListObjectsV2Request.builder()
+                    .bucket(etlConfig.getAwsBucketName())
+                    .prefix("foundation-iot-ingest")
+                    .startAfter(witnessFile.getStringValue())
+                    .requestPayer(RequestPayer.REQUESTER)
+                    .build();
+
+            ListObjectsV2Response list;
             long totalObject = 0;
             long totalSize = 0;
             long totalWitness = 0;
             do {
                 list = this.s3Client.listObjectsV2(lor);
-                List<S3ObjectSummary> objects = list.getObjectSummaries();
-                for (S3ObjectSummary object : objects) {
-                    long cSize = object.getSize();
+                List<S3Object> objects = list.contents();
+                for (S3Object object : objects) {
+                    long cSize = object.size();
                     long rSize = 0;
                     totalObject++;
-                    totalSize+=object.getSize();
-                    if ( object.getSize() == 0 ) continue;
+                    totalSize+=object.size();
+                    if ( object.size() == 0 ) continue;
                     long fileStart = Now.NowUtcMs();
 
                     // Identify the type of objects
                     //  iot_beacon_ingest_report => beacons
                     //  iot_witness_ingest_report => witnesses
-                    if ( ! object.getKey().contains(".gz") ) continue; // not a file
-                    String fileName = object.getKey().split("/")[1];
+                    if ( ! object.key().contains(".gz") ) continue; // not a file
+                    String fileName = object.key().split("/")[1];
                     int fileType = getFileType(fileName);
-                    long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
+                    long fileDate = Long.parseLong(object.key().split("\\.")[1]);
                     if ( fileType != 2 ) continue;
                     if ( fileDate/1000 < etlConfig.getWitnessHistoryStartDate() ) {
-                        witnessFile.setStringValue(object.getKey());
+                        witnessFile.setStringValue(object.key());
                         paramRepository.save(witnessFile);
                         continue;
                     }
 
                     try {
-                        long fileTimestamp = Long.parseLong(object.getKey().split("\\.")[1]);
+                        long fileTimestamp = Long.parseLong(object.key().split("\\.")[1]);
                         long beaconTimestamp = Long.parseLong(beaconFile.getStringValue().split("\\.")[1]);
                         if ( fileTimestamp > (beaconTimestamp - 20*60_000) && etlConfig.isBeaconLoadEnable() ) {
                             // in this situation, the witness file can be too much fresh and we could
@@ -502,21 +513,25 @@ public class AwsService {
                             return;
                         }
                     } catch (Exception x ) {
-                        log.error("Impossible to parse file name for "+object.getKey());
+                        log.error("Impossible to parse file name for {}", object.key());
                         // better skip it
                         continue;
                     }
                     //log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - Long.parseLong(object.getKey().split("\\.")[1]) )/(Now.ONE_FULL_DAY)+") days");
 
-                    final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
-                    or.setRequesterPays(true);
-                    S3Object fileObject = this.s3Client.getObject(or);
+                    final GetObjectRequest or = GetObjectRequest.builder()
+                            .bucket(etlConfig.getAwsBucketName())
+                            .key(object.key())
+                            .requestPayer(RequestPayer.REQUESTER)
+                            .build();
 
                     try {
+                        ResponseInputStream<GetObjectResponse> fileStream = this.s3Client.getObject(or);
+
                         // File is GZiped Version of a stream of protobuf messages
                         // each protobuf messages is encapsulated with a header
                         // int4 containing the length of the protobuf message following.
-                        GZIPInputStream stream = new GZIPInputStream(fileObject.getObjectContent());
+                        GZIPInputStream stream = new GZIPInputStream(fileStream);
                         BufferedInputStream bufferedInputStream = new BufferedInputStream(stream);
                         while ( bufferedInputStream.available() > 0 ) {
                             try {
@@ -545,31 +560,31 @@ public class AwsService {
                                     */
 
                                 } else {
-                                    log.error("Found 0 len entry " + HexaConverters.byteToHexStringWithSpace(sz));
+                                    log.error("Found 0 len entry {}", HexaConverters.byteToHexStringWithSpace(sz));
                                 }
 
                                 // print progress log on regular basis
                                 if ((Now.NowUtcMs() - lastLog) > 30_000) {
-                                    String distance_s = object.getKey().split("\\.")[1];
+                                    String distance_s = object.key().split("\\.")[1];
                                     long distance = Now.NowUtcMs() - Long.parseLong(distance_s);
-                                    log.info("Witness Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, tObject: " + totalObject + " tWitness: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                    log.info("Witness Dist: {} days, tObject: {} tWitness: {} tSize: {}MB, Duration: {}m", Math.floor(distance / Now.ONE_FULL_DAY), totalObject, totalWitness, totalSize / (1024 * 1024), (Now.NowUtcMs() - start) / 60_000);
                                     lastLog = Now.NowUtcMs();
                                 }
                                 // print process state on exit request
-                                if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
-                                    log.info("Witness - exit in progress - "+(Math.floor((100*rSize)/cSize))+"%" );
+                                if ( !serviceEnable && (Now.NowUtcMs() - lastLog) > 5_000) {
+                                    log.info("Witness - exit in progress - {}%", Math.floor((100 * rSize) / cSize));
                                     lastLog = Now.NowUtcMs();
                                 }
 
                             } catch ( IOException x ) {
                                 // in case of IOException Better skip the file
                                 prometeusService.addAwsFailure();
-                                log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
-                                if ( serviceEnable == false ) return;
+                                log.error("Failed to process file {} {}", object.key(), x.getMessage());
+                                if (!serviceEnable) return;
                                 else break;
                             } catch ( Exception x ) {
-                                log.error("AwsWitnessSync - "+x.getMessage());
-                                if ( serviceEnable == false ) return;
+                                log.error("AwsWitnessSync - {}", x.getMessage());
+                                if (!serviceEnable) return;
                                 x.printStackTrace();
                             }
 
@@ -579,41 +594,46 @@ public class AwsService {
                         prometeusService.addFileProcessed();
                         prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
                         try {
-                            String time_s = object.getKey().split("\\.")[1];
+                            String time_s = object.key().split("\\.")[1];
                             prometeusService.changeFileWitnessTimestamp(Long.parseLong(time_s));
                         } catch (Exception x) {
                             // don't care that is monitoring
-                            log.error("Can't parse file timestamp for "+object.getKey());
+                            log.error("Can't parse file timestamp for {}", object.key());
                         }
 
                     } catch (IOException x) {
                         prometeusService.addAwsFailure();
-                        log.error("Failed to gunzip for Key "+object.getKey()+" "+x.getMessage());
+                        log.error("Failed to gunzip for Key {} {}", object.key(), x.getMessage());
                     } catch (Exception x) {
                         prometeusService.addAwsFailure();
-                        log.error("Failed to process file "+object.getKey()+" "+x.getMessage());
+                        log.error("Failed to process file {} {}", object.key(), x.getMessage());
                     }
 
                     if ( fileType == 2 ) {
-                        witnessFile.setStringValue(object.getKey());
+                        witnessFile.setStringValue(object.key());
                         paramRepository.save(witnessFile);
                     }
                     hotspotCache.flushTopLines();
-                    if ( serviceEnable == false ) {
+                    if (!serviceEnable) {
                         // we had a request to quit and at this point we can make it
                         // clean
                         log.info("Witness - exit ready");
                         return;
                     }
                 }
-                lor.setContinuationToken(list.getNextContinuationToken());
+                lor = ListObjectsV2Request.builder()
+                        .bucket(etlConfig.getAwsBucketName())
+                        .prefix("foundation-iot-ingest")
+                        .continuationToken(list.nextContinuationToken())
+                        .requestPayer(RequestPayer.REQUESTER)
+                        .build();
 
             } while (list.isTruncated());
-        } catch (AmazonServiceException x) {
+        } catch (AwsServiceException x) {
             prometeusService.addAwsFailure();
             log.error(x.getMessage());
             x.printStackTrace();
-        } catch (AmazonClientException x) {
+        } catch (SdkClientException x) {
             prometeusService.addAwsFailure();
             log.error(x.getMessage());
             x.printStackTrace();
@@ -647,9 +667,9 @@ public class AwsService {
         }
     }
 
-    // ---------------------------------------
-    // IoT Poc
-    // ---------------------------------------
+    // ===========================================================
+    // IoT POC Sync
+    // ===========================================================
 
     protected boolean pocThreadEnable = true;
     protected volatile boolean firstFile = true;
@@ -741,33 +761,36 @@ public class AwsService {
 
         long totalObject = 0;
         try {
-            final ListObjectsV2Request lor = new ListObjectsV2Request();
-            lor.setBucketName(etlConfig.getAwsBucketName());
-            lor.setPrefix("foundation-iot-verified-rewards");
-            lor.setStartAfter(iotPocFile.getStringValue());
-            lor.setRequesterPays(true);
-            ListObjectsV2Result list;
+
+            ListObjectsV2Request lor = ListObjectsV2Request.builder()
+                    .bucket(etlConfig.getAwsBucketName())
+                    .prefix("foundation-iot-verified-rewards")
+                    .startAfter(iotPocFile.getStringValue())
+                    .requestPayer(RequestPayer.REQUESTER)
+                    .build();
+
+            ListObjectsV2Response list;
             long totalSize = 0;
             long totalWitness = 0;
             int notExpectedFile = 0;
             do {
                 list = this.s3Client.listObjectsV2(lor);
-                List<S3ObjectSummary> objects = list.getObjectSummaries();
-                for (S3ObjectSummary object : objects) {
+                List<S3Object> objects = list.contents();
+                for (S3Object object : objects) {
 
-                    long cSize = object.getSize();
+                    long cSize = object.size();
                     long rSize = 0;
                     totalObject++;
-                    totalSize+=object.getSize();
-                    if ( object.getSize() == 0 ) continue;
+                    totalSize+=object.size();
+                    if ( object.size() == 0 ) continue;
                     long fileStart = Now.NowUtcMs();
 
                     // Identify the type of objects
                     //  iot_poc => valid poc
-                    if ( ! object.getKey().contains(".gz") ) continue; // not a file
-                    String fileName = object.getKey().split("/")[1];
+                    if ( ! object.key().contains(".gz") ) continue; // not a file
+                    String fileName = object.key().split("/")[1];
                     int fileType = getFileType(fileName);
-                    long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
+                    long fileDate = Long.parseLong(object.key().split("\\.")[1]);
                     if ( fileType != 3 ) {
                         notExpectedFile++;
                         if ( notExpectedFile < 5 ) continue;
@@ -777,7 +800,7 @@ public class AwsService {
                     }
 
                     if ( fileDate/1000 < etlConfig.getIotpocHistoryStartDate() ) {
-                        iotPocFile.setStringValue(object.getKey());
+                        iotPocFile.setStringValue(object.key());
                         paramRepository.save(iotPocFile);
                         continue;
                     }
@@ -815,7 +838,7 @@ public class AwsService {
                     }
                     */
 
-                    log.debug("Processing type "+fileType+": "+fileName+"("+(Now.NowUtcMs() - fileDate )/(Now.ONE_FULL_DAY)+") days");
+                    log.debug("Processing type {}: {}({}) days", fileType, fileName, (Now.NowUtcMs() - fileDate) / (Now.ONE_FULL_DAY));
 
                     boolean readOk = false;
                     retry = 0;
@@ -823,18 +846,37 @@ public class AwsService {
                     while ( ! readOk && retry < 10 ) {
 
                         File localFile = new File("./files/" + fileName);
-                        if (!localFile.exists() || localFile.length() != object.getSize() ) {
+                        if (!localFile.exists() || localFile.length() != object.size() ) {
                             if ( localFile.exists() ) {
-                                log.debug("Re-Download from S3: "+fileName);
+                                log.debug("Re-Download from S3: {}", fileName);
                                 localFile.delete();
                             }
                             // read it on Amazon, then it exists
-                            final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
-                            or.setRequesterPays(true);
-                            this.s3Client.getObject(or, localFile);
-
+                            final GetObjectRequest or = GetObjectRequest.builder()
+                                    .bucket(etlConfig.getAwsBucketName())
+                                    .key(object.key())
+                                    .requestPayer(RequestPayer.REQUESTER)
+                                    .build();
+                            ResponseInputStream<GetObjectResponse> fileStream = this.s3Client.getObject(or);
+                            try {
+                                FileOutputStream fos = new FileOutputStream(localFile);
+                                byte[] buffer = new byte[8192];
+                                int bytesRead;
+                                while ((bytesRead = fileStream.read(buffer)) > 0) {
+                                    fos.write(buffer, 0, bytesRead);
+                                }
+                                fos.close();
+                            } catch (FileNotFoundException | SecurityException x) {
+                                prometeusService.addAwsFailure();
+                                log.error("Failed to create local file for Key {} {}", object.key(), x.getMessage());
+                                continue;
+                            } catch (IOException x) {
+                                prometeusService.addAwsFailure();
+                                log.error("Failed to download file {} {}", object.key(), x.getMessage());
+                                continue;
+                            }
                         } else {
-                            log.debug("Use local file: "+fileName);
+                            log.debug("Use local file: {}", fileName);
                         }
 
                         GZIPInputStream stream = null;
@@ -862,7 +904,7 @@ public class AwsService {
                                 } catch (IOException x) {
                                     // in case of IOException Better skip the file
                                     prometeusService.addAwsFailure();
-                                    log.error("Failed to process file " + object.getKey() + " at entry " + toProcess.size() + "(" + x.getMessage() + ")");
+                                    log.error("Failed to process file " + object.key() + " at entry " + toProcess.size() + "(" + x.getMessage() + ")");
                                     if (!serviceEnable) return;
                                     toProcess.clear();
                                     retry++;
@@ -879,12 +921,12 @@ public class AwsService {
                             readOk = true;
                         } catch (IOException x) {
                             prometeusService.addAwsFailure();
-                            log.error("Failed to gunzip for Key " + object.getKey() + " " + x.getMessage());
+                            log.error("Failed to gunzip for Key {} {}", object.key(), x.getMessage());
                             toProcess.clear();
                             retry++;
                         } catch (Exception x) {
                             prometeusService.addAwsFailure();
-                            log.error("Failed to process file " + object.getKey() + " " + x.getMessage());
+                            log.error("Failed to process file {} {}", object.key(), x.getMessage());
                             toProcess.clear();
                             retry++;
                         } finally {
@@ -893,11 +935,11 @@ public class AwsService {
                         }
                     }
                     if ( retry == 10 ) {
-                        log.error("[!!!] Impossible to process file " + object.getKey()+ " skip it");
+                        log.error("[!!!] Impossible to process file {} skip it", object.key());
                         continue;
                     }
 
-                    log.info("IotPoc from "+new Date(new Timestamp(fileDate).getTime())+" has "+toProcess.size()+" objects" );
+                    log.info("IotPoc from {} has {} objects", new Date(new Timestamp(fileDate).getTime()), toProcess.size());
                     int current = 0;
                     for (lora_poc_v1 w : toProcess) {
                         try {
@@ -916,7 +958,7 @@ public class AwsService {
                             while (queues[q].size() >= etlConfig.getIotpocLoadParallelQueueSize()) {
                                 Now.sleep(2);
                                 if ( (Now.NowUtcMs() - _w) > 30_000 ) {
-                                    log.error("Failed to add in queue "+q+" with size "+queues[q].size());
+                                    log.error("Failed to add in queue {} with size {}", q, queues[q].size());
                                     break;
                                 }
                             }
@@ -925,17 +967,17 @@ public class AwsService {
                             // print progress log on regular basis
                             if ((Now.NowUtcMs() - lastLog) > 30_000) {
                                 long distance = Now.NowUtcMs() - fileDate;
-                                log.info("IoTPoc Dist: " + Math.floor(10*distance / Now.ONE_FULL_DAY)/10.0 + " days,fpro : "+current+"/"+toProcess.size()+" tObject: " + totalObject + " tPoc: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                log.info("IoTPoc Dist: {} days,fpro : {}/{} tObject: {} tPoc: {} tSize: {}MB, Duration: {}m", Math.floor(10 * distance / Now.ONE_FULL_DAY) / 10.0, current, toProcess.size(), totalObject, totalWitness, totalSize / (1024 * 1024), (Now.NowUtcMs() - start) / 60_000);
                                 lastLog = Now.NowUtcMs();
                             }
                             // print process state on exit request
                             if (!serviceEnable && (Now.NowUtcMs() - lastLog) > 5_000) {
-                                log.info("IoTPoc - exit in progress - " + (Math.floor((100 * current) / toProcess.size())) + "%");
+                                log.info("IoTPoc - exit in progress - {}%", Math.floor((100 * current) / toProcess.size()));
                                 lastLog = Now.NowUtcMs();
                             }
                             current++;
                         } catch ( Exception x ) {
-                            log.error("Failed to process IoTPoc "+object.getKey()+" at "+current+"/"+toProcess.size()+"["+x.getMessage()+"]");
+                            log.error("Failed to process IoTPoc {} at {}/{}[{}]", object.key(), current, toProcess.size(), x.getMessage());
                         }
                     } // end of current file
                     toProcess.clear();
@@ -949,7 +991,7 @@ public class AwsService {
                                 pending += queues[q].size();
                             }
                             try { Thread.sleep(10_000); } catch (InterruptedException x) {};
-                            log.info("> Waiting for 1st file to be finished... "+pending);
+                            log.info("> Waiting for 1st file to be finished... {}", pending);
                         } while ( pending > 0 );
                         this.firstFile = false;
                     }
@@ -958,7 +1000,7 @@ public class AwsService {
                     prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
                     prometeusService.changeFileIoTPocTimestamp(fileDate);
 
-                    iotPocFile.setStringValue(object.getKey());
+                    iotPocFile.setStringValue(object.key());
                     paramRepository.save(iotPocFile);
 
                     hotspotCache.flushTopLines();
@@ -969,20 +1011,25 @@ public class AwsService {
                         return;
                     }
                 }
-                lor.setContinuationToken(list.getNextContinuationToken());
+                lor = ListObjectsV2Request.builder()
+                        .bucket(etlConfig.getAwsBucketName())
+                        .prefix("foundation-iot-verified-rewards")
+                        .continuationToken(list.nextContinuationToken())
+                        .requestPayer(RequestPayer.REQUESTER)
+                        .build();
 
             } while (list.isTruncated());
-        } catch (AmazonServiceException x) {
+        } catch (AwsServiceException x) {
             prometeusService.addAwsFailure();
-            log.error("AwsIoTPocSync - Service "+x.getMessage());
+            log.error("AwsIoTPocSync - Service {}", x.getMessage());
             //x.printStackTrace();
-        } catch (AmazonClientException x) {
+        } catch (SdkClientException x) {
             prometeusService.addAwsFailure();
-            log.error("AwsIoTPocSync - Client "+x.getMessage());
+            log.error("AwsIoTPocSync - Client {}", x.getMessage());
             //x.printStackTrace();
         } catch (Exception x) {
             prometeusService.addAwsFailure();
-            log.error("IoTPoc Batch Failure "+x.getMessage());
+            log.error("IoTPoc Batch Failure {}", x.getMessage());
             //x.printStackTrace();
         } finally {
             // wait the parallel Thread to stop max 5 minutes
@@ -1020,11 +1067,9 @@ public class AwsService {
         }
     }
 
-
-
-    // ---------------------------------------
-    // Hotspots Rewards
-    // ---------------------------------------
+    // ===========================================================
+    // IoT Reward Sync
+    // ===========================================================
 
     protected boolean rewardThreadEnable = true;
     protected boolean currentIoTTokenIsHnt = false;
@@ -1101,33 +1146,35 @@ public class AwsService {
                 currentIoTTokenIsHnt = true;
             }
 
-            final ListObjectsV2Request lor = new ListObjectsV2Request();
-            lor.setBucketName(etlConfig.getAwsBucketName());
-            lor.setPrefix("foundation-iot-verified-rewards");
-            lor.setStartAfter(rewardPocFile.getStringValue());
-            lor.setRequesterPays(true);
-            ListObjectsV2Result list;
+            ListObjectsV2Request lor = ListObjectsV2Request.builder()
+                    .bucket(etlConfig.getAwsBucketName())
+                    .prefix("foundation-iot-verified-rewards")
+                    .startAfter(rewardPocFile.getStringValue())
+                    .requestPayer(RequestPayer.REQUESTER)
+                    .build();
+
+            ListObjectsV2Response list;
             long totalSize = 0;
             long totalWitness = 0;
             int notExpectedFile = 0;
             do {
                 list = this.s3Client.listObjectsV2(lor);
-                List<S3ObjectSummary> objects = list.getObjectSummaries();
-                for (S3ObjectSummary object : objects) {
-                    log.info(">> Found IoT Reward file {} with size {}", object.getKey(), object.getSize());
-                    long cSize = object.getSize();
+                List<S3Object> objects = list.contents();
+                for (S3Object object : objects) {
+                    log.info(">> Found IoT Reward file {} with size {}", object.key(), object.size());
+                    long cSize = object.size();
                     long rSize = 0;
                     totalObject++;
-                    totalSize+=object.getSize();
-                    if ( object.getSize() == 0 ) continue;
+                    totalSize+=object.size();
+                    if ( object.size() == 0 ) continue;
                     long fileStart = Now.NowUtcMs();
 
                     // Identify the type of objects
                     //  iot_poc => valid poc
-                    if ( ! object.getKey().contains(".gz") ) continue; // not a file
-                    String fileName = object.getKey().split("/")[1];
+                    if ( ! object.key().contains(".gz") ) continue; // not a file
+                    String fileName = object.key().split("/")[1];
                     int fileType = getFileType(fileName);
-                    long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
+                    long fileDate = Long.parseLong(object.key().split("\\.")[1]);
                     if ( fileType != 4 ) {
                         notExpectedFile++;
                         if ( notExpectedFile < 5 ) continue;
@@ -1138,12 +1185,12 @@ public class AwsService {
 
                     long rewardDate = Long.parseLong(rewardPocFile.getStringValue().split("\\.")[1]);
                     if ( fileDate < rewardDate ) {
-                        log.warn("IoT Reward - Skip file {} as it is older than the last one", object.getKey());
+                        log.warn("IoT Reward - Skip file {} as it is older than the last one", object.key());
                         continue;
                     }
 
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
-                        rewardPocFile.setStringValue(object.getKey());
+                        rewardPocFile.setStringValue(object.key());
                         paramRepository.save(rewardPocFile);
                         continue;
                     }
@@ -1156,16 +1203,35 @@ public class AwsService {
                     while ( ! readOk && retry < 10 ) {
 
                         File localFile = new File("./files/" + fileName);
-                        if (!localFile.exists() || localFile.length() != object.getSize() ) {
+                        if (!localFile.exists() || localFile.length() != object.size() ) {
                             if ( localFile.exists() ) {
                                 log.debug("Re-Download from S3: {}", fileName);
                                 localFile.delete();
                             }
                             // read it on Amazon, then it exists
-                            final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
-                            or.setRequesterPays(true);
-                            this.s3Client.getObject(or, localFile);
-
+                            final GetObjectRequest or = GetObjectRequest.builder()
+                                    .bucket(etlConfig.getAwsBucketName())
+                                    .key(object.key())
+                                    .requestPayer(RequestPayer.REQUESTER)
+                                    .build();
+                            ResponseInputStream<GetObjectResponse> fileStream = this.s3Client.getObject(or);
+                            try {
+                                FileOutputStream fos = new FileOutputStream(localFile);
+                                byte[] buffer = new byte[8192];
+                                int bytesRead;
+                                while ((bytesRead = fileStream.read(buffer)) > 0) {
+                                    fos.write(buffer, 0, bytesRead);
+                                }
+                                fos.close();
+                            } catch (FileNotFoundException | SecurityException x) {
+                                prometeusService.addAwsFailure();
+                                log.error("Failed to create local file for Key {} {}", object.key(), x.getMessage());
+                                continue;
+                            } catch (IOException x) {
+                                prometeusService.addAwsFailure();
+                                log.error("Failed to download file {} {}", object.key(), x.getMessage());
+                                continue;
+                            }
                         } else {
                             log.debug("Use local file: {}", fileName);
                         }
@@ -1196,7 +1262,7 @@ public class AwsService {
                                 } catch (IOException x) {
                                     // in case of IOException Better skip the file
                                     prometeusService.addAwsFailure();
-                                    log.error("Failed to process file {} {}", object.getKey(), x.getMessage());
+                                    log.error("Failed to process file {} {}", object.key(), x.getMessage());
                                     if (!serviceEnable) return;
                                     toProcess.clear();
                                     retry++;
@@ -1213,12 +1279,12 @@ public class AwsService {
                             readOk = true;
                         } catch (IOException x) {
                             prometeusService.addAwsFailure();
-                            log.error("Failed to gunzip for Key {} {}", object.getKey(), x.getMessage());
+                            log.error("Failed to gunzip for Key {} {}", object.key(), x.getMessage());
                             toProcess.clear();
                             retry++;
                         } catch (Exception x) {
                             prometeusService.addAwsFailure();
-                            log.error("Failed to process file {} {}", object.getKey(), x.getMessage());
+                            log.error("Failed to process file {} {}", object.key(), x.getMessage());
                             toProcess.clear();
                             retry++;
                         } finally {
@@ -1227,7 +1293,7 @@ public class AwsService {
                         }
                     }
                     if (retry == 10) {
-                        log.warn("Impossible to process file {} skip it", object.getKey());
+                        log.warn("Impossible to process file {} skip it", object.key());
                         continue;
                     }
 
@@ -1258,17 +1324,17 @@ public class AwsService {
                             // print progress log on regular basis
                             if ((Now.NowUtcMs() - lastLog) > 30_000) {
                                 long distance = Now.NowUtcMs() - fileDate;
-                                log.info("Rewards Dist: " + Math.floor(distance / Now.ONE_FULL_DAY) + " days, fpro : "+current+"/"+toProcess.size()+" tObject: " + totalObject + " tReward: " + totalWitness + " tSize: " + totalSize / (1024 * 1024) + "MB, Duration: " + (Now.NowUtcMs() - start) / 60_000 + "m");
+                                log.info("Rewards Dist: {} days, fpro : {}/{} tObject: {} tReward: {} tSize: {}MB, Duration: {}m", Math.floor(distance / Now.ONE_FULL_DAY), current, toProcess.size(), totalObject, totalWitness, totalSize / (1024 * 1024), (Now.NowUtcMs() - start) / 60_000);
                                 lastLog = Now.NowUtcMs();
                             }
                             // print process state on exit request
-                            if ( serviceEnable == false && (Now.NowUtcMs() - lastLog) > 5_000) {
+                            if ( !serviceEnable && (Now.NowUtcMs() - lastLog) > 5_000) {
                                 log.info("Rewards - exit in progress - {}%", Math.floor((100 * current) / toProcess.size()));
                                 lastLog = Now.NowUtcMs();
                             }
                             current++;
                         } catch ( Exception x ) {
-                            log.error("Failed to process IotReward "+object.getKey()+" at "+current+"/"+toProcess.size()+"["+x.getMessage()+"]");
+                            log.error("Failed to process IotReward {} at {}/{}[{}]", object.key(), current, toProcess.size(), x.getMessage());
                         }
                     } // end of current file
                     toProcess.clear();
@@ -1277,7 +1343,7 @@ public class AwsService {
                     prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
                     prometeusService.changeFileRewardTimestamp(fileDate);
 
-                    rewardPocFile.setStringValue(object.getKey());
+                    rewardPocFile.setStringValue(object.key());
                     paramRepository.save(rewardPocFile);
 
                     if (!serviceEnable) {
@@ -1287,14 +1353,19 @@ public class AwsService {
                         return;
                     }
                 }
-                lor.setContinuationToken(list.getNextContinuationToken());
+                lor = ListObjectsV2Request.builder()
+                        .bucket(etlConfig.getAwsBucketName())
+                        .prefix("foundation-iot-verified-rewards")
+                        .continuationToken(list.nextContinuationToken())
+                        .requestPayer(RequestPayer.REQUESTER)
+                        .build();
 
             } while (list.isTruncated());
-        } catch (AmazonServiceException x) {
+        } catch (AwsServiceException x) {
             prometeusService.addAwsFailure();
             log.error("AwsRewardSync - {}", x.getMessage());
            // x.printStackTrace();
-        } catch (AmazonClientException x) {
+        } catch (SdkClientException x) {
             prometeusService.addAwsFailure();
             log.error("AwsRewardSync - {}", x.getMessage());
            // x.printStackTrace();
@@ -1328,9 +1399,9 @@ public class AwsService {
     }
 
 
-    // ---------------------------------------
-    // Mobile Rewards
-    // ---------------------------------------
+    // ===========================================================
+    // Mobile Reward Sync
+    // ===========================================================
 
     protected boolean mobileRewardThreadEnable = true;
     protected boolean currentMobileTokenIsHnt = false;
@@ -1420,33 +1491,35 @@ public class AwsService {
                 currentMobileTokenIsHnt = true;
             }
 
-            final ListObjectsV2Request lor = new ListObjectsV2Request();
-            lor.setBucketName(etlConfig.getAwsBucketName());
-            lor.setPrefix("foundation-mobile-verified");
-            lor.setStartAfter(mobileRewardFile.getStringValue());
-            lor.setRequesterPays(true);
-            ListObjectsV2Result list;
+            ListObjectsV2Request lor = ListObjectsV2Request.builder()
+                    .bucket(etlConfig.getAwsBucketName())
+                    .prefix("foundation-mobile-verified")
+                    .startAfter(mobileRewardFile.getStringValue())
+                    .requestPayer(RequestPayer.REQUESTER)
+                    .build();
+
+            ListObjectsV2Response list;
             long totalSize = 0;
             long totalMobileRewards = 0;
             int notExpectedFile = 0;
             do {
                 list = this.s3Client.listObjectsV2(lor);
-                List<S3ObjectSummary> objects = list.getObjectSummaries();
-                for (S3ObjectSummary object : objects) {
-                    log.debug(">> Found Mobile Reward file {} with size {}", object.getKey(), object.getSize());
-                    long cSize = object.getSize();
+                List<S3Object> objects = list.contents();
+                for (S3Object object : objects) {
+                    log.debug(">> Found Mobile Reward file {} with size {}", object.key(), object.size());
+                    long cSize = object.size();
                     long rSize = 0;
                     totalObject++;
-                    totalSize+=object.getSize();
-                    if ( object.getSize() == 0 ) continue;
+                    totalSize+=object.size();
+                    if ( object.size() == 0 ) continue;
                     long fileStart = Now.NowUtcMs();
 
                     // Identify the type of objects
                     //  iot_poc => valid poc
-                    if ( ! object.getKey().contains(".gz") ) continue; // not a file
-                    String fileName = object.getKey().split("/")[1];
+                    if ( ! object.key().contains(".gz") ) continue; // not a file
+                    String fileName = object.key().split("/")[1];
                     int fileType = getFileType(fileName);
-                    long fileDate = Long.parseLong(object.getKey().split("\\.")[1]);
+                    long fileDate = Long.parseLong(object.key().split("\\.")[1]);
                     if ( fileType != 5 && fileType != 6  ) {
                         notExpectedFile++;
                         if ( notExpectedFile < 5 ) continue;
@@ -1460,12 +1533,12 @@ public class AwsService {
                     // ensure we don't go in the past
                     long rewardDate = Long.parseLong(mobileRewardFile.getStringValue().split("\\.")[1]);
                     if ( fileDate < rewardDate ) {
-                        log.warn("Mobile Reward - Skip file {} as it is older than the last one", object.getKey());
+                        log.warn("Mobile Reward - Skip file {} as it is older than the last one", object.key());
                         continue;
                     }
 
                     if ( fileDate/1000 < etlConfig.getRewardHistoryStartDate() ) {
-                        mobileRewardFile.setStringValue(object.getKey());
+                        mobileRewardFile.setStringValue(object.key());
                         paramRepository.save(mobileRewardFile);
                         continue;
                     }
@@ -1478,16 +1551,35 @@ public class AwsService {
                     while ( ! readOk && retry < 10 ) {
 
                         File localFile = new File("./files/" + fileName);
-                        if (!localFile.exists() || localFile.length() != object.getSize() ) {
+                        if (!localFile.exists() || localFile.length() != object.size() ) {
                             if ( localFile.exists() ) {
                                 log.debug("Re-Download from S3: {}", fileName);
                                 localFile.delete();
                             }
                             // read it on Amazon, then it exists
-                            final GetObjectRequest or = new GetObjectRequest(object.getBucketName(), object.getKey());
-                            or.setRequesterPays(true);
-                            this.s3Client.getObject(or, localFile);
-
+                            final GetObjectRequest or = GetObjectRequest.builder()
+                                    .bucket(etlConfig.getAwsBucketName())
+                                    .key(object.key())
+                                    .requestPayer(RequestPayer.REQUESTER)
+                                    .build();
+                            ResponseInputStream<GetObjectResponse> fileStream = this.s3Client.getObject(or);
+                            try {
+                                FileOutputStream fos = new FileOutputStream(localFile);
+                                byte[] buffer = new byte[8192];
+                                int bytesRead;
+                                while ((bytesRead = fileStream.read(buffer)) > 0) {
+                                    fos.write(buffer, 0, bytesRead);
+                                }
+                                fos.close();
+                            } catch (FileNotFoundException | SecurityException x) {
+                                prometeusService.addAwsFailure();
+                                log.error("Failed to create local file for Key {} {}", object.key(), x.getMessage());
+                                continue;
+                            } catch (IOException x) {
+                                prometeusService.addAwsFailure();
+                                log.error("Failed to download file {} {}", object.key(), x.getMessage());
+                                continue;
+                            }
                         } else {
                             log.debug("Use local file: {}", fileName);
                         }
@@ -1525,14 +1617,14 @@ public class AwsService {
                                 } catch (IOException x) {
                                     // in case of IOException Better skip the file
                                     prometeusService.addAwsFailure();
-                                    log.error("Failed to process file {} {}", object.getKey(), x.getMessage());
-                                    if (serviceEnable == false) return;
+                                    log.error("Failed to process file {} {}", object.key(), x.getMessage());
+                                    if (!serviceEnable) return;
                                     toProcess.clear();
                                     retry++;
                                     break;
                                 } catch (Exception x) {
                                     log.error("AwsMobileRewardSync - {}", x.getMessage());
-                                    if (serviceEnable == false) return;
+                                    if (!serviceEnable) return;
                                     x.printStackTrace();
                                     toProcess.clear();
                                     retry++;
@@ -1542,12 +1634,12 @@ public class AwsService {
                             readOk = true;
                         } catch (IOException x) {
                             prometeusService.addAwsFailure();
-                            log.error("Failed to gunzip for Key {} {}", object.getKey(), x.getMessage());
+                            log.error("Failed to gunzip for Key {} {}", object.key(), x.getMessage());
                             toProcess.clear();
                             retry++;
                         } catch (Exception x) {
                             prometeusService.addAwsFailure();
-                            log.error("Failed to process file {} {}", object.getKey(), x.getMessage());
+                            log.error("Failed to process file {} {}", object.key(), x.getMessage());
                             toProcess.clear();
                             retry++;
                         } finally {
@@ -1556,7 +1648,7 @@ public class AwsService {
                         }
                     }
                     if (retry == 10) {
-                        log.warn("Impossible to process file {} skip it", object.getKey());
+                        log.warn("Impossible to process file {} skip it", object.key());
                         continue;
                     }
 
@@ -1620,7 +1712,7 @@ public class AwsService {
                             }
                             current++;
                         } catch ( Exception x ) {
-                            log.error("Failed to process Mobile Reward {} at {}/{}[{}]", object.getKey(), current, toProcess.size(), x.getMessage());
+                            log.error("Failed to process Mobile Reward {} at {}/{}[{}]", object.key(), current, toProcess.size(), x.getMessage());
                         }
                     } // end of current file
                     toProcess.clear();
@@ -1629,7 +1721,7 @@ public class AwsService {
                     prometeusService.addFileProcessedTime(Now.NowUtcMs() - fileStart);
                     prometeusService.changeFileMobileRewardTimestamp(fileDate);
 
-                    mobileRewardFile.setStringValue(object.getKey());
+                    mobileRewardFile.setStringValue(object.key());
                     paramRepository.save(mobileRewardFile);
 
                     if (!serviceEnable) {
@@ -1639,14 +1731,19 @@ public class AwsService {
                         return;
                     }
                 }
-                lor.setContinuationToken(list.getNextContinuationToken());
+                lor = ListObjectsV2Request.builder()
+                        .bucket(etlConfig.getAwsBucketName())
+                        .prefix("foundation-mobile-verified")
+                        .continuationToken(list.nextContinuationToken())
+                        .requestPayer(RequestPayer.REQUESTER)
+                        .build();
 
             } while (list.isTruncated());
-        } catch (AmazonServiceException x) {
+        } catch (AwsServiceException x) {
             prometeusService.addAwsFailure();
             log.error("AwsMobileRewardSync - {}", x.getMessage());
             // x.printStackTrace();
-        } catch (AmazonClientException x) {
+        } catch (SdkClientException x) {
             prometeusService.addAwsFailure();
             log.error("AwsMobileRewardSync - {}", x.getMessage());
             // x.printStackTrace();

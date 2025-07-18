@@ -55,6 +55,7 @@ public class EtlApplication implements CommandLineRunner, ExitCodeGenerator {
 	public void run(String... args) throws Exception {
 		long pid = ProcessHandle.current().pid();
 		System.out.println("-------------- GO ("+pid+")--------------");
+		System.out.println(">> Run mode: "+etlConfig.getRunMode());
 
 		// Test is parameter is here ( not on first start, immediately exit we just want to create the schema )
 		// This is because the table are not automatically shared and we need to make it manually

@@ -53,3 +53,17 @@ stop-etl: .FORCE
 stop: stop-etl
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring --profile webserver stop
 
+setup-dev: .FORCE
+	$(DOCKER_COMP_CMD) -f docker-compose-devel.yml up -d
+	-sleep 15
+	$(DOCKER_CMD) exec mongo-config-01 sh -c "mongosh < /scripts/config-server"
+	$(DOCKER_CMD) exec shard-01-node-a sh -c "mongosh < /scripts/shard-01-server"
+	$(DOCKER_CMD) exec shard-02-node-a sh -c "mongosh < /scripts/shard-02-server"
+	$(DOCKER_CMD) exec shard-03-node-a sh -c "mongosh < /scripts/shard-03-server"
+	-sleep 15
+	$(DOCKER_CMD) exec mongo-router-01 sh -c "mongosh < /scripts/router-server"
+	-sleep 15
+	$(DOCKER_COMP_CMD) -f docker-compose-devel.yml stop
+
+start-dev: .FORCE
+	$(DOCKER_COMP_CMD) -f docker-compose-devel.yml up -d

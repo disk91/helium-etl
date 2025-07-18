@@ -111,6 +111,21 @@ ufw allow from 172.0.0.0/8 to any port 9100
 ## Developers
 This is only for developers who want to work on the etl solution
 
+### Run locally
+
+Setup a database cluster with docker compose
+```bash
+make setup-dev
+make start-dev
+```
+
+Configure your application-dev.properties file in `etl/src/main/resources/` from a copy of `application-dev.properties-sample` file.
+You need to add the AWS credentials.
+
+Add `-Dspring.active.profiles=dev -Xmx8G -Xms8G` as a **VM option** in your IDE to run the application in dev mode. You need to use `More Options` 
+and select `VM options` with intelliJ.
+
+
 ### Re-Generate protobuf
 
 - Helium service GRPC proto can be found on - https://github.com/helium/proto/blob/master/src/

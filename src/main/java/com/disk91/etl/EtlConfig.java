@@ -38,6 +38,22 @@ public class EtlConfig {
     }
 
     // ====================================
+    // MISC
+    // ====================================
+    @Value("${run.mode:UNKNONWN}")
+    private String runMode;
+    public String getRunMode() {
+        return runMode;
+    }
+
+    @Value("${developer.mode.justload:false}")
+    private boolean developerModeJustLoad;
+    public boolean isDeveloperModeJustLoad() {
+        return developerModeJustLoad;
+    }
+
+
+    // ====================================
     // Helium legacy config
     // ====================================
 

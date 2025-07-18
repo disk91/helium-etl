@@ -32,7 +32,8 @@ dependencies {
     //implementation group: 'org.openjdk.jol', name: 'jol-core', version: '0.17'
     implementation group: 'com.google.protobuf', name: 'protobuf-java', version: '4.29.3'
 
-    implementation group: 'com.amazonaws', name:'aws-java-sdk', version: '1.12.782'
+    implementation group: 'software.amazon.awssdk', name:'aws-sdk-java', version: '2.31.78'
+    implementation group: 'software.amazon.awssdk', name:'apache-client', version: '2.31.78'
     implementation group: 'io.grpc', name: 'grpc-okhttp', version: '1.69.0'
     implementation group: 'io.grpc', name: 'grpc-netty', version:'1.69.0'
     implementation group: 'io.grpc', name: 'grpc-protobuf', version:'1.69.0'
