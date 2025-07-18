@@ -53,6 +53,9 @@ stop-etl: .FORCE
 stop: stop-etl
 	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring --profile webserver stop
 
+update: .FORCE
+	$(DOCKER_COMP_CMD) --profile mongo --profile etl --profile monitoring --profile webserver pull --ignore-pull-failures
+
 setup-dev: .FORCE
 	$(DOCKER_COMP_CMD) -f docker-compose-devel.yml up -d
 	-sleep 15
