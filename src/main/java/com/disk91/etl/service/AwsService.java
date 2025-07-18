@@ -250,6 +250,7 @@ public class AwsService {
                     .prefix("foundation-iot-ingest")
                     .startAfter(beaconFile.getStringValue())
                     .requestPayer(RequestPayer.REQUESTER)
+                    .maxKeys(etlConfig.getDeveloperModeMaxKeys())
                     .build();
 
             ListObjectsV2Response list;
@@ -377,6 +378,7 @@ public class AwsService {
                         .prefix("foundation-iot-ingest")
                         .continuationToken(list.nextContinuationToken())
                         .requestPayer(RequestPayer.REQUESTER)
+                        .maxKeys(etlConfig.getDeveloperModeMaxKeys())
                         .build();
 
             } while (list.isTruncated());
@@ -471,6 +473,7 @@ public class AwsService {
                     .prefix("foundation-iot-ingest")
                     .startAfter(witnessFile.getStringValue())
                     .requestPayer(RequestPayer.REQUESTER)
+                    .maxKeys(etlConfig.getDeveloperModeMaxKeys())
                     .build();
 
             ListObjectsV2Response list;
@@ -626,6 +629,7 @@ public class AwsService {
                         .prefix("foundation-iot-ingest")
                         .continuationToken(list.nextContinuationToken())
                         .requestPayer(RequestPayer.REQUESTER)
+                        .maxKeys(etlConfig.getDeveloperModeMaxKeys())
                         .build();
 
             } while (list.isTruncated());
@@ -767,6 +771,7 @@ public class AwsService {
                     .prefix("foundation-iot-verified-rewards")
                     .startAfter(iotPocFile.getStringValue())
                     .requestPayer(RequestPayer.REQUESTER)
+                    .maxKeys(etlConfig.getDeveloperModeMaxKeys())
                     .build();
 
             ListObjectsV2Response list;
@@ -776,6 +781,7 @@ public class AwsService {
             do {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3Object> objects = list.contents();
+                log.debug("Processing next batch of IoT PoC files with {} objects, starting with {}", objects.size(), (!objects.isEmpty())?objects.getFirst().key():"NA");
                 for (S3Object object : objects) {
 
                     long cSize = object.size();
@@ -1016,6 +1022,7 @@ public class AwsService {
                         .prefix("foundation-iot-verified-rewards")
                         .continuationToken(list.nextContinuationToken())
                         .requestPayer(RequestPayer.REQUESTER)
+                        .maxKeys(etlConfig.getDeveloperModeMaxKeys())
                         .build();
 
             } while (list.isTruncated());
@@ -1151,6 +1158,7 @@ public class AwsService {
                     .prefix("foundation-iot-verified-rewards")
                     .startAfter(rewardPocFile.getStringValue())
                     .requestPayer(RequestPayer.REQUESTER)
+                    .maxKeys(etlConfig.getDeveloperModeMaxKeys())
                     .build();
 
             ListObjectsV2Response list;
@@ -1160,6 +1168,7 @@ public class AwsService {
             do {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3Object> objects = list.contents();
+                log.debug("Processing next batch of IoT PoC files with {} objects, starting with {}", objects.size(), (!objects.isEmpty())?objects.getFirst().key():"NA");
                 for (S3Object object : objects) {
                     log.info(">> Found IoT Reward file {} with size {}", object.key(), object.size());
                     long cSize = object.size();
@@ -1358,6 +1367,7 @@ public class AwsService {
                         .prefix("foundation-iot-verified-rewards")
                         .continuationToken(list.nextContinuationToken())
                         .requestPayer(RequestPayer.REQUESTER)
+                        .maxKeys(etlConfig.getDeveloperModeMaxKeys())
                         .build();
 
             } while (list.isTruncated());
@@ -1496,6 +1506,7 @@ public class AwsService {
                     .prefix("foundation-mobile-verified")
                     .startAfter(mobileRewardFile.getStringValue())
                     .requestPayer(RequestPayer.REQUESTER)
+                    .maxKeys(etlConfig.getDeveloperModeMaxKeys())
                     .build();
 
             ListObjectsV2Response list;
@@ -1505,6 +1516,7 @@ public class AwsService {
             do {
                 list = this.s3Client.listObjectsV2(lor);
                 List<S3Object> objects = list.contents();
+                log.debug("Processing next batch of IoT PoC files with {} objects, starting with {}", objects.size(), (!objects.isEmpty())?objects.getFirst().key():"NA");
                 for (S3Object object : objects) {
                     log.debug(">> Found Mobile Reward file {} with size {}", object.key(), object.size());
                     long cSize = object.size();
@@ -1736,6 +1748,7 @@ public class AwsService {
                         .prefix("foundation-mobile-verified")
                         .continuationToken(list.nextContinuationToken())
                         .requestPayer(RequestPayer.REQUESTER)
+                        .maxKeys(etlConfig.getDeveloperModeMaxKeys())
                         .build();
 
             } while (list.isTruncated());

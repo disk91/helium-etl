@@ -52,6 +52,11 @@ public class EtlConfig {
         return developerModeJustLoad;
     }
 
+    @Value("${developer.mode.max.keys:250}")
+    private int developerModeMaxKeys;
+    public int getDeveloperModeMaxKeys() {
+        return developerModeMaxKeys;
+    }
 
     // ====================================
     // Helium legacy config

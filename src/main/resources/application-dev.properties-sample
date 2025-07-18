@@ -8,6 +8,8 @@ spring.task.scheduling.pool.size=32
 # Developer mode options
 #   - justload : when true, no data are stored in database, useful for testing aws access, comment to disable
 developer.mode.justload=true
+#   - max.keys : maximum number of keys to load for each aws loops in developer mode, useful for testing, comment to disable
+developer.mode.max.keys=100
 
 
 # Intercept SIGTERM signal
